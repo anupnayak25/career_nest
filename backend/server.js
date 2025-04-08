@@ -50,11 +50,11 @@ app.get("/", (req, res) => {
 // });
 
 // Additional routes
-app.use('/api/videos', require('../routes/videoRoutes'));
-app.use('/api/technical', require('../routes/technicalRoutes'));
-app.use('/api/quiz', require('../routes/quizRoutes'));
-app.use('/api/programming', require('../routes/programmingRoutes'));
-app.use('/api/hr', require('../routes/hrRoutes'));
+app.use('/api/videos', require('./routes/videoRoutes'));
+app.use('/api/technical', require('./routes/technicalRoutes'));
+app.use('/api/quiz', require('./routes/quizRoutes'));
+app.use('/api/programming', require('./routes/programmingRoutes'));
+app.use('/api/hr', require('./routes/hrRoutes'));
 
 // No app.listen here!
 module.exports = app;

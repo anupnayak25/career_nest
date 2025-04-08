@@ -1,6 +1,5 @@
 const express = require("express");
 //const mongoose = require("mongoose");
-const serverless = require("serverless-http");
 const cors = require("cors");
 
 const app = express();
@@ -58,4 +57,4 @@ app.use('/api/programming', require('../routes/programmingRoutes'));
 app.use('/api/hr', require('../routes/hrRoutes'));
 
 // No app.listen here!
-module.exports.handler = serverless(app);
+module.exports = app;

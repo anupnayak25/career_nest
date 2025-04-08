@@ -1,7 +1,90 @@
 const express = require('express');
 const router = express.Router();
 
-let quizzes = [];
+let quizzes = [
+  {
+    id: 1,
+    title: 'Java Basics Quiz',
+    description: 'This quiz tests fundamental Java knowledge including syntax, datatypes, and control flow.',
+    upload_date: '2025-04-06',
+    due_date: '2025-04-13',
+    questions: [
+      {
+        qno: 1,
+        question: 'Which of the following is a valid keyword in Java?',
+        options: ['interface', 'unsigned', 'friend', 'sizeof'],
+        marks: 5
+      },
+      {
+        qno: 2,
+        question: 'What is the default value of an int variable in Java?',
+        options: ['0', 'null', 'undefined', '1'],
+        marks: 5
+      },
+      {
+        qno: 3,
+        question: 'Which loop is guaranteed to execute at least once?',
+        options: ['for', 'while', 'do-while', 'none of the above'],
+        marks: 5
+      }
+    ]
+  },
+  {
+    id: 2,
+    title: 'OOP Principles Quiz',
+    description: 'Quiz on object-oriented principles such as inheritance, encapsulation, and polymorphism.',
+    upload_date: '2025-04-07',
+    due_date: '2025-04-14',
+    questions: [
+      {
+        qno: 1,
+        question: 'Which concept of OOP means hiding internal details?',
+        options: ['Encapsulation', 'Inheritance', 'Polymorphism', 'Abstraction'],
+        marks: 5
+      },
+      {
+        qno: 2,
+        question: 'Which keyword is used for inheritance in Java?',
+        options: ['this', 'extends', 'implements', 'import'],
+        marks: 5
+      },
+      {
+        qno: 3,
+        question: 'Polymorphism is achieved in Java through:',
+        options: ['Method Overloading', 'Method Overriding', 'Both A and B', 'None of the above'],
+        marks: 5
+      }
+    ]
+  },
+  {
+    id: 3,
+    title: 'Data Structures Quiz',
+    description: 'Covers basics of arrays, stacks, and queues.',
+    upload_date: '2025-04-08',
+    due_date: '2025-04-15',
+    questions: [
+      {
+        qno: 1,
+        question: 'Which data structure uses LIFO order?',
+        options: ['Queue', 'Array', 'Stack', 'Linked List'],
+        marks: 5
+      },
+      {
+        qno: 2,
+        question: 'Which of the following is not a linear data structure?',
+        options: ['Stack', 'Queue', 'Graph', 'Array'],
+        marks: 5
+      },
+      {
+        qno: 3,
+        question: 'Which of the following has dynamic memory allocation?',
+        options: ['Array', 'Stack', 'Queue', 'Linked List'],
+        marks: 5
+      }
+    ]
+  }
+];
+
 
 router.post('/', (req, res) => {
   const quiz = { id: Date.now(), ...req.body };

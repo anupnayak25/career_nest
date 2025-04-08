@@ -42,8 +42,12 @@ app.get("/users", async (req, res) => {
 });
 
 app.get("/", async (req, res) => {
-    res.send("Welcome to the API!")
+    res.send("Welcome to the API!");
   });
+app.get("/test", async (req, res) => {
+  res.send("Welcome to the API! hello world");
+}
+);
 app.post("/test", async (req, res) => {
     db.collection("test").insertOne(req.body, (err, result) => {
         if (err) {

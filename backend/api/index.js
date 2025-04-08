@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const serverless = require("serverless-http");
 const cors = require("cors");
 
 const app = express();
@@ -20,7 +21,7 @@ db.on("error", console.error.bind(console, "MongoDB connection error:"));
 db.once("open", () => {
   console.log("Connected to MongoDB database.");
 });
-
+module.exports.handler = serverless(app);
 // Sample Schema and Model
 const userSchema = new mongoose.Schema({
   name: String,
@@ -71,11 +72,12 @@ app.post("/users", async (req, res) => {
   }
 });
 
-app.use('/api/videos', require('./routes/videoRoutes'));
-app.use('/api/technical', require('./routes/technicalRoutes'));
-app.use('/api/quiz', require('./routes/quizRoutes'));
-app.use('/api/programming', require('./routes/programmingRoutes'));
-app.use('/api/hr', require('./routes/hrRoutes'));
+app.use('/api/videos', require('../routes/videoRoutes'));
+app.use('/api/technical', require('../routes/technicalRoutes'));
+app.use('/api/quiz', require('../routes/quizRoutes'));
+app.use('/api/programming', require('../routes/programmingRoutes'));
+app.use('/api/hr', require('../routes/hrRoutes'));
+
 
 // Start Server
 app.listen(PORT, () => {

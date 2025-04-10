@@ -53,6 +53,21 @@ let hrPosts = [
 ];
 
 
+let hrResponses =[
+  {
+    id: "87364",
+    userId: "ujbkefr34347",
+    response: [
+      {questionNo: 1, ans: ""}, //value for the ans key is link to the video
+      {questionNo: 2, ans: ""},
+      {questionNo: 3, ans: ""},
+],
+    createdOn: "20-02-2025"
+  }
+]
+
+
+
 
 router.post('/', (req, res) => {
   const post = { id: Date.now(), ...req.body };
@@ -81,5 +96,14 @@ router.delete('/:id', (req, res) => {
   hrPosts = hrPosts.filter(h => h.id != req.params.id);
   res.send('HR Post deleted');
 });
+
+router.post('/submit', (req, res) => {
+  const hrResponse = { id: Date.now(), ...req.body };
+  hrResponses.push(hrResponse);
+  res.status(201).json({
+    message: "Submitted successfully"
+  });
+});
+
 
 module.exports = router;

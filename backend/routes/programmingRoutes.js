@@ -126,6 +126,49 @@ public class TestOverride {
   }
 ];
 
+let programResponses = [
+  {
+    id: "87364",
+    userId: "ujbkefr34347",
+    response: [
+      {
+        questionNo: 1,
+        ans: `public class EvenOdd {
+  public static void main(String[] args) {
+    int num = 10;
+    if(num % 2 == 0)
+      System.out.println("Even");
+    else
+      System.out.println("Odd");
+  }
+}`},
+      {
+        questionNo: 2,
+        ans: `public class EvenOdd {
+  public static void main(String[] args) {
+    int num = 10;
+    if(num % 2 == 0)
+      System.out.println("Even");
+    else
+      System.out.println("Odd");
+  }
+}`},
+      {
+        questionNo: 3,
+        ans: `public class EvenOdd {
+  public static void main(String[] args) {
+    int num = 10;
+    if(num % 2 == 0)
+      System.out.println("Even");
+    else
+      System.out.println("Odd");
+  }
+}`}
+    ],
+    createdOn: "20-02-2025"
+  }
+]
+
 
 router.post('/', (req, res) => {
   const program = { id: Date.now(), ...req.body };
@@ -153,6 +196,14 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   programs = programs.filter(p => p.id != req.params.id);
   res.send('Program deleted');
+});
+
+router.post('/submit', (req, res) => {
+  const programResponse = { id: Date.now(), ...req.body };
+  programResponses.push(programResponse);
+  res.status(201).json({
+    message: "Submitted successfully"
+  });
 });
 
 module.exports = router;

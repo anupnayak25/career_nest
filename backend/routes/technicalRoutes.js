@@ -76,6 +76,19 @@ let technicalItems = [
   }
 ];
 
+let technicalResponses =[
+  {
+    id: "87364",
+    userId: "ujbkefr34347",
+    response: [
+      {questionNo: 1, ans: ""}, //value for the ans key is link to the video
+      {questionNo: 2, ans: ""},
+      {questionNo: 3, ans: ""},
+],
+    createdOn: "20-02-2025"
+  }
+]
+
 
 router.post('/', (req, res) => {
   const item = { id: Date.now(), ...req.body };
@@ -104,5 +117,20 @@ router.delete('/:id', (req, res) => {
   technicalItems = technicalItems.filter(i => i.id != req.params.id);
   res.send('Item deleted');
 });
+
+router.post('/submit', (req, res) => {
+  const technicalResponse = { id: Date.now(), ...req.body };
+  technicalResponses.push(technicalResponse);
+  res.status(201).json({
+    message: "Submitted successfully"
+  });
+});router.post('/submit', (req, res) => {
+  const technicalResponse = { id: Date.now(), ...req.body };
+  technicalResponses.push(technicalResponse);
+  res.status(201).json({
+    message: "Submitted successfully"
+  });
+});
+
 
 module.exports = router;

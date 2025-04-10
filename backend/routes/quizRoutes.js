@@ -86,6 +86,32 @@ let quizzes = [
 ];
 
 
+let quizResponses = [
+  {
+    id: "87364",
+    userId: "ujbkefr34347",
+    respons: [
+      {questionNo: 1, ans: 1},
+      {questionNo: 2, ans: 1},
+      {questionNo: 3, ans: 4},
+      {questionNo: 4, ans: 2},
+      {questionNo: 5, ans: 3},
+      {questionNo: 6, ans: 1},
+      {questionNo: 7, ans: 1},
+      {questionNo: 8, ans: 4},
+      {questionNo: 9, ans: 2},
+      {questionNo: 10, ans: 3},
+      {questionNo: 11, ans: 1},
+      {questionNo: 12, ans: 1},
+      {questionNo: 13, ans: 4},
+      {questionNo: 14, ans: 2},
+      {questionNo: 15, ans: 3}
+    ],
+    createdOn: "20-02-2025"
+  }
+]
+
+
 router.post('/', (req, res) => {
   const quiz = { id: Date.now(), ...req.body };
   quizzes.push(quiz);
@@ -112,6 +138,15 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   quizzes = quizzes.filter(q => q.id != req.params.id);
   res.send('Quiz deleted');
+});
+
+router.post('/submit', (req, res) => {
+  const quizResponse = { id: Date.now(), ...req.body };
+  quizResponses.push(quizResponse);
+  console.log(quizResponses);
+  res.status(201).json({
+    message: "Submitted successfully"
+  });
 });
 
 module.exports = router;

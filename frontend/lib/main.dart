@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import './student/dashboard.dart';
 
 void main() {
@@ -29,7 +30,6 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
@@ -50,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen> {
           onTap: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) =>  DashboardPage()),
+              MaterialPageRoute(builder: (context) => DashboardPage()),
             );
           },
           child: const Text(

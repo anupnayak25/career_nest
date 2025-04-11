@@ -3,7 +3,9 @@ import './programing/answer_page.dart';
 import './programing/programming_model.dart';
 import './programing/programming_service.dart';
 import './programing/result_page.dart';
-import './quiz/quiz_main.dart';
+import './quiz_pages/quiz_list.dart';
+import './quiz_pages/quiz_detail.dart';
+import './quiz_pages/quiz_main.dart';
 import './hr/hr_page.dart';
 import '../models/hr_model.dart';
 
@@ -151,7 +153,7 @@ class TestsPage extends StatelessWidget {
             const SizedBox(height: 10),
            
 
-            _buildTestCard(context, 'QUIZ', const QuizListPage()),
+          //  _buildTestCard(context, 'QUIZ', const QuizListPage()),
 
             
             

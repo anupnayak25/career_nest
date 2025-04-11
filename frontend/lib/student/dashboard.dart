@@ -4,6 +4,8 @@ import './programing/programming_model.dart';
 import './programing/programming_service.dart';
 import './programing/result_page.dart';
 import './quiz/quiz_main.dart';
+import './Technical/tech_page.dart';
+
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -142,6 +144,7 @@ class TestsPage extends StatelessWidget {
             const SizedBox(height: 10),
             _buildTestCard(context, 'QUIZ', QuizPage()),
             _buildTestCard(context, 'Programming', AnswerPage()),
+            _buildTestCard(context, 'Technical', CompletionPage())
           ],
         ),
       ),

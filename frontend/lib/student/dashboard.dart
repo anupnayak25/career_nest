@@ -2,18 +2,10 @@ import 'package:flutter/material.dart';
 import './programing/answer_page.dart';
 import './programing/programming_model.dart';
 import './programing/programming_service.dart';
-import './quiz_pages/quiz_result.dart';
-import './quiz_pages/quiz_list.dart'; 
-import 'package:career_nest/student/quiz_pages/quiz_detail.dart';
-//import './services/api_service.dart';
-
-import 'quiz_pages/quiz_list.dart';
-import 'quiz_pages/quiz_detail.dart'; // if used directly
- 
-
-
-
-
+import './programing/result_page.dart';
+import './quiz/quiz_main.dart';
+import './hr/hr_page.dart';
+import '../models/hr_model.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -49,8 +41,10 @@ class _DashboardPageState extends State<DashboardPage> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Tests'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Notification'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: 'Account'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.notifications), label: 'Notification'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle), label: 'Account'),
         ],
       ),
     );
@@ -66,7 +60,8 @@ class HomePage extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Hi, Kristin', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          title: const Text('Hi, Kristin',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           backgroundColor: Colors.blue,
         ),
         body: Column(
@@ -113,16 +108,19 @@ class VideoList extends StatelessWidget {
       itemCount: videos.length,
       itemBuilder: (context, index) {
         return Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(videos[index]['title']!,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 5),
-                Text(videos[index]['date']!, style: const TextStyle(color: Colors.grey)),
+                Text(videos[index]['date']!,
+                    style: const TextStyle(color: Colors.grey)),
               ],
             ),
           ),
@@ -139,7 +137,8 @@ class TestsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tests', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        title: const Text('Tests',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.blue,
       ),
       body: Padding(
@@ -160,6 +159,7 @@ class TestsPage extends StatelessWidget {
 
 
             _buildTestCard(context, 'Programming', AnswerPage()),
+            _buildTestCard(context, 'HR', const HrPage()),
           ],
         ),
       ),
@@ -197,7 +197,8 @@ class NotificationsPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: const [
-          NotificationCard('Congratulations on completing the test!', 'Just now'),
+          NotificationCard(
+              'Congratulations on completing the test!', 'Just now'),
           NotificationCard('Your course has been updated', 'Just now'),
           NotificationCard('You have a new message', 'Just now'),
         ],
@@ -247,7 +248,8 @@ class AccountPage extends StatelessWidget {
                   CircleAvatar(radius: 40, backgroundColor: Colors.blue),
                   SizedBox(height: 10),
                   Text('Kristin',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -269,4 +271,3 @@ class AccountPage extends StatelessWidget {
     );
   }
 }
-

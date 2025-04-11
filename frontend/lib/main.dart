@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import './student/dashboard.dart';
 import 'student/quiz_pages/quiz_main.dart';
 import 'package:career_nest/student/quiz_pages/quiz_detail.dart';
@@ -34,7 +35,6 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
@@ -55,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen> {
           onTap: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) =>  DashboardPage()),
+              MaterialPageRoute(builder: (context) => DashboardPage()),
             );
           },
           child: const Text(

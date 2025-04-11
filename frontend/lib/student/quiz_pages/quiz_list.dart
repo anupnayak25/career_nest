@@ -3,9 +3,6 @@ import 'quiz_service.dart';
 import 'quiz_model.dart';
 import 'quiz_detail.dart';
 
-
-
-
 class QuizListPage extends StatelessWidget {
   const QuizListPage({Key? key}) : super(key: key);
 

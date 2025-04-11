@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'quiz_model.dart';
-import 'quiz_result.dart';
+//import 'quiz_result.dart';
 
 
 class QuizDetailPage extends StatelessWidget {
@@ -17,10 +17,10 @@ class QuizDetailPage extends StatelessWidget {
           ElevatedButton(
             child: Text('Submit'),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ResultPage()),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (_) => const ResultPage()),
+              // );
             },
           ),
         ],

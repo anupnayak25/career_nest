@@ -2,8 +2,18 @@ import 'package:flutter/material.dart';
 import './programing/answer_page.dart';
 import './programing/programming_model.dart';
 import './programing/programming_service.dart';
-import './programing/result_page.dart';
-import './quiz/quiz_main.dart';
+import './quiz_pages/quiz_result.dart';
+import './quiz_pages/quiz_list.dart'; 
+import 'package:career_nest/student/quiz_pages/quiz_detail.dart';
+//import './services/api_service.dart';
+
+import 'quiz_pages/quiz_list.dart';
+import 'quiz_pages/quiz_detail.dart'; // if used directly
+ 
+
+
+
+
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -140,7 +150,15 @@ class TestsPage extends StatelessWidget {
             const Text('Choose your Test',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            _buildTestCard(context, 'QUIZ', QuizPage()),
+           
+
+            _buildTestCard(context, 'QUIZ', const QuizListPage()),
+
+            
+            
+
+
+
             _buildTestCard(context, 'Programming', AnswerPage()),
           ],
         ),

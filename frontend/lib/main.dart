@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import './student/dashboard.dart';
+import 'student/quiz_pages/quiz_main.dart';
+import 'package:career_nest/student/quiz_pages/quiz_detail.dart';
+
+
+
 
 void main() {
   runApp(const MyApp());

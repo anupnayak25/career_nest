@@ -1,4 +1,15 @@
 import 'package:flutter/material.dart';
+import 'quiz_model.dart';
+import 'quiz_detail.dart';
+import 'quiz_result.dart';
+import 'quiz_service.dart';
+import 'package:career_nest/student/dashboard.dart';
+import 'package:career_nest/main.dart';
+
+
+
+
+
 
 void main() {
   runApp(QuizApp());
@@ -9,12 +20,12 @@ class QuizApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: QuizPage(),
+      home: QuizListPage(),
     );
   }
 }
 
-class QuizPage extends StatelessWidget {
+class QuizListPage extends StatelessWidget {
   final List<Map<String, dynamic>> quizzes = [
     {'title': 'Title of the quiz', 'status': 'Take Quiz'},
     {'title': 'Title of the quiz', 'status': 'Take Quiz'},
@@ -84,7 +95,14 @@ class QuizPage extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        // if (!isDone) {
+                        //   Navigator.push(
+                        //     context,
+                        //     MaterialPageRoute(builder: (_) => QuizDetailPage(quiz: Quiz.fromMap(quiz))),
+                        //   );
+                        // }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
                             isDone ? Colors.red : Colors.blue.shade700,

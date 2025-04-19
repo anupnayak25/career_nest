@@ -11,16 +11,18 @@ class HrModel {
     required this.dueDate,
   });
 
-  factory HrModel.fromJson(Map<String, dynamic> json) {
-    return HrModel(
-      id: json['_id'],
-      title: json['title'],
-      dueDate: json['dueDate'],
-      questions: (json['questions'] as List)
-          .map((e) => Question.fromJson(e))
-          .toList(),
-    );
-  }
+factory HrModel.fromJson(Map<String, dynamic> json) {
+  return HrModel(
+    id: json['_id']?.toString() ?? '',  // null-safe with fallback
+    title: json['title']?.toString() ?? 'No Title',
+    dueDate: json['due_date']?.toString() ?? '',
+    questions: (json['questions'] as List<dynamic>?)
+            ?.map((e) => Question.fromJson(e))
+            .toList() ??
+        [],
+  );
+}
+
 }
 
 class Question {
@@ -34,11 +36,12 @@ class Question {
     required this.marks,
   });
 
-  factory Question.fromJson(Map<String, dynamic> json) {
-    return Question(
-      qno: json['qno'],
-      question: json['question'],
-      marks: json['marks'],
-    );
-  }
+ factory Question.fromJson(Map<String, dynamic> json) {
+  return Question(
+    qno: json['qno'] ?? 0,
+    question: json['question']?.toString() ?? 'No question',
+    marks: json['marks'] ?? 0,
+  );
+}
+
 }

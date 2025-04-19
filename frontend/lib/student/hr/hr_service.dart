@@ -8,7 +8,8 @@ class HrService {
   Future<List<HrModel>> fetchHrList() async {
     try {
       final response = await http.get(Uri.parse(_apiUrl));
-
+       //print('Response status: ${response.statusCode}');
+      //print('Response body: ${response.body}');
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);
         return jsonData.map((e) => HrModel.fromJson(e)).toList();

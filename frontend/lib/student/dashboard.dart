@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './programing/answer_page.dart';
+import './programing/programming_list.dart';
 import './quiz_pages/quiz_list.dart';
 import './hr/hr_page.dart';
 
@@ -147,7 +147,7 @@ class TestsPage extends StatelessWidget {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             _buildTestCard(context, 'QUIZ', new QuizListPage()),
-            _buildTestCard(context, 'Programming', AnswerPage()),
+            _buildTestCard(context, 'Programming',const ProgramingListPage()),
             _buildTestCard(context, 'HR', const HrPage()),
           ],
         ),

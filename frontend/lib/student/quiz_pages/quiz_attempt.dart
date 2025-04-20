@@ -1,0 +1,102 @@
+import 'package:flutter/material.dart';
+import 'quiz_model.dart';
+
+class QuizDetailPage extends StatefulWidget {
+  final Quiz quiz;
+  const QuizDetailPage({super.key, required this.quiz});
+
+  @override
+  State<QuizDetailPage> createState() => _QuizDetailPageState();
+}
+
+class _QuizDetailPageState extends State<QuizDetailPage> {
+  // Stores selected answers: question number => selected option
+  Map<int, String> selectedAnswers = {};
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.quiz.title)),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.quiz.description,
+              style: const TextStyle(fontSize: 16.0),
+            ),
+            const SizedBox(height: 16.0),
+            const Text(
+              'Questions:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8.0),
+
+            // Display each question
+            ...widget.quiz.questions.map((question) {
+              return Container(
+                margin: const EdgeInsets.symmetric(vertical: 10.0),
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1EDF8),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${question.qno}) ${question.question}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        children: question.options.map<Widget>((option) {
+                          return RadioListTile<String>(
+                            value: option,
+                            groupValue: selectedAnswers[question.qno],
+                            onChanged: (value) {
+                              setState(() {
+                                selectedAnswers[question.qno] = value!;
+                              });
+                            },
+                            title: Text(
+                              option,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            activeColor: Colors.white,
+                            controlAffinity: ListTileControlAffinity.leading,
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+
+            const SizedBox(height: 16.0),
+            Center(
+              child: ElevatedButton(
+                child: const Text('Submit'),
+                onPressed: () {
+                  // Handle submission logic here
+                  print('Selected Answers: $selectedAnswers');
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -37,7 +37,8 @@ let programs = [
 }`,
         marks: 10
       }
-    ]
+    ],
+    totalMarks: 20,
   },
   {
     id: 2,
@@ -89,7 +90,8 @@ public class TestOverride {
 }`,
         marks: 10
       }
-    ]
+    ],
+    totalMarks: 25,
   },
   {
     id: 3,
@@ -123,6 +125,8 @@ public class TestOverride {
         marks: 20
       }
     ]
+    ,
+    totalMarks: 20,
   }
 ];
 

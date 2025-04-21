@@ -12,7 +12,8 @@ let hrPosts = [
       { qno: 1, question: 'Give a brief introduction about yourself.', marks: 10 },
       { qno: 2, question: 'What motivates you to apply for this role?', marks: 5 },
       { qno: 3, question: 'Highlight your strengths and how they help you.', marks: 5 }
-    ]
+    ],
+    totalMarks: 20,
   },
   {
     id: 2,
@@ -24,7 +25,8 @@ let hrPosts = [
       { qno: 1, question: 'Describe a time when you worked in a team to accomplish a goal.', marks: 10 },
       { qno: 2, question: 'Have you ever taken a leadership role? What was the outcome?', marks: 10 },
       { qno: 3, question: 'How do you handle conflicts in a team setting?', marks: 5 }
-    ]
+    ],
+    totalMarks: 25,
   },
   {
     id: 3,
@@ -36,7 +38,8 @@ let hrPosts = [
       { qno: 1, question: 'Tell me about a time you faced a tough challenge. How did you overcome it?', marks: 10 },
       { qno: 2, question: 'How do you handle tight deadlines?', marks: 5 },
       { qno: 3, question: 'What do you do when you don’t know how to complete a task?', marks: 5 }
-    ]
+    ],
+    totalMarks: 20,
   },
   {
     id: 4,
@@ -48,7 +51,8 @@ let hrPosts = [
       { qno: 1, question: 'What do you know about our company?', marks: 5 },
       { qno: 2, question: 'Where do you see yourself in five years?', marks: 10 },
       { qno: 3, question: 'Why should we hire you?', marks: 10 }
-    ]
+    ],
+    totalMarks: 25,
   }
 ];
 

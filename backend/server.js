@@ -31,7 +31,7 @@ app.use(express.json());
 //const User = mongoose.model("User", userSchema);
 
 // Routes
-
+app.use('/videos', express.static(path.join(__dirname, 'videos')));
 // Get all users
 app.get("/users", async (req, res) => {
   try {
@@ -72,12 +72,11 @@ app.post("/users", async (req, res) => {
   }
 });
 
-app.use('/api/videos', require('./routes/videoRoutes'));
 app.use('/api/technical', require('./routes/technicalRoutes'));
 app.use('/api/quiz', require('./routes/quizRoutes'));
 app.use('/api/programming', require('./routes/programmingRoutes'));
 app.use('/api/hr', require('./routes/hrRoutes'));
-
+app.use('/api/videos', require('./routes/videoRoutes'));
 
 // Start Server
 app.listen(PORT, () => {

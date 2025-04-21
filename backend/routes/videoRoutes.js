@@ -1,42 +1,42 @@
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
 const router = express.Router();
-const Video = require('../models/Video');
 
-// CREATE
-router.post('/', async (req, res) => {
-  try {
-    const video = new Video(req.body);
-    await video.save();
-    res.status(201).json(video);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+// Set storage engine
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'videos'); // folder where videos will be stored
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
 
-// READ ALL
-router.get('/', async (req, res) => {
-  const videos = await Video.find();
-  res.json(videos);
-});
-
-// UPDATE
-router.put('/:id', async (req, res) => {
-  try {
-    const video = await Video.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(video);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+// Init upload
+const upload = multer({
+  storage,
+  limits: { fileSize: 100 * 1024 * 1024 }, // limit 100MB
+  fileFilter: (req, file, cb) => {
+    const filetypes = /mp4|mov|avi|mkv/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (extname && mimetype) {
+      return cb(null, true);
+    } else {
+      cb('Error: Videos Only!');
+    }
   }
 });
 
-// DELETE
-router.delete('/:id', async (req, res) => {
-  try {
-    await Video.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Video deleted' });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+// Route to upload video
+router.post('/upload', upload.single('video'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: 'No file uploaded' });
   }
+
+  const videoUrl = `${req.protocol}://${req.get('host')}/videos/${req.file.filename}`;
+  res.status(200).json({ message: 'Video uploaded successfully', url: videoUrl });
 });
 
 module.exports = router;

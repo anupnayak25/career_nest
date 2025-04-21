@@ -1,3 +1,5 @@
+import 'package:career_nest/student/techinical/technical_list.dart';
+import 'package:career_nest/student/techinical/technical_model.dart';
 import 'package:flutter/material.dart';
 import './programing/programming_list.dart';
 import './quiz_pages/quiz_list.dart';
@@ -146,9 +148,10 @@ class TestsPage extends StatelessWidget {
             const Text('Choose your Test',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            _buildTestCard(context, 'QUIZ', new QuizListPage()),
+            _buildTestCard(context, 'QUIZ', const QuizListPage()),
             _buildTestCard(context, 'Programming',const ProgramingListPage()),
             _buildTestCard(context, 'HR', const HrPage()),
+            _buildTestCard(context, 'Technical', const TechnicalListPage()),
           ],
         ),
       ),

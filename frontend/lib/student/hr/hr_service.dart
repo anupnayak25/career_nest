@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:career_nest/models/hr_model.dart';
+import 'package:career_nest/student/hr/hr_model.dart';
 
 class HrService {
   static const String _apiUrl = 'https://career-nest.onrender.com/api/hr';

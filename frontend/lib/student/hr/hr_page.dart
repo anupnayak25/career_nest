@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/hr_model.dart';
+import 'hr_model.dart';
 import 'hr_service.dart';
 
 class HrPage extends StatefulWidget {

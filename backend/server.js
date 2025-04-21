@@ -2,6 +2,8 @@ const express = require("express");
 //const mongoose = require("mongoose");
 //const serverless = require("serverless-http");
 const cors = require("cors");
+const path = require('path');
+
 
 const app = express();
 const PORT = 5000;

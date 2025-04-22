@@ -1,9 +1,8 @@
+import 'package:career_nest/student/hr/hr_list.dart';
 import 'package:career_nest/student/techinical/technical_list.dart';
-import 'package:career_nest/student/techinical/technical_model.dart';
 import 'package:flutter/material.dart';
 import './programing/programming_list.dart';
 import './quiz_pages/quiz_list.dart';
-import './hr/hr_page.dart';
 
 
 class DashboardPage extends StatefulWidget {
@@ -150,7 +149,7 @@ class TestsPage extends StatelessWidget {
             const SizedBox(height: 10),
             _buildTestCard(context, 'QUIZ', const QuizListPage()),
             _buildTestCard(context, 'Programming',const ProgramingListPage()),
-            _buildTestCard(context, 'HR', const HrPage()),
+            _buildTestCard(context, 'HR', const HRListPage()),
             _buildTestCard(context, 'Technical', const TechnicalListPage()),
           ],
         ),

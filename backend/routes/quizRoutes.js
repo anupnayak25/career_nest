@@ -15,6 +15,7 @@ let quizzes = [
         options: ['interface', 'unsigned', 'friend', 'sizeof'],
         marks: 5,
         correct_ans: 'interface'
+        
       },
       {
         qno: 2,

@@ -131,32 +131,52 @@ public class TestOverride {
 ];
 
 
-router.post('/', (req, res) => {
-  const program = { id: Date.now(), ...req.body };
-  programs.push(program);
-  res.status(201).json(program);
+router.get('/', (req, res) => {
+  connection.query("SELECT * FROM program_sets", (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
 });
 
-router.get('/', (req, res) => {
-  res.json(programs);
-});
 
 router.get('/:id', (req, res) => {
-  const program = programs.find(p => p.id == req.params.id);
-  if (!program) return res.status(404).send('Program not found');
-  res.json(program);
+  const id = req.params.id;
+  connection.query("SELECT * FROM program_questions WHERE hr_question_id = ?", [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).send('Post not found');
+    res.json(results);
+  });
 });
 
+
+router.post('/', (req, res) => {
+  const { title, description, upload_date, due_date, totalMarks, user_id } = req.body;
+  const query = `INSERT INTO program_sets (title, description, upload_date, due_date, totalMarks, user_id)
+                 VALUES (?, ?, ?, ?, ?, ?)`;
+  connection.query(query, [title, description, upload_date, due_date, totalMarks, user_id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(201).json({ id: result.insertId, ...req.body });
+  });
+});
+
+
 router.put('/:id', (req, res) => {
-  const index = programs.findIndex(p => p.id == req.params.id);
-  if (index === -1) return res.status(404).send('Program not found');
-  programs[index] = { ...programs[index], ...req.body };
-  res.json(programs[index]);
+  const id = req.params.id;
+  const { title, description, upload_date, due_date, totalMarks, user_id } = req.body;
+  const query = `UPDATE program_sets SET title=?, description=?, upload_date=?, due_date=?, totalMarks=?, user_id=? WHERE id=?`;
+  connection.query(query, [title, description, upload_date, due_date, totalMarks, user_id, id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ id, ...req.body });
+  });
 });
 
 router.delete('/:id', (req, res) => {
-  programs = programs.filter(p => p.id != req.params.id);
-  res.send('Program deleted');
+  const id = req.params.id;
+  connection.query("DELETE FROM program_sets WHERE id = ?", [id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.send("Post deleted");
+  });
 });
+
 
 module.exports = router;

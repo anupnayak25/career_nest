@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const connection = require('../db'); // Assuming you have a db.js file for database connection
+const fetchUser = require('../middlewares/fetchUser');
 
 
-router.get('/', (req, res) => {
+router.get('/', fetchUser, (req, res) => {
   connection.query("SELECT * FROM hr_questions", (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);

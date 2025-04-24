@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const path = require('path');
@@ -34,6 +35,7 @@ app.use('/api/quiz', require('./routes/quizRoutes'));
 app.use('/api/programming', require('./routes/programmingRoutes'));
 app.use('/api/hr', require('./routes/hrRoutes'));
 app.use('/api/videos', require('./routes/videoRoutes'));
+app.use('/api/auth', require('./routes/authenticateRoutes'));
 
 // Start Server
 app.listen(PORT, () => {

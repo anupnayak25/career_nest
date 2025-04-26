@@ -48,3 +48,5 @@ router.delete('/:id', (req, res) => {
     res.send("Post deleted");
   });
 });
+
+module.exports = router;

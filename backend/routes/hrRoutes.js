@@ -52,4 +52,37 @@ router.delete('/:id', (req, res) => {
 });
 
 
+//andwer routes here
+
+router.post('/answers', (req,res) => {
+  const { hr_question_id, user_id, qno, answer } = req.body;
+  try {
+    connection.query(
+      'INSERT INTO hr_answers (hr_question_id, user_id, qno, answer) VALUES (?, ?, ?, ?)',
+      [hr_question_id, user_id, qno, answer]
+    );
+    res.status(201).json({ message: 'HR answer added' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/answers/:id', fetchUser, (req, res) => {
+  const id = req.params.id;
+  connection.query("SELECT * FROM hr_ansewrs where hr_question_id=?", [id],(err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+router.get('/answers/:id/:user_id', fetchUser, (req, res) => {
+  const { id, user_id } = req.params;
+  connection.query("SELECT * FROM hr_answers where hr_question_id=? and user_id=?", [id, user_id],(err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+
+
 module.exports = router;

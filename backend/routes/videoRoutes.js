@@ -9,9 +9,12 @@ const storage = multer.diskStorage({
     cb(null, 'videos'); // folder where videos will be stored
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
+    const randomNumber = Math.floor(10000 + Math.random() * 90000); // Generate a 5-digit random number
+    const ext = path.extname(file.originalname); // get original file extension
+  cb(null, `${randomNumber}-${Date.now()}${ext}`);
+}}
+  
+);
 
 // Init upload
 const upload = multer({

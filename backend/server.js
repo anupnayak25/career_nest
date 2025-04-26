@@ -1,8 +1,6 @@
 require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
-const path = require('path');
-
 
 
 const app = express();
@@ -11,31 +9,26 @@ const PORT = 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+const path = require('path');
+const fetchuser = require('./middlewares/fetchUser');
 
-// Routes
-app.use('/videos', express.static(path.join(__dirname, 'videos')));
-
+// Public routes
 app.get("/", async (req, res) => {
-    res.send("Welcome to the API!");
-  });
-// Add a new user
-app.post("/users", async (req, res) => {
-  try {
-    const { name, email } = req.body;
-    const newUser = new User({ name, email });
-    await newUser.save();
-    res.status(201).json(newUser);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  res.send("Welcome to the API!");
 });
 
+// Public Auth route
+app.use('/api/auth', require('./routes/authenticateRoutes'));
+
+// Apply fetchuser AFTER public routes
+app.use(fetchuser);
+
+// Protected routes
 app.use('/api/technical', require('./routes/technicalRoutes'));
 app.use('/api/quiz', require('./routes/quizRoutes'));
 app.use('/api/programming', require('./routes/programmingRoutes'));
 app.use('/api/hr', require('./routes/hrRoutes'));
 app.use('/api/videos', require('./routes/videoRoutes'));
-app.use('/api/auth', require('./routes/authenticateRoutes'));
 
 // Start Server
 app.listen(PORT, () => {

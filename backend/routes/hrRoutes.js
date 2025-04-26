@@ -83,6 +83,25 @@ router.get('/answers/:id/:user_id', fetchUser, (req, res) => {
   });
 });
 
+router.put('/answers/:id', (req, res) => {
+  const id = req.params.id;
+  const { hr_question_id, user_id, qno, answer } = req.body;
+  const query = `UPDATE hr_answers SET hr_question_id=?, user_id=?, qno=?, answer=? WHERE id=?`;
+  connection.query(query, [hr_question_id, user_id, qno, answer, id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ id, ...req.body });
+  });
+});
+
+router.put('/publish/:id', (req, res) => {
+  const id = req.params.id;
+  const { display_result} = req.body;
+  const query = `UPDATE hr_questions SET display_result=? WHERE id=?`;
+  connection.query(query, [display_result], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ id, ...req.body });
+  });
+});
 
 
 module.exports = router;

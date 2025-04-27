@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import './hr_model.dart';
+import '../common_page/success_screen.dart'; // Adjust the path based on your project structure
 
 class HRAnswerPage extends StatefulWidget {
   final List<Question> questions;

@@ -21,12 +21,57 @@ router.get('/:id', (req, res) => {
 
 
 router.post('/', (req, res) => {
-  const { title, description, upload_date, due_date, totalMarks, user_id } = req.body;
+  const { title, description, upload_date, due_date, totalMarks, user_id, programQuestions } = req.body;
+  
+  // Insert the program set first
   const query = `INSERT INTO program_sets (title, description, upload_date, due_date, totalMarks, user_id)
                  VALUES (?, ?, ?, ?, ?, ?)`;
+  
   connection.query(query, [title, description, upload_date, due_date, totalMarks, user_id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.status(201).json({ id: result.insertId, ...req.body });
+    
+    const program_set_id = result.insertId;
+    
+    // If there are no program questions to insert, return early
+    if (!programQuestions || !programQuestions.length) {
+      return res.status(201).json({ 
+        message: "Program set created successfully with no questions",
+        id: program_set_id, 
+        ...req.body 
+      });
+    }
+    
+    // Insert program questions
+    const queryInsertQuestion = `
+      INSERT INTO program_questions (program_set_id, qno, question, program_snippet, marks)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    
+    // Convert each question insert into a Promise
+    const insertQuestionPromises = programQuestions.map(({ qno, question, program_snippet, marks }) => {
+      return new Promise((resolve, reject) => {
+        connection.query(queryInsertQuestion, [program_set_id, qno, question, program_snippet, marks], (err, result) => {
+          if (err) return reject(err);
+          resolve(result);
+        });
+      });
+    });
+    
+    // Wait for all inserts to finish
+    Promise.all(insertQuestionPromises)
+      .then(() => {
+        res.status(201).json({
+          message: "Program set and questions created successfully",
+          id: program_set_id,
+          ...req.body
+        });
+      })
+      .catch(error => {
+        res.status(500).json({ 
+          error: error.message,
+          message: "Failed to create program questions"
+        });
+      });
   });
 });
 

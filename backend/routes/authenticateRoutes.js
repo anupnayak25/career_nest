@@ -19,7 +19,7 @@ const JWT_SECRET = process.env.SECRET_KEY;
 // signup route for registration
 router.post('/signup', [
     // Validating API inputs
-    body('Name', 'at least 3 characters required').isLength({ min: 3 }),
+    body('name', 'at least 3 characters required').isLength({ min: 3 }),
     body('email', 'invalid').isEmail(),
     body('password').optional()
         .isLength({ min: 8 }).withMessage('at least 8 characters required')
@@ -40,7 +40,7 @@ router.post('/signup', [
         }
 
         // Destructuring req.body
-        const { Name, email, password } = req.body;
+        const { name, email, password } = req.body;
 
 
         // Generating salt and hashing password
@@ -49,7 +49,7 @@ router.post('/signup', [
 
         const id = uuidv4();
 
-        connection.query("insert into user (id, name,  email_id, password) values (?, ?, ?, ?)", [id, Name, email, hashedPassword], (err, results) => {
+        connection.query("insert into user (id, name,  email_id, password) values (?, ?, ?, ?)", [id, name, email, hashedPassword], (err, results) => {
             if (err) {
                 console.error('Error inserting user:', err);
                 return res.status(500).json({ error: 'Failed to create user' });

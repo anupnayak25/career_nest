@@ -20,6 +20,15 @@ router.get('/:id', (req, res) => {
   });
 });
 
+router.get('/user/:id', (req, res) => {
+  const id = req.params.id;
+  connection.query("SELECT * FROM hr_question_items WHERE user_id = ?", [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).send('HR Post not found');
+    res.json(results);
+  });
+}); 
+
 router.post('/', (req, res) => {
   const { hrQuestion, hrQuestionItems } = req.body;
   const { title, description, due_date, totalMarks } = hrQuestion;
@@ -159,10 +168,6 @@ router.post('/answers', (req, res) => {
   const query = `
       'INSERT INTO hr_answers (hr_question_id, user_id, qno, answer) VALUES (?, ?, ?, ?)'
     `;
-
-  connection.query("select user_id from hr_answers where hr_question_id = ? and user_id = ? group by user_id", [hr_question_id, req.user.id], (error, results) => {
-
-    if (results.length == 0) {
       // Convert each item insert into a Promise
       const insertItemPromises = answers.map(({ qno, answer }) => {
         return new Promise((resolve, reject) => {
@@ -184,22 +189,14 @@ router.post('/answers', (req, res) => {
         .catch((error) => {
           res.status(500).json({ error: error.message });
         });
-    }
-    else {
-      res.status(401).json({
-        message: "answer already submitted",
-        id: hr_question_id
-      });
-    }
   });
 
 
-});
 
 
 router.get('/answers/:id', (req, res) => {
   const id = req.params.id;
-  connection.query("SELECT user_id FROM hr_answers where hr_question_id=? and (select user_id from hr_questions where id = ?)=? group by  user_id", [id, id, req.user.id], (err, results) => {
+  connection.query("SELECT user_id FROM hr_answers where hr_question_id=? group by  user_id", [id, id, req.user.id], (err, results) => { //and (select user_id from hr_questions where id = ?)=?
     if (err) return res.status(500).json({ error: err.message });
     if (results.length == 0) return res.status(404).json({ message: "No answers yet" });
     res.json(results);
@@ -216,17 +213,11 @@ router.get('/answers/:id/:user_id', (req, res) => {
   });
 });
 
-
-
-
-
-
-
 /*TODO*/
 router.put('/publish/:id', (req, res) => {
   const id = req.params.id;
   const { display_result } = req.body;
-  const query = `UPDATE hr_questions SET display_result=? WHERE id=?`;
+  const query = `UPDATE technical_questions SET display_result=? WHERE id=?`;
   connection.query(query, [display_result], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });

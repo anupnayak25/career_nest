@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import './student/dashboard.dart'; // Your existing student dashboard
 import './admin/dashboard.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 // import './admin/dashboard.dart'; // You can create this later
 
-void main() {
+void main() async {
+  await dotenv.load();  // Loads the .env file
   runApp(const MyApp());
 }
 

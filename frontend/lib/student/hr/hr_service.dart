@@ -1,14 +1,20 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:career_nest/student/hr/hr_model.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class HrService {
-
   static Future<List<HrModel>> fetchHrList() async {
     try {
-      final response = await http.get(Uri.parse('https://career-nest.onrender.com/api/hr'));
-       //print('Response status: ${response.statusCode}');
-      //print('Response body: ${response.body}');
+      final token = dotenv.get('AUTH_TOKEN');
+      final apiUrl= dotenv.get('API_URL');
+      final response = await http.get(
+        Uri.parse('$apiUrl/api/hr'),
+        headers: {
+          'auth_token': token,
+          'Content-Type': 'application/json',
+        },
+      );
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);
         return jsonData.map((e) => HrModel.fromJson(e)).toList();

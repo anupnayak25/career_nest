@@ -10,7 +10,7 @@ const fetchUser = async (req, res, next) => {
         const token = req.header('auth_token');
     
     if (!token) {
-        res.status(401).json({ message: "user unathorized" });
+        res.status(401).json({ message: "auth_token not found!" });
     }
     else{
         
@@ -40,7 +40,7 @@ const fetchUser = async (req, res, next) => {
     }
 }
     catch (error) {
-        res.status(401).json({ message: "user unathorized" });
+        res.status(401).json({ message: error });
     }
 }
 

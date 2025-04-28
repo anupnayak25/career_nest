@@ -1,25 +1,25 @@
-import 'package:career_nest/student/programing/answer_page.dart';
 import 'package:flutter/material.dart';
-import './programming_model.dart';
-import './programming_service.dart';
+import 'technical_model.dart';
+import 'technical_service.dart';
+import 'technical_attempt.dart'; // Create or reuse AnswerPage for technical
 
-class ProgramingListPage extends StatelessWidget {
-  const ProgramingListPage({Key? key}) : super(key: key);
+class TechnicalListPage extends StatelessWidget {
+  const TechnicalListPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Programming")),
-      body: FutureBuilder<List<ProgramingList>>(
-        future: ApiService.fetchProgramingList(),
+      appBar: AppBar(title: const Text("Technical Assignments")),
+      body: FutureBuilder<List<TechnicalItem>>(
+        future: TechnicalService.fetchTechnicalList(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                final programing = snapshot.data![index];
-                final isDone = false; // restlt.status == 'Done';
+                final technical = snapshot.data![index];
+                final isDone = false; // TODO: Replace with actual status logic
 
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 10),
@@ -32,9 +32,15 @@ class ProgramingListPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(programing.title,
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text(
+                          technical.title,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(technical.description),
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -42,15 +48,15 @@ class ProgramingListPage extends StatelessWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Upload: ${programing.uploadDate}"),
-                                Text("Marks: ${programing.totalMarks}"),
+                                Text("Upload: ${technical.uploadDate}"),
+                                Text("Questions: ${technical.questions.length}"),
                               ],
                             ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text("Due: ${programing.dueDate}"),
-                                Text("Status: Pending "),//${programing.status}
+                                Text("Due: ${technical.dueDate}"),
+                                Text("Status: Pending"),
                               ],
                             ),
                           ],
@@ -64,8 +70,8 @@ class ProgramingListPage extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                       AnswerPage(programming: programing.questions),
+                                    builder: (_) => TechnicalAnswerPage(
+                                        questions: technical.questions),
                                   ),
                                 );
                               }
@@ -78,11 +84,9 @@ class ProgramingListPage extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(30),
                               ),
                             ),
-                            child: Text(
-                           //   programing.status=="Pending"?
-                                  'Attempt ', // programing' : 'Result',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold),
+                            child: const Text(
+                              'Attempt',
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                         )

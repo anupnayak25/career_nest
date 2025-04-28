@@ -1,8 +1,8 @@
-import 'package:career_nest/student/hr/hr_list.dart';
-import 'package:career_nest/student/techinical/technical_list.dart';
+import 'package:career_nest/screens/student/hr/hr_list.dart';
+import 'package:career_nest/screens/student/techinical/technical_list.dart';
 import 'package:flutter/material.dart';
-import './programing/programming_list.dart';
-import './quiz_pages/quiz_list.dart';
+import 'programing/programming_list.dart';
+import 'quiz_pages/quiz_list.dart';
 
 
 class DashboardPage extends StatefulWidget {

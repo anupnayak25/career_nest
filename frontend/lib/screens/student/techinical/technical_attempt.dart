@@ -1,17 +1,18 @@
+import 'package:career_nest/screens/student/techinical/technical_model.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import './hr_model.dart';
+import '../common_page/success_screen.dart'; // Adjust the path based on your project structure
 
-class HRAnswerPage extends StatefulWidget {
-  final List<Question> questions;
+class TechnicalAnswerPage extends StatefulWidget {
+  final List<TechnicalQuestion> questions;
 
-  const HRAnswerPage({super.key, required this.questions});
+  const TechnicalAnswerPage({super.key, required this.questions});
 
   @override
-  State<HRAnswerPage> createState() => _HRAnswerPageState();
+  State<TechnicalAnswerPage> createState() => _TechnicalAnswerPageState();
 }
 
-class _HRAnswerPageState extends State<HRAnswerPage> {
+class _TechnicalAnswerPageState extends State<TechnicalAnswerPage> {
   Map<int, String> videoAnswers = {};
 
   Future<void> pickVideo(int qno) async {
@@ -34,7 +35,7 @@ class _HRAnswerPageState extends State<HRAnswerPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("HR"),
+        title: const Text("Technical"),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -75,7 +76,7 @@ class _HRAnswerPageState extends State<HRAnswerPage> {
     );
   }
 
-  Widget _buildVideoUploadCard(Question q) {
+  Widget _buildVideoUploadCard(TechnicalQuestion q) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(

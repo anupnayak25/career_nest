@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'quiz_model.dart';
+import '../common_page/success_screen.dart'; // Adjust the path based on your project structure
 
 class QuizDetailPage extends StatefulWidget {
   final Quiz quiz;

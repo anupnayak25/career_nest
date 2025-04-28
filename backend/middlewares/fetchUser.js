@@ -40,7 +40,7 @@ const fetchUser = async (req, res, next) => {
     }
 }
     catch (error) {
-        res.status(401).json({ message: "user unathorized" });
+        res.status(401).json({ message: error });
     }
 }
 

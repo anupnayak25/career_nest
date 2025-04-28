@@ -1,24 +1,24 @@
-import 'package:career_nest/student/hr/hr_attempt.dart';
-import 'package:career_nest/student/hr/hr_model.dart';
+import 'package:career_nest/screens/student/programing/answer_page.dart';
 import 'package:flutter/material.dart';
-import './hr_service.dart';
+import 'programming_model.dart';
+import 'programming_service.dart';
 
-class HRListPage extends StatelessWidget {
-  const HRListPage({Key? key}) : super(key: key);
+class ProgramingListPage extends StatelessWidget {
+  const ProgramingListPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Programming")),
-      body: FutureBuilder<List<HrModel>>(
-        future: HrService.fetchHrList(),
+      body: FutureBuilder<List<ProgramingList>>(
+        future: ApiService.fetchProgramingList(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                final HR = snapshot.data![index];
+                final programing = snapshot.data![index];
                 final isDone = false; // restlt.status == 'Done';
 
                 return Card(
@@ -32,7 +32,7 @@ class HRListPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(HR.title,
+                        Text(programing.title,
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -42,15 +42,15 @@ class HRListPage extends StatelessWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Upload: ${HR.uploadDate}"),
-                                Text("Marks: ${HR.totalMarks}"),
+                                Text("Upload: ${programing.uploadDate}"),
+                                Text("Marks: ${programing.totalMarks}"),
                               ],
                             ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text("Due: ${HR.dueDate}"),
-                                Text("Status: Pending "),//${HR.status}
+                                Text("Due: ${programing.dueDate}"),
+                                Text("Status: Pending "),//${programing.status}
                               ],
                             ),
                           ],
@@ -65,7 +65,7 @@ class HRListPage extends StatelessWidget {
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) =>
-                                       HRAnswerPage(questions: HR.questions),
+                                       AnswerPage(programming: programing.questions),
                                   ),
                                 );
                               }
@@ -79,8 +79,8 @@ class HRListPage extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                           //   HR.status=="Pending"?
-                                  'Attempt ', // HR' : 'Result',
+                           //   programing.status=="Pending"?
+                                  'Attempt ', // programing' : 'Result',
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold),
                             ),

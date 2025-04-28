@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:career_nest/student/hr/hr_model.dart';
+import 'package:career_nest/screens/student/hr/hr_model.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class HrService {

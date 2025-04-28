@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:career_nest/student/programing/programming_model.dart';
+import 'package:career_nest/screens/student/programing/programming_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 

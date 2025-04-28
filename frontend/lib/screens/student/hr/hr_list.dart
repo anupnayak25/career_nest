@@ -1,25 +1,25 @@
+import 'package:career_nest/screens/student/hr/hr_attempt.dart';
+import 'package:career_nest/screens/student/hr/hr_model.dart';
 import 'package:flutter/material.dart';
-import './technical_model.dart';
-import './technical_service.dart';
-import './technical_attempt.dart'; // Create or reuse AnswerPage for technical
+import 'hr_service.dart';
 
-class TechnicalListPage extends StatelessWidget {
-  const TechnicalListPage({Key? key}) : super(key: key);
+class HRListPage extends StatelessWidget {
+  const HRListPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Technical Assignments")),
-      body: FutureBuilder<List<TechnicalItem>>(
-        future: TechnicalService.fetchTechnicalList(),
+      appBar: AppBar(title: const Text("Programming")),
+      body: FutureBuilder<List<HrModel>>(
+        future: HrService.fetchHrList(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                final technical = snapshot.data![index];
-                final isDone = false; // TODO: Replace with actual status logic
+                final HR = snapshot.data![index];
+                final isDone = false; // restlt.status == 'Done';
 
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 10),
@@ -32,15 +32,9 @@ class TechnicalListPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          technical.title,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(technical.description),
+                        Text(HR.title,
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -48,15 +42,15 @@ class TechnicalListPage extends StatelessWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Upload: ${technical.uploadDate}"),
-                                Text("Questions: ${technical.questions.length}"),
+                                Text("Upload: ${HR.uploadDate}"),
+                                Text("Marks: ${HR.totalMarks}"),
                               ],
                             ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text("Due: ${technical.dueDate}"),
-                                Text("Status: Pending"),
+                                Text("Due: ${HR.dueDate}"),
+                                Text("Status: Pending "),//${HR.status}
                               ],
                             ),
                           ],
@@ -70,8 +64,8 @@ class TechnicalListPage extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => TechnicalAnswerPage(
-                                        questions: technical.questions),
+                                    builder: (_) =>
+                                       HRAnswerPage(questions: HR.questions),
                                   ),
                                 );
                               }
@@ -84,9 +78,11 @@ class TechnicalListPage extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(30),
                               ),
                             ),
-                            child: const Text(
-                              'Attempt',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                            child: Text(
+                           //   HR.status=="Pending"?
+                                  'Attempt ', // HR' : 'Result',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
                         )

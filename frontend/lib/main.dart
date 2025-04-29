@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
     //   return const LoginPage(); // Login/signup screen
     // }
 
-    return const HomePage();
+    return const DashboardPage();
   }
 
   @override

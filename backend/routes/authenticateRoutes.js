@@ -117,13 +117,20 @@ router.post('/signin', [
 
         });
 
-
-
-
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "internal server error" });;
     }
+});
+router.get('/getusers', (req, res) => {
+    // Assuming req.user contains the user ID from the JWT token
+    const userId = req.user.id; // Extract user ID from the request object
+
+    connection.query("SELECT * FROM user WHERE id = ?", [userId], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (results.length === 0) return res.status(404).json({ message: "User not found" });
+        res.json(results[0]);
+    });
 });
 
 module.exports = router

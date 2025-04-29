@@ -30,7 +30,7 @@ const fetchUser = async (req, res, next) => {
 
     }
         else{
-                return res.status(404).json({ message: "user not found" })
+                return res.status(404).json({ message: "user not found!" })
         }
         
         });

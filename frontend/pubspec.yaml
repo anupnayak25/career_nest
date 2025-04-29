@@ -41,6 +41,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   font_awesome_flutter: ^10.7.0
   flutter_dotenv: ^5.0.2  # Check for the latest version on pub.dev
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:

@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
-import 'screens/student/dashboard.dart'; // Your existing student dashboard
-import 'screens/admin/dashboard.dart';
-// import 'package:flutter_dotenv/flutter_dotenv.dart';
-// import './admin/dashboard.dart'; // You can create this later
+import 'package:shared_preferences/shared_preferences.dart';
+import './screens/splash_screen.dart';
+import './screens/admin/dashboard.dart';
+import './screens/student/dashboard.dart';
+import './screens/login.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // await dotenv.load(fileName: ".env");
-  // Loads the .env file
+void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+  Future<Widget> _getInitialScreen() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    String userType = prefs.getString('userType') ?? '';
+
+    if (isLoggedIn) {
+      if (userType == 'student') {
+        return const HomePage();
+      } else if (userType == 'teacher') {
+        return AdminDashboardPage();
+      }
+    }
+    return const LoginPage(); // Login/signup screen
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,61 +36,16 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),
-    );
-  }
-}
-
-class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                "Welcome to Career Nest",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
-              ),
-              const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const DashboardPage()),
-                  );
-                },
-                child: const Text("Student Dashboard"),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => AdminDashboardPage()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                ),
-                child: const Text("Admin Dashboard", style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-        ),
+      home: FutureBuilder<Widget>(
+        future: _getInitialScreen(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SplashScreen();
+          } else {
+            return snapshot.data!;
+          }
+        },
       ),
     );
   }
 }
-
-

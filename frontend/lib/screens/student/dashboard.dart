@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'programing/programming_list.dart';
 import 'quiz_pages/quiz_list.dart';
 
-
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
   @override
@@ -36,6 +35,7 @@ class _DashboardPageState extends State<DashboardPage> {
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed, // Add this line
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Tests'),
@@ -90,7 +90,6 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-
 class VideoList extends StatelessWidget {
   const VideoList({super.key});
 

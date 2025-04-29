@@ -33,7 +33,7 @@ app.use('/api/quiz', require('./routes/quizRoutes'));
 app.use('/api/programming', require('./routes/programmingRoutes'));
 app.use('/api/hr', require('./routes/hrRoutes'));
 app.use('/api/videos', require('./routes/videoRoutes'));
-app.use('/api/notification',require('./routes/notificationRoutes'));
+//app.use('/api/notification',require('./routes/notificationRoutes'));
 
 // Start Server
 app.listen(PORT, () => {

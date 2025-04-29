@@ -1,0 +1,23 @@
+CREATE TABLE notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255),
+    message TEXT,
+    type VARCHAR(50),
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Dummy data
+INSERT INTO notifications (user_id, title, message, type)
+VALUES
+(1, 'New Quiz', 'Check out the new quiz in the Technical section!', 'quiz'),
+(1, 'Event Posted', 'A new career event has been added.', 'event');
+
+
+
+CREATE EVENT IF NOT EXISTS delete_old_notifications
+ON SCHEDULE EVERY 1 DAY
+DO
+  DELETE FROM notifications
+  WHERE created_at < NOW() - INTERVAL 7 DAY;

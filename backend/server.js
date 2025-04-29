@@ -11,10 +11,14 @@ app.use(cors());
 app.use(express.json());
 const path = require('path');
 const fetchuser = require('./middlewares/fetchUser');
+const time = new Date();
+const formattedDate = `${time.getDate().toString().padStart(2, '0')}/${(time.getMonth() + 1).toString().padStart(2, '0')}/${time.getFullYear().toString().slice(-2)}`;
+const formattedTime = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:${time.getSeconds().toString().padStart(2, '0')}`;
 
 // Public routes
 app.get("/", async (req, res) => {
-  res.send("Welcome to the API!");
+  res.send(`Welcome to the API!
+    </br> Server Restarted At Date: ${formattedDate} Time: ${formattedTime}`);
 });
 
 // Public Auth route

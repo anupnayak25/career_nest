@@ -6,12 +6,14 @@ const JWT_SECRET = process.env.SECRET_KEY;
 const fetchUser = async (req, res, next) => {
     
     try {
-        
-        const token = req.header('auth_token');
-    
-    if (!token) {
-        res.status(401).json({ message: "auth_token not found!" });
-    }
+        const authHeader = req.header('Authorization');
+        const token = authHeader && authHeader.startsWith('Bearer ')
+            ? authHeader.split(' ')[1]
+            : null;
+
+        if (!token) {
+            return res.status(401).json({ message: "auth token not found!" });
+        }
     else{
         
         const data = jwt.verify(token, JWT_SECRET);

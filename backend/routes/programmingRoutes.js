@@ -75,7 +75,6 @@ router.post('/', (req, res) => {
   });
 });
 
-
 router.put('/:id', (req, res) => {
   const id = req.params.id;
   const { title, description, upload_date, due_date, totalMarks, user_id } = req.body;

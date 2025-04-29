@@ -21,7 +21,6 @@ app.get("/", async (req, res) => {
     </br> Server Restarted At Date: ${formattedDate} Time: ${formattedTime}`);
 });
 
-
 // Public Auth route
 app.use('/api/auth', require('./routes/authenticateRoutes'));
 

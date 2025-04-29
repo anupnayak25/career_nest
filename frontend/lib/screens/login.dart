@@ -7,6 +7,7 @@ import '../screens/student/dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
+import './signup.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -20,7 +21,8 @@ class _LoginPageState extends State<LoginPage> {
   final passwordController = TextEditingController();
   bool isPasswordHidden = true;
   bool isLoading = false;
-
+  String userType = "";
+  bool _isValidUser = true;
   final _formKey = GlobalKey<FormState>();
 
   void _login() async {
@@ -36,21 +38,20 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       final apiUrl = dotenv.get('API_URL');
-      final response =
-          await http.post(Uri.parse('$apiUrl/api/auth/signin'), body: {
-        'email': emailController.text,
-        'password': passwordController.text
-      });
+      final response = await http.post(Uri.parse('$apiUrl/api/auth/signin'),
+          body: {
+            'email': emailController.text,
+            'password': passwordController.text
+          });
 
-
-    if (response.statusCode == 200) {
-
-    String userType = json.decode(response.body).userType;
+      if (response.statusCode == 200) {
+        String userType = json.decode(response.body).userType;
         await prefs.setString(
             'auth_token', json.decode(response.body).auth_token);
         await prefs.setString('userType', userType);
         await prefs.setString('userName', json.decode(response.body).userName);
-        await prefs.setString('userEmail', json.decode(response.body).userEmail);
+        await prefs.setString(
+            'userEmail', json.decode(response.body).userEmail);
         await prefs.setBool('isLoggedIn', true);
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -64,21 +65,18 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (_) => AdminDashboardPage()));
         }
-      } 
-      else{
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Something went wrong.. Try again later..')),
         );
       }
 
-
       if (_isValidUser) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login Successful ✅')),
         );
-      } else {
-      }
+      } else {}
 
       await prefs.setString('userType', userType);
 

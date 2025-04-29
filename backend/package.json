@@ -11,6 +11,13 @@
     "mysql2": "^3.14.0",
     "nodemon": "^3.1.10",
     "serverless-http": "^3.2.0",
+    "simple-git": "^3.27.0",
     "uuid": "^11.1.0"
+  },
+  "scripts": {
+    "dev": "concurrently \"nodemon server.js\" \"node auto-fetcher.js\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

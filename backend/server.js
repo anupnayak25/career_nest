@@ -21,19 +21,23 @@ app.get("/", async (req, res) => {
     </br> Server Restarted At Date: ${formattedDate} Time: ${formattedTime}`);
 });
 
-// Public Auth route
+
+// Serve static video files first
+app.use('/videos', express.static(path.join(__dirname, 'videos')));
+
+// Public routes
 app.use('/api/auth', require('./routes/authenticateRoutes'));
 
 // Apply fetchuser AFTER public routes
 app.use(fetchuser);
 
-// Protected routes
+// Protected API routes
 app.use('/api/technical', require('./routes/technicalRoutes'));
 app.use('/api/quiz', require('./routes/quizRoutes'));
 app.use('/api/programming', require('./routes/programmingRoutes'));
 app.use('/api/hr', require('./routes/hrRoutes'));
 app.use('/api/videos', require('./routes/videoRoutes'));
-app.use('/api/notification',require('./routes/notificationRoutes'));
+//app.use('/api/notification',require('./routes/notificationRoutes'));
 
 // Start Server
 app.listen(PORT, () => {

@@ -16,36 +16,37 @@ class Video {
   });
 }
 
-class StudentDashboardPage extends StatefulWidget {
+class AdminDashboardPage extends StatefulWidget {
   @override
-  _StudentDashboardPageState createState() => _StudentDashboardPageState();
+  _AdminDashboardPageState createState() => _AdminDashboardPageState();
 }
 
-class _StudentDashboardPageState extends State<StudentDashboardPage> {
+class _AdminDashboardPageState extends State<AdminDashboardPage> {
   final List<String> menuItems = [
-    'Quiz',
-    'Programming',
-    'Technical',
-    'HR',
+    'Manage Quizzes',
+    'Manage Programming Tests',
+    'Manage Technical Tests',
+    'Manage HR Tests',
+    'Add New Video',
   ];
 
   List<Video> eventsVideos = [
     Video(
-      title: 'What do you want to learn today?',
-      description: 'Description 1',
+      title: 'Admin Event Video 1',
+      description: 'Admin Description 1',
       category: 'events',
-      date: 'April 20, 2025',
-      image: 'assets/video1.png',
+      date: 'April 21, 2025',
+      image: 'assets/admin_video1.png',
     ),
   ];
 
   List<Video> placementsVideos = [
     Video(
-      title: 'Second video title',
-      description: 'Description 2',
+      title: 'Admin Placement Video 1',
+      description: 'Admin Description 2',
       category: 'placement',
-      date: 'April 19, 2025',
-      image: 'assets/video2.png',
+      date: 'April 22, 2025',
+      image: 'assets/admin_video2.png',
     ),
   ];
 
@@ -62,7 +63,7 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
               children: [
                 const DrawerHeader(
                   child: Text(
-                    'Student',
+                    'Admin Panel',
                     style: TextStyle(color: Colors.white, fontSize: 24),
                   ),
                 ),
@@ -71,7 +72,12 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
                     title: Text(item, style: TextStyle(color: Colors.white)),
                     onTap: () {
                       Navigator.pop(context);
-                      // Add navigation for students here if needed
+                      // Add navigation for admin here based on the item
+                      print('Admin tapped: $item');
+                      // Example navigation (replace with your actual routes)
+                      if (item == 'Add New Video') {
+                        // Navigator.push(context, MaterialPageRoute(builder: (context) => AddNewVideoScreen()));
+                      }
                     },
                   ),
                 ),
@@ -80,7 +86,7 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
           ),
         ),
         appBar: AppBar(
-          title: const Text('Dashboard'),
+          title: const Text('Admin Dashboard'),
           backgroundColor: Colors.blue,
           leading: Builder(
             builder: (context) => IconButton(
@@ -92,7 +98,8 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
               child: CircleAvatar(
-                backgroundImage: AssetImage('assets/avatar.png'),
+                backgroundColor: Colors.white,
+                child: Icon(Icons.admin_panel_settings, color: Colors.blue),
               ),
             ),
           ],
@@ -123,6 +130,7 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
           image: video.image,
           title: video.title,
           date: video.date,
+          description: video.description, // Pass description for admin view
         );
       },
     );
@@ -132,14 +140,17 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
     required String image,
     required String title,
     required String date,
+    String? description, // Description is optional for the card
   }) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 4,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             height: 150,
+            width: double.infinity,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
               image: DecorationImage(
@@ -153,9 +164,33 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 SizedBox(height: 6),
                 Text('Date Added: $date', style: TextStyle(color: Colors.grey)),
+                if (description != null) ...[
+                  SizedBox(height: 6),
+                  Text(description, style: TextStyle(color: Colors.black87)),
+                ],
+                SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () {
+                        // Implement edit functionality
+                        print('Edit: $title');
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        // Implement delete functionality
+                        print('Delete: $title');
+                      },
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

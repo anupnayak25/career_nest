@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'login.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import './admin/admin_dashboard.dart';
+import 'admin/admin_dashboard.dart';
 import './student/dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -33,60 +32,62 @@ class _LoginPageState extends State<LoginPage> {
         isLoading = true;
       });
 
-      setState(() {
-        isLoading = false;
-      });
-
       final apiUrl = dotenv.get('API_URL');
-      final response = await http.post(Uri.parse('$apiUrl/api/auth/signin'),
+      try {
+        final response = await http.post(
+          Uri.parse('$apiUrl/api/auth/signin'),
           body: {
             'email': emailController.text,
-            'password': passwordController.text
-          });
-
-      if (response.statusCode == 200) {
-        String userType = json.decode(response.body).userType;
-        await prefs.setString(
-            'auth_token', json.decode(response.body).auth_token);
-        await prefs.setString('userType', userType);
-        await prefs.setString('userName', json.decode(response.body).userName);
-        await prefs.setString(
-            'userEmail', json.decode(response.body).userEmail);
-        await prefs.setBool('isLoggedIn', true);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Logged in successfully! 🎉')),
+            'password': passwordController.text,
+          },
         );
 
-        if (userType == 'student') {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => HomePage(userName: json.decode(response.body)['userName'])));
+        setState(() {
+          isLoading = false;
+        });
+
+        if (response.statusCode == 200) {
+          final responseData = json.decode(response.body);
+          String userType = responseData['userType'];
+          await prefs.setString('auth_token', responseData['auth_token']);
+          await prefs.setString('userType', userType);
+          await prefs.setString('userName', responseData['userName']);
+          await prefs.setString('userEmail', responseData['userEmail']);
+          await prefs.setBool('isLoggedIn', true);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Logged in successfully! 🎉')),
+          );
+
+          if (userType == 'student') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => HomePage(userName: responseData['userName'])),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (_) =>
+                      AdminDashboard(userName: responseData['userName'])),
+            );
+          }
         } else {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => AdminDashboard(userName: json.decode(response.body)['userName'])));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Something went wrong.. Try again later..')),
+          );
         }
-      } else {
+      } catch (error) {
+        setState(() {
+          isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Something went wrong.. Try again later..')),
+              content: Text('Failed to connect to the server.')),
         );
-      }
-
-      if (_isValidUser) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Successful ✅')),
-        );
-      } else {}
-
-      await prefs.setString('userType', userType);
-
-      await prefs.setBool('isLoggedIn', true);
-      if (userType == 'student') {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => HomePage(userName: json.decode(response.body)['userName'])));
-      } else {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => AdminDashboard(userName: json.decode(response.body)['userName'])));
+        print('Login error: $error');
       }
     }
   }
@@ -164,8 +165,9 @@ class _LoginPageState extends State<LoginPage> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter password';
                       } else if (value.length < 8) {
-                        return 'Password must be at least 8 characters, should contain atleas one numeric, capital letter, small letter, special character, ';
+                        return 'Password must be at least 8 characters';
                       }
+                      // You might want to add more complex password validation here
                       return null;
                     },
                   ),
@@ -216,7 +218,7 @@ class _LoginPageState extends State<LoginPage> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   )

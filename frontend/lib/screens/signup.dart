@@ -63,10 +63,10 @@ class _SignUpPageState extends State<SignUpPage> {
 
         if (userType == 'student') {
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => const HomePage()));
+              context, MaterialPageRoute(builder: (_) => HomePage(userName: json.decode(response.body)['userName'])));
         } else {
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => AdminDashboardPage()));
+              context, MaterialPageRoute(builder: (_) => const DashboardPage()));
         }
       } else if(response.statusCode == 401){
         ScaffoldMessenger.of(context).showSnackBar(

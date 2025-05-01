@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart'; // Import for opening URLs
-
 import 'package:career_nest/screens/student/hr/hr_list.dart';
 import 'package:career_nest/screens/student/techinical/technical_list.dart';
 import 'programing/programming_list.dart';

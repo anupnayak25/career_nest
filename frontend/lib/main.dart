@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import './screens/splash_screen.dart';
-import './screens/admin/dashboard.dart';
-import './screens/student/dashboard.dart';
-import './screens/login.dart';
+import 'common/splash_screen.dart';
+import 'admin/dashboard.dart';
+import 'student/dashboard.dart';
+import 'common/login.dart';
 
 void main() {
   runApp(const MyApp());

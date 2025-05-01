@@ -1,4 +1,4 @@
-import 'package:career_nest/screens/student/techinical/technical_model.dart';
+import 'package:career_nest/student/techinical/technical_model.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../common_page/success_screen.dart'; // Adjust the path based on your project structure

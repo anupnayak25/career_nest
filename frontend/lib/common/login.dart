@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'login.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import './admin/admin_dashboard.dart';
-import './student/dashboard.dart';
+import '../admin/dashboard.dart';
+import '../student/dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
-import './signup.dart';
+import 'signup.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -60,10 +60,10 @@ class _LoginPageState extends State<LoginPage> {
 
         if (userType == 'student') {
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => HomePage(userName: json.decode(response.body)['userName'])));
+              context, MaterialPageRoute(builder: (_) => DashboardPage())); //userName: json.decode(response.body)['userName']
         } else {
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => AdminDashboard(userName: json.decode(response.body)['userName'])));
+              context, MaterialPageRoute(builder: (_) => AdminDashboardPage())); //userName: json.decode(response.body)['userName']
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -83,10 +83,10 @@ class _LoginPageState extends State<LoginPage> {
       await prefs.setBool('isLoggedIn', true);
       if (userType == 'student') {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => HomePage(userName: json.decode(response.body)['userName'])));
+            context, MaterialPageRoute(builder: (_) => DashboardPage()));//userName: json.decode(response.body)['userName']
       } else {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => AdminDashboard(userName: json.decode(response.body)['userName'])));
+            context, MaterialPageRoute(builder: (_) => AdminDashboardPage()));//userName: json.decode(response.body)['userName']
       }
     }
   }

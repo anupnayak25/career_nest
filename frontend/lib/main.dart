@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import './screens/splash_screen.dart';
-import './screens/admin/dashboard.dart';
-import './screens/student/dashboard.dart';
-import './screens/login.dart';
+import 'common/splash_screen.dart';
+import 'admin/dashboard.dart';
+import 'student/dashboard.dart';
+import 'common/login.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Add this import
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+
   runApp(const MyApp());
 }
 

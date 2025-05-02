@@ -59,31 +59,41 @@ class QuizListPage extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               if (!isDone) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        QuizDetailPage(quiz: quiz),
-                                  ),
-                                );
+                                final fullQuiz =
+                                    await ApiService.fetchQuizWithQuestions(
+                                        quiz.id);
+                                if (fullQuiz != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          QuizDetailPage(quiz: fullQuiz),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'Failed to load quiz details')),
+                                  );
+                                }
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isDone
-                                  ? Colors.red
-                                  : Colors.blue.shade700,
+                              backgroundColor:
+                                  isDone ? Colors.red : Colors.blue.shade700,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),
                             ),
                             child: Text(
-                              quiz.status=="Pending"?
-                                  'Attempt Quiz'
+                              quiz.status == "Pending"
+                                  ? 'Attempt Quiz'
                                   : 'Result',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                         )

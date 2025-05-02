@@ -9,21 +9,50 @@ class ApiService {
     final apiUrl = dotenv.get('API_URL');
 
     final response = await http.get(
-      Uri.parse(apiUrl+'api/quiz'),
+      Uri.parse('$apiUrl/api/quiz'),
       headers: {
-        'Authorization': 'Bearer $token', // Fixed: Added 'Bearer'
+        'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
     );
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}'); // Log response
+    if (response.statusCode == 200) {
+      final body = json.decode(response.body);
+
+      if (body is List) {
+        return body.map((item) => Quiz.fromJson(item)).toList();
+      } else {
+        print('Unexpected response format: ${response.body}');
+        return [];
+      }
+    } else {
+      throw Exception("Failed to load quizzes (status: ${response.statusCode})");
+    }
+  }
+
+  static Future<Quiz?> fetchQuizWithQuestions(int quizId) async {
+    final token = dotenv.get('AUTH_TOKEN');
+    final apiUrl = dotenv.get('API_URL');
+
+    final response = await http.get(
+      Uri.parse('$apiUrl/api/quiz/$quizId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
 
     if (response.statusCode == 200) {
-      final List jsonData = json.decode(response.body);
-      return jsonData.map((item) => Quiz.fromJson(item)).toList();
+      final body = json.decode(response.body);
+
+      if (body is Map<String, dynamic>) {
+        return Quiz.fromJson(body);
+      } else {
+        print('Unexpected response format: ${response.body}');
+        return null;
+      }
     } else {
-      throw Exception("Failed to load quizzes");
+      throw Exception("Failed to load quiz (status: ${response.statusCode})");
     }
   }
 }

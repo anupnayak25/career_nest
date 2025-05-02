@@ -17,9 +17,9 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // No login check — just go to DashboardPage directly
+  // No login check — just go to SelectionPage directly
   Future<Widget> _getInitialScreen() async {
-    return const DashboardPage(); // We'll define this below with navigation buttons
+    return const SelectionPage(); // We'll define this below with navigation buttons
   }
 
   @override
@@ -45,8 +45,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
+class SelectionPage extends StatelessWidget {
+  const SelectionPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +62,7 @@ class DashboardPage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const DashboardPage()),
+                  MaterialPageRoute(builder: (_) => DashboardPage()),
                 );
               },
               icon: const Icon(Icons.school),

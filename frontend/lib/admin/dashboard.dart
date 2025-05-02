@@ -17,6 +17,13 @@ class Video {
 }
 
 class AdminDashboardPage extends StatefulWidget {
+  final List<String> menuItems = [
+     'Upload video',
+     'Quiz',
+     'Programming',
+     'Technical',
+     'HR',
+   ];
   @override
   _AdminDashboardPageState createState() => _AdminDashboardPageState();
 }

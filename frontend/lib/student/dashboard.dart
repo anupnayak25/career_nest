@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-<<<<<<< HEAD:frontend/lib/screens/student/dashboard.dart
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 // Import other screens within your application
-import 'package:career_nest/screens/student/hr/hr_list.dart';
-import 'package:career_nest/screens/student/techinical/technical_list.dart';
-=======
 import 'package:url_launcher/url_launcher.dart'; // Import for opening URLs
 import 'package:career_nest/student/hr/hr_list.dart';
 import 'package:career_nest/student/techinical/technical_list.dart';
->>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/student/dashboard.dart
 import 'programing/programming_list.dart';
 import 'quiz_pages/quiz_list.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -88,25 +83,15 @@ class _HomePageState extends State<HomePage> {
 
   // Asynchronous function to fetch video data from the API.
   Future<void> _fetchVideos() async {
-<<<<<<< HEAD:frontend/lib/screens/student/dashboard.dart
-    // Replace 'YOUR_API_BASE_URL' with the actual base URL of your API.
-    const String apiUrl = 'YOUR_API_BASE_URL';
-    final Uri eventsUri = Uri.parse('$apiUrl/api/videos/?category=Events');
-=======
     // Replace with your actual API base URL
     final token = dotenv.get('AUTH_TOKEN');
     final apiUrl = dotenv.get('API_URL');
     final Uri eventsUri = Uri.parse('$apiUrl/api/videos');
->>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/student/dashboard.dart
     final Uri placementsUri =
         Uri.parse('$apiUrl/api/videos/');
 
     try {
-<<<<<<< HEAD:frontend/lib/screens/student/dashboard.dart
       // Make HTTP GET requests to fetch event and placement videos.
-      final eventsResponse = await http.get(eventsUri);
-      final placementsResponse = await http.get(placementsUri);
-=======
       final eventsResponse = await http.get(eventsUri, headers: {
         'Authorization': 'Bearer $token', // Fixed: Added 'Bearer'
         'Content-Type': 'application/json',
@@ -115,7 +100,6 @@ class _HomePageState extends State<HomePage> {
         'Authorization': 'Bearer $token', // Fixed: Added 'Bearer'
         'Content-Type': 'application/json',
       });
->>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/student/dashboard.dart
 
       // Check if both requests were successful (status code 200).
       if (eventsResponse.statusCode == 200 &&

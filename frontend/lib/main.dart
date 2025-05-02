@@ -3,8 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'common/splash_screen.dart';
 import 'admin/dashboard.dart';
 import 'student/dashboard.dart';
-import 'common/login.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // For env variables
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,20 +17,9 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // No login check — just go to DashboardPage directly
   Future<Widget> _getInitialScreen() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    String userType = prefs.getString('userType') ?? '';
-
-    if (isLoggedIn) {
-      if (userType == 'student') {
-        return const StudentDashboardPage(); // or HomePage() if that's the actual student home
-      } else if (userType == 'teacher') {
-        return const AdminDashboardPage();
-      }
-    }
-
-    return const LoginPage(); // Default to login if not logged in
+    return const DashboardPage(); // We'll define this below with navigation buttons
   }
 
   @override
@@ -48,12 +36,51 @@ class MyApp extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const SplashScreen();
-          } else if (snapshot.hasData) {
-            return snapshot.data!;
           } else {
-            return const LoginPage();
+            return snapshot.data!;
           }
         },
+      ),
+    );
+  }
+}
+
+class DashboardPage extends StatelessWidget {
+  const DashboardPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Career Nest - Select Role'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DashboardPage()),
+                );
+              },
+              icon: const Icon(Icons.school),
+              label: const Text('Go to Student Dashboard'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) =>  AdminDashboardPage()),
+                );
+              },
+              icon: const Icon(Icons.admin_panel_settings),
+              label: const Text('Go to Admin Dashboard'),
+            ),
+          ],
+        ),
       ),
     );
   }

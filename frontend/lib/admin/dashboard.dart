@@ -1,4 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+
+class AdminDashboard extends StatelessWidget {
+  final String userName;
+
+  const AdminDashboard({super.key, required this.userName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Welcome, $userName'),
+      ),
+      body: const Center(
+        child: Text('Admin Dashboard'),
+      ),
+    );
+  }
+}
 
 class Video {
   final String title;
@@ -15,6 +34,7 @@ class Video {
     required this.image,
   });
 }
+
 
 class AdminDashboardPage extends StatefulWidget {
   final List<String> menuItems = [

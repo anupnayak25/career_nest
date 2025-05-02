@@ -4,8 +4,14 @@ import 'common/splash_screen.dart';
 import 'admin/dashboard.dart';
 import 'student/dashboard.dart';
 import 'common/login.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Add this import
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+
   runApp(const MyApp());
 }
 

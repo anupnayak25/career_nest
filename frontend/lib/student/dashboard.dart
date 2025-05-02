@@ -6,6 +6,7 @@ import 'package:career_nest/student/hr/hr_list.dart';
 import 'package:career_nest/student/techinical/technical_list.dart';
 import 'programing/programming_list.dart';
 import 'quiz_pages/quiz_list.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -64,7 +65,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> _eventVideos = [];
   List<Map<String, dynamic>> _placementVideos = [];
-
   @override
   void initState() {
     super.initState();
@@ -73,14 +73,21 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchVideos() async {
     // Replace with your actual API base URL
-    const String apiUrl = 'YOUR_API_BASE_URL';
-    final Uri eventsUri = Uri.parse('$apiUrl/api/videos/?category=Events');
+    final token = dotenv.get('AUTH_TOKEN');
+    final apiUrl = dotenv.get('API_URL');
+    final Uri eventsUri = Uri.parse('$apiUrl/api/videos');
     final Uri placementsUri =
-        Uri.parse('$apiUrl/api/videos/?category=Placements');
+        Uri.parse('$apiUrl/api/videos/');
 
     try {
-      final eventsResponse = await http.get(eventsUri);
-      final placementsResponse = await http.get(placementsUri);
+      final eventsResponse = await http.get(eventsUri, headers: {
+        'Authorization': 'Bearer $token', // Fixed: Added 'Bearer'
+        'Content-Type': 'application/json',
+      });
+      final placementsResponse = await http.get(placementsUri, headers: {
+        'Authorization': 'Bearer $token', // Fixed: Added 'Bearer'
+        'Content-Type': 'application/json',
+      });
 
       if (eventsResponse.statusCode == 200 &&
           placementsResponse.statusCode == 200) {

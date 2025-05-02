@@ -117,6 +117,7 @@ class VideoList extends StatelessWidget {
       // If it cannot be launched, throw an exception.
       throw Exception('Could not launch $url');
     }
+
   }
 
   @override
@@ -163,6 +164,7 @@ class VideoList extends StatelessWidget {
                 );
               }
             },
+            
           ),
         );
       },

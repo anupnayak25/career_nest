@@ -10,7 +10,7 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 const path = require('path');
-const fetchuser = require('./middlewares/fetchUser');
+const fetchUser = require('./middlewares/fetchUser');
 const time = new Date();
 const formattedDate = `${time.getDate().toString().padStart(2, '0')}/${(time.getMonth() + 1).toString().padStart(2, '0')}/${time.getFullYear().toString().slice(-2)}`;
 const formattedTime = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:${time.getSeconds().toString().padStart(2, '0')}`;
@@ -25,7 +25,7 @@ app.get("/", async (req, res) => {
 app.use('/api/auth', require('./routes/authenticateRoutes'));
 
 // Apply fetchuser AFTER public routes
-app.use(fetchuser);
+app.use(fetchUser);
 
 // Protected routes
 app.use('/api/technical', require('./routes/technicalRoutes'));

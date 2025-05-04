@@ -37,11 +37,8 @@ class _SignUpPageState extends State<SignUpPage> {
       // Simulate network request
       await Future.delayed(const Duration(seconds: 2));
 
-      setState(() {
-        isLoading = false;
-      });
-
-      final apiUrl = dotenv.get('API_URL');
+      // final apiUrl = dotenv.get('API_URL');
+      final apiUrl = dotenv.get('API_URL_LOCAL');
       final response =
           await http.post(Uri.parse('$apiUrl/api/auth/signup'), body: {
         'otp': _otpController.text,
@@ -54,7 +51,8 @@ class _SignUpPageState extends State<SignUpPage> {
             'auth_token', json.decode(response.body).auth_token);
         await prefs.setString('userType', json.decode(response.body).userType);
         await prefs.setString('userName', json.decode(response.body).userName);
-        await prefs.setString('userEmail', json.decode(response.body).userEmail);
+        await prefs.setString(
+            'userEmail', json.decode(response.body).userEmail);
         await prefs.setBool('isLoggedIn', true);
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -68,29 +66,43 @@ class _SignUpPageState extends State<SignUpPage> {
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (_) => AdminDashboardPage()));
         }
-      } else if(response.statusCode == 401){
+      } else if (response.statusCode == 401) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Invalid OTP.. Try again later..')),
+          const SnackBar(content: Text('Invalid OTP.. Try again later..')),
         );
 
         _otpController.text = "";
-      }
-      else{
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Something went wrong.. Try again later..')),
         );
       }
 
+      setState(() {
+        isLoading = false;
+      });
+
       // Assume OTP is always correct for now
     }
   }
 
   void _getOtp() async {
-    bool otpSent = true;
+    bool otpSent = false;
 
-    /*TODO - send request to api*/
+      final apiUrl= dotenv.get('API_URL');
+    // final apiUrl = dotenv.get('API_URL');
+    // final apiUrl = dotenv.get('API_URL_LOCAL');
+    final response =
+        await http.post(Uri.parse('$apiUrl/api/auth/otp'), body: {
+      'email': emailController.text
+    });
+
+    if (response.statusCode == 200) {
+      otpSent = true;
+      } else {
+        otpSent = false;
+      }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

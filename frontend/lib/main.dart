@@ -17,18 +17,18 @@ class MyApp extends StatelessWidget {
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
     String userType = prefs.getString('userType') ?? '';
 
-    //   if (isLoggedIn) {
-    //     if (userType == 'student') {
-    //       return const HomePage();
-    //     } else if (userType == 'teacher') {
-    //       return AdminDashboardPage();
-    //     }
-    //   }
-    //   return const LoginPage(); // Login/signup screen
-    // }
+      if (isLoggedIn) {
+        if (userType == 'student') {
+          return const HomePage();
+        } else if (userType == 'teacher') {
+          return AdminDashboardPage();
+        }
+      }
+      return const LoginPage(); // Login/signup screen
+    }
 
-    return const HomePage();
-  }
+    // return const HomePage();
+  // }
 
   @override
   Widget build(BuildContext context) {

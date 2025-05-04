@@ -1,13 +1,7 @@
+import 'package:career_nest/common/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-<<<<<<< HEAD:frontend/lib/screens/login.dart
-import 'admin/admin_dashboard.dart';
-import './student/dashboard.dart';
-=======
-import '../admin/dashboard.dart';
-import '../student/dashboard.dart';
->>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/common/login.dart
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
@@ -47,7 +41,6 @@ class _LoginPageState extends State<LoginPage> {
           },
         );
 
-<<<<<<< HEAD:frontend/lib/screens/login.dart
         setState(() {
           isLoading = false;
         });
@@ -76,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
               context,
               MaterialPageRoute(
                   builder: (_) =>
-                      AdminDashboard(userName: responseData['userName'])),
+                      HomePage(userName: responseData['userName'])),
             );
           }
         } else {
@@ -84,14 +77,14 @@ class _LoginPageState extends State<LoginPage> {
             const SnackBar(
                 content: Text('Something went wrong.. Try again later..')),
           );
-=======
-        if (userType == 'student') {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => DashboardPage())); //userName: json.decode(response.body)['userName']
-        } else {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => AdminDashboardPage())); //userName: json.decode(response.body)['userName']
->>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/common/login.dart
+// =======
+//         if (userType == 'student') {
+//           Navigator.pushReplacement(
+//               context, MaterialPageRoute(builder: (_) => DashboardPage())); //userName: json.decode(response.body)['userName']
+//         } else {
+//           Navigator.pushReplacement(
+//               context, MaterialPageRoute(builder: (_) => AdminDashboardPage())); //userName: json.decode(response.body)['userName']
+// >>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/common/login.dart
         }
       } catch (error) {
         setState(() {
@@ -101,27 +94,26 @@ class _LoginPageState extends State<LoginPage> {
           const SnackBar(
               content: Text('Failed to connect to the server.')),
         );
-<<<<<<< HEAD:frontend/lib/screens/login.dart
         print('Login error: $error');
-=======
-      }
+// =======
+//       }
 
-      if (_isValidUser) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Successful ✅')),
-        );
-      } else {}
+//       if (_isValidUser) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           const SnackBar(content: Text('Login Successful ✅')),
+//         );
+//       } else {}
 
-      await prefs.setString('userType', userType);
+//       await prefs.setString('userType', userType);
 
-      await prefs.setBool('isLoggedIn', true);
-      if (userType == 'student') {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => DashboardPage()));//userName: json.decode(response.body)['userName']
-      } else {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => AdminDashboardPage()));//userName: json.decode(response.body)['userName']
->>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/common/login.dart
+//       await prefs.setBool('isLoggedIn', true);
+//       if (userType == 'student') {
+//         Navigator.pushReplacement(
+//             context, MaterialPageRoute(builder: (_) => DashboardPage()));//userName: json.decode(response.body)['userName']
+//       } else {
+//         Navigator.pushReplacement(
+//             context, MaterialPageRoute(builder: (_) => AdminDashboardPage()));//userName: json.decode(response.body)['userName']
+// >>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/common/login.dart
       }
     }
   }

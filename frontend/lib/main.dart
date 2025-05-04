@@ -1,13 +1,9 @@
+import 'package:career_nest/admin/dashboard.dart';
+import 'package:career_nest/common/home_page.dart';
+import 'package:career_nest/common/login.dart';
+import 'package:career_nest/common/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import './screens/splash_screen.dart';
-import './screens/admin/dashboard.dart';
-import './screens/student/dashboard.dart';
-import './screens/login.dart';
-
-void main() {
-  runApp(const MyApp());
-}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -17,18 +13,15 @@ class MyApp extends StatelessWidget {
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
     String userType = prefs.getString('userType') ?? '';
 
-      if (isLoggedIn) {
-        if (userType == 'student') {
-          return const HomePage();
-        } else if (userType == 'teacher') {
-          return AdminDashboardPage();
-        }
+    if (isLoggedIn) {
+      if (userType == 'student') {
+        return const HomePage(userName: '',); // FIX: Add const
+      } else if (userType == 'teacher') {
+        return const AdminDashboardPage(); // FIX: Add const
       }
-      return const LoginPage(); // Login/signup screen
     }
-
-    // return const HomePage();
-  // }
+    return const LoginPage();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +33,7 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       home: FutureBuilder<Widget>(
-        future: _getInitialScreen(),
+        future: _getInitialScreen(), // NOW it exists properly
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const SplashScreen();

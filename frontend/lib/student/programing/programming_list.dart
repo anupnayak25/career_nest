@@ -1,25 +1,25 @@
+import 'package:career_nest/student/programing/answer_page.dart';
 import 'package:flutter/material.dart';
-import 'quiz_service.dart';
-import 'quiz_model.dart';
-import 'quiz_attempt.dart';
+import 'programming_model.dart';
+import 'programming_service.dart';
 
-class QuizListPage extends StatelessWidget {
-  const QuizListPage({Key? key}) : super(key: key);
+class ProgramingListPage extends StatelessWidget {
+  const ProgramingListPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Quiz")),
-      body: FutureBuilder<List<Quiz>>(
-        future: ApiService.fetchQuizzes(),
+      appBar: AppBar(title: const Text("Programming")),
+      body: FutureBuilder<List<ProgramingList>>(
+        future: ApiService.fetchProgramingList(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                final quiz = snapshot.data![index];
-                final isDone = quiz.status == 'Done';
+                final programing = snapshot.data![index];
+                final isDone = false; // restlt.status == 'Done';
 
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 10),
@@ -32,7 +32,7 @@ class QuizListPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(quiz.title,
+                        Text(programing.title,
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -42,15 +42,15 @@ class QuizListPage extends StatelessWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Upload: ${quiz.uploadDate}"),
-                                Text("Marks: ${quiz.totalMarks}"),
+                                Text("Upload: ${programing.uploadDate}"),
+                                Text("Marks: ${programing.totalMarks}"),
                               ],
                             ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text("Due: ${quiz.dueDate}"),
-                                Text("Status: ${quiz.status}"),
+                                Text("Due: ${programing.dueDate}"),
+                                Text("Status: Pending "),//${programing.status}
                               ],
                             ),
                           ],
@@ -65,7 +65,7 @@ class QuizListPage extends StatelessWidget {
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) =>
-                                        QuizDetailPage(quiz: quiz),
+                                       AnswerPage(programming: programing.questions),
                                   ),
                                 );
                               }
@@ -79,9 +79,8 @@ class QuizListPage extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              quiz.status=="Pending"?
-                                  'Attempt Quiz'
-                                  : 'Result',
+                           //   programing.status=="Pending"?
+                                  'Attempt ', // programing' : 'Result',
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold),
                             ),

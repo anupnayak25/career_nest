@@ -1,20 +1,15 @@
 const mysql = require('mysql2');
 
-// Create a connection
-const connection = mysql.createConnection({
+const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'carrer_nest'
+  database: 'carrer_nest',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000 // in milliseconds
 });
 
-// Connect to the database
-connection.connect(err => {
-  if (err) {
-    console.error('Error connecting to MySQL:', err.message);
-  } else {
-    console.log('Connected to MySQL database!');
-  }
-});
-
-module.exports = connection;
+module.exports = pool;

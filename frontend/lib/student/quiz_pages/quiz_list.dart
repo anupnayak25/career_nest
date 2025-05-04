@@ -1,25 +1,25 @@
-import 'package:career_nest/screens/student/programing/answer_page.dart';
 import 'package:flutter/material.dart';
-import 'programming_model.dart';
-import 'programming_service.dart';
+import 'quiz_service.dart';
+import 'quiz_model.dart';
+import 'quiz_attempt.dart';
 
-class ProgramingListPage extends StatelessWidget {
-  const ProgramingListPage({Key? key}) : super(key: key);
+class QuizListPage extends StatelessWidget {
+  const QuizListPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Programming")),
-      body: FutureBuilder<List<ProgramingList>>(
-        future: ApiService.fetchProgramingList(),
+      appBar: AppBar(title: const Text("Quiz")),
+      body: FutureBuilder<List<Quiz>>(
+        future: ApiService.fetchQuizzes(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                final programing = snapshot.data![index];
-                final isDone = false; // restlt.status == 'Done';
+                final quiz = snapshot.data![index];
+                final isDone = quiz.status == 'Done';
 
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 10),
@@ -32,7 +32,7 @@ class ProgramingListPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(programing.title,
+                        Text(quiz.title,
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -42,15 +42,15 @@ class ProgramingListPage extends StatelessWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Upload: ${programing.uploadDate}"),
-                                Text("Marks: ${programing.totalMarks}"),
+                                Text("Upload: ${quiz.uploadDate}"),
+                                Text("Marks: ${quiz.totalMarks}"),
                               ],
                             ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text("Due: ${programing.dueDate}"),
-                                Text("Status: Pending "),//${programing.status}
+                                Text("Due: ${quiz.dueDate}"),
+                                Text("Status: ${quiz.status}"),
                               ],
                             ),
                           ],
@@ -59,30 +59,41 @@ class ProgramingListPage extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               if (!isDone) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                       AnswerPage(programming: programing.questions),
-                                  ),
-                                );
+                                final fullQuiz =
+                                    await ApiService.fetchQuizWithQuestions(
+                                        quiz.id);
+                                if (fullQuiz != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          QuizDetailPage(quiz: fullQuiz),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'Failed to load quiz details')),
+                                  );
+                                }
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isDone
-                                  ? Colors.red
-                                  : Colors.blue.shade700,
+                              backgroundColor:
+                                  isDone ? Colors.red : Colors.blue.shade700,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),
                             ),
                             child: Text(
-                           //   programing.status=="Pending"?
-                                  'Attempt ', // programing' : 'Result',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold),
+                              quiz.status == "Pending"
+                                  ? 'Attempt Quiz'
+                                  : 'Result',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                         )

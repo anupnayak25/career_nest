@@ -1,5 +1,5 @@
-import 'package:career_nest/screens/student/hr/hr_attempt.dart';
-import 'package:career_nest/screens/student/hr/hr_model.dart';
+import 'package:career_nest/student/hr/hr_attempt.dart';
+import 'package:career_nest/student/hr/hr_model.dart';
 import 'package:flutter/material.dart';
 import 'hr_service.dart';
 

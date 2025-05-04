@@ -1,4 +1,6 @@
+import 'package:career_nest/common/login.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../common/home_page.dart'; // Adjust the import path as needed
 
 class AdminDashboardPage extends StatelessWidget {
@@ -11,6 +13,7 @@ class AdminDashboardPage extends StatelessWidget {
     'Manage Technical Tests',
     'Manage HR Tests',
     'Add New Video',
+    'Logout'
   ];
 
   @override
@@ -30,11 +33,24 @@ class AdminDashboardPage extends StatelessWidget {
               ),
               ...menuItems.map(
                 (item) => ListTile(
-                  title: Text(item, style: const TextStyle(color: Colors.white)),
-                  onTap: () {
+                  title:
+                      Text(item, style: const TextStyle(color: Colors.white)),
+                  onTap: () async {
                     Navigator.pop(context);
                     if (item == 'Home') {
                       // Already on Home - do nothing or add logic to refresh
+                    } else if (item == 'Logout') {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('auth_token', "");
+                      await prefs.setString('userType', "");
+                      await prefs.setString('userName', "");
+                      await prefs.setString('userEmail', "");
+                      await prefs.setBool('isLoggedIn', false);
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LoginPage()),
+                        (Route<dynamic> route) => false,
+                      );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Tapped on "$item"')),

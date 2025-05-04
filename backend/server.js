@@ -15,6 +15,13 @@ const time = new Date();
 const formattedDate = `${time.getDate().toString().padStart(2, '0')}/${(time.getMonth() + 1).toString().padStart(2, '0')}/${time.getFullYear().toString().slice(-2)}`;
 const formattedTime = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:${time.getSeconds().toString().padStart(2, '0')}`;
 
+// For parsing application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+
+// For parsing application/json
+app.use(express.json());
+
+
 // Public routes
 app.get("/", async (req, res) => {
   res.send(`Welcome to the API!

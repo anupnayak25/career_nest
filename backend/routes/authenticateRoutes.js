@@ -20,6 +20,7 @@ const JWT_SECRET = process.env.SECRET_KEY;
 router.post('/otp', [// Validating API inputs 
     body('email', 'invalid').isEmail(),
 ], async (req, res) => {
+    
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -34,17 +35,14 @@ router.post('/otp', [// Validating API inputs
 
         /*TODO: code to send otp*/
         const otp = "000000";
-
-        console.log("Hiii");
         
 
         connection.query("insert into otps (email_id, otp_code) values (?,?)", [email, otp], (err, results) => {
             if (err) {
-                console.log(err);
                 return res.status(429).json({ error: 'Try again later' });
             }
             else {
-                res.status(201).json({ message: "Otp sent successfully" });
+                res.status(200).json({ message: "Otp sent successfully" });
             }
         });
 
@@ -104,7 +102,16 @@ router.post('/signup',
 
                     //eextracting name before @ symbol from email
                     const name = email.split('@')[0];
-                    connection.query("insert into user (id, name,  email_id, password) values (?, ?, ?, ?)", [id, name, email, hashedPassword], (err, results) => {
+                    const domain = email.split('@')[1].split('.')[0].toLowerCase();
+                    let type;
+                    if(domain == "nmamit")
+                        type='student';
+                    else if(domain=="nitte")
+                        type='teacher';
+                    else{
+                        return res.status(401).json({ message: 'Use email provided by school / college' });
+                    }
+                    connection.query("insert into user (id, name,  email_id, password, type) values (?, ?, ?, ?, ?)", [id, name, email, hashedPassword, type], (err, results) => {
                         if (err) {
                             console.error('Error inserting user:', err);
                             return res.status(500).json({ error: 'Failed to create user' });
@@ -119,8 +126,9 @@ router.post('/signup',
                         // Sending response
                         res.status(201).json({
                             auth_token: authToken,
-                            name: name,
-                            email: email
+                            name,
+                            email,
+                            type
                         });
                     });
 
@@ -154,12 +162,11 @@ router.post('/signin', [
 
     try {
 
-        connection.query("SELECT * FROM user WHERE email_id= ?", [email], (err, results) => {
+        connection.query("SELECT name, type, password FROM user WHERE email_id= ?", [email], (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
             if (results.length === 0)
                 return res.status(400).json({ path: "username", message: 'invalid' });
-
-
+            
             // Compare passwords using bcrypt.compare()
             bcrypt.compare(password, results[0].password, (err, isMatch) => {
                 if (err) {
@@ -175,7 +182,8 @@ router.post('/signin', [
                     res.status(200).json({
                         auth_token: authToken,
                         name: results[0].name,
-                        email: email
+                        email: email,
+                        type: results[0].type
                     });
                 } else {
                     res.status(400).json({ path: "password", message: 'invalid' });

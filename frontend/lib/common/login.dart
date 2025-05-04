@@ -1,10 +1,12 @@
+import 'package:career_nest/admin/dashboard.dart';
 import 'package:career_nest/common/home_page.dart';
+import 'package:career_nest/student/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
-import '../student/signup.dart';
+import 'signup.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -45,11 +47,10 @@ class _LoginPageState extends State<LoginPage> {
 
         if (response.statusCode == 200) {
           final responseData = json.decode(response.body);
-          String userType = responseData['userType'];
           await prefs.setString('auth_token', responseData['auth_token']);
-          await prefs.setString('userType', userType);
-          await prefs.setString('userName', responseData['userName']);
-          await prefs.setString('userEmail', responseData['userEmail']);
+          await prefs.setString('userType', responseData['type']);
+          await prefs.setString('userName', responseData['name']);
+          await prefs.setString('userEmail', responseData['email']);
           await prefs.setBool('isLoggedIn', true);
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -57,61 +58,28 @@ class _LoginPageState extends State<LoginPage> {
           );
 
           if (userType == 'student') {
-            Navigator.pushReplacement(
+          Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                  builder: (_) => HomePage(userName: responseData['userName'])),
-            );
-          } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (_) =>
-                      HomePage(userName: responseData['userName'])),
-            );
-          }
+                  builder: (_) =>  const DashboardPage()));
+        } else {
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (_) => const AdminDashboardPage()));
+        }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
                 content: Text('Something went wrong.. Try again later..')),
           );
-// =======
-//         if (userType == 'student') {
-//           Navigator.pushReplacement(
-//               context, MaterialPageRoute(builder: (_) => DashboardPage())); //userName: json.decode(response.body)['userName']
-//         } else {
-//           Navigator.pushReplacement(
-//               context, MaterialPageRoute(builder: (_) => AdminDashboardPage())); //userName: json.decode(response.body)['userName']
-// >>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/common/login.dart
         }
       } catch (error) {
+        print('Login error: $error');
         setState(() {
           isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Failed to connect to the server.')),
+          const SnackBar(content: Text('Failed to connect to the server.')),
         );
-        print('Login error: $error');
-// =======
-//       }
-
-//       if (_isValidUser) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(content: Text('Login Successful ✅')),
-//         );
-//       } else {}
-
-//       await prefs.setString('userType', userType);
-
-//       await prefs.setBool('isLoggedIn', true);
-//       if (userType == 'student') {
-//         Navigator.pushReplacement(
-//             context, MaterialPageRoute(builder: (_) => DashboardPage()));//userName: json.decode(response.body)['userName']
-//       } else {
-//         Navigator.pushReplacement(
-//             context, MaterialPageRoute(builder: (_) => AdminDashboardPage()));//userName: json.decode(response.body)['userName']
-// >>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/common/login.dart
       }
     }
   }

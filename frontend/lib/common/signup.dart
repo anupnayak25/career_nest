@@ -1,10 +1,10 @@
 import 'package:career_nest/common/home_page.dart';
 import 'package:flutter/material.dart';
-import '../common/login.dart';
+import 'login.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../admin/dashboard.dart';
-import 'dashboard.dart';
+import '../student/dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
@@ -28,7 +28,6 @@ class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
 
   void _submit() async {
-    String userType = "student";
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -39,7 +38,7 @@ class _SignUpPageState extends State<SignUpPage> {
       await Future.delayed(const Duration(seconds: 2));
 
       // final apiUrl = dotenv.get('API_URL');
-      final apiUrl = dotenv.get('API_URL_LOCAL');
+      final apiUrl = dotenv.get('API_URL');
       final response =
           await http.post(Uri.parse('$apiUrl/api/auth/signup'), body: {
         'otp': _otpController.text,
@@ -47,25 +46,28 @@ class _SignUpPageState extends State<SignUpPage> {
         'password': passwordController.text
       });
 
-      if (response.statusCode == 200) {
-        await prefs.setString(
-            'auth_token', json.decode(response.body).auth_token);
-        await prefs.setString('userType', json.decode(response.body).userType);
-        await prefs.setString('userName', json.decode(response.body).userName);
-        await prefs.setString(
-            'userEmail', json.decode(response.body).userEmail);
+      print(response.body);
+
+      if (response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        await prefs.setString('auth_token', responseData['auth_token']);
+        await prefs.setString('userType', responseData['type']);
+        await prefs.setString('userName', responseData['name']);
+        await prefs.setString('userEmail', responseData['email']);
         await prefs.setBool('isLoggedIn', true);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Account created! 🎉')),
         );
 
-        if (userType == 'student') {
+        if (responseData['type'] == 'student') {
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => HomePage(userName: json.decode(response.body)['userName'])));
+              context,
+              MaterialPageRoute(
+                  builder: (_) =>  const DashboardPage()));
         } else {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => const DashboardPage()));
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (_) => const AdminDashboardPage()));
         }
       } else if (response.statusCode == 401) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -74,6 +76,8 @@ class _SignUpPageState extends State<SignUpPage> {
 
         _otpController.text = "";
       } else {
+        print(response.body);
+        print(response.statusCode);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Something went wrong.. Try again later..')),
@@ -91,19 +95,19 @@ class _SignUpPageState extends State<SignUpPage> {
   void _getOtp() async {
     bool otpSent = false;
 
-      // final apiUrl= dotenv.get('API_URL');
+    // final apiUrl= dotenv.get('API_URL');
     // final apiUrl = dotenv.get('API_URL');
     final apiUrl = dotenv.get('API_URL_LOCAL');
-    final response =
-        await http.post(Uri.parse('$apiUrl/api/auth/otp'), body: {
-      'email': emailController.text
-    });
+    final response = await http.post(Uri.parse('$apiUrl/api/auth/otp'),
+        body: {'email': emailController.text});
 
     if (response.statusCode == 200) {
       otpSent = true;
-      } else {
-        otpSent = false;
-      }
+    } else {
+      otpSent = false;
+      print(response.statusCode);
+      print(response.body);
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

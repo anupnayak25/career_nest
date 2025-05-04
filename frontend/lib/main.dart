@@ -1,7 +1,7 @@
 import 'package:career_nest/admin/dashboard.dart';
-import 'package:career_nest/common/home_page.dart';
 import 'package:career_nest/common/login.dart';
 import 'package:career_nest/common/splash_screen.dart';
+import 'package:career_nest/student/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,9 +27,9 @@ class MyApp extends StatelessWidget {
 
     if (isLoggedIn) {
       if (userType == 'student') {
-        return const HomePage(userName: '',); 
+        return DashboardPage();
       } else if (userType == 'teacher') {
-        return const AdminDashboardPage();
+        return AdminDashboardPage(); 
       }
     }
     return const LoginPage();

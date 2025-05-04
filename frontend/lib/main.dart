@@ -3,7 +3,19 @@ import 'package:career_nest/common/home_page.dart';
 import 'package:career_nest/common/login.dart';
 import 'package:career_nest/common/splash_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await dotenv.load(fileName: ".env");
+    runApp(const MyApp());
+  } catch (e, stack) {
+    print("Error loading app: $e\n$stack");
+  }
+}
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -15,9 +27,9 @@ class MyApp extends StatelessWidget {
 
     if (isLoggedIn) {
       if (userType == 'student') {
-        return const HomePage(userName: '',); // FIX: Add const
+        return const HomePage(userName: '',); 
       } else if (userType == 'teacher') {
-        return const AdminDashboardPage(); // FIX: Add const
+        return const AdminDashboardPage();
       }
     }
     return const LoginPage();
@@ -33,7 +45,7 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       home: FutureBuilder<Widget>(
-        future: _getInitialScreen(), // NOW it exists properly
+        future: _getInitialScreen(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const SplashScreen();

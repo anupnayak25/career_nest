@@ -35,6 +35,9 @@ router.post('/otp', [// Validating API inputs
         /*TODO: code to send otp*/
         const otp = "000000";
 
+        console.log("Hiii");
+        
+
         connection.query("insert into otps (email_id, otp_code) values (?,?)", [email, otp], (err, results) => {
             if (err) {
                 console.log(err);

@@ -1,10 +1,10 @@
 import 'package:career_nest/common/home_page.dart';
 import 'package:flutter/material.dart';
-import 'login.dart';
+import '../common/login.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../admin/dashboard.dart';
-import '../student/dashboard.dart';
+import 'dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
@@ -91,9 +91,9 @@ class _SignUpPageState extends State<SignUpPage> {
   void _getOtp() async {
     bool otpSent = false;
 
-      final apiUrl= dotenv.get('API_URL');
+      // final apiUrl= dotenv.get('API_URL');
     // final apiUrl = dotenv.get('API_URL');
-    // final apiUrl = dotenv.get('API_URL_LOCAL');
+    final apiUrl = dotenv.get('API_URL_LOCAL');
     final response =
         await http.post(Uri.parse('$apiUrl/api/auth/otp'), body: {
       'email': emailController.text

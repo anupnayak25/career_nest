@@ -1,11 +1,10 @@
 import 'package:career_nest/common/home_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
-import 'signup.dart';
+import '../student/signup.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -20,7 +19,6 @@ class _LoginPageState extends State<LoginPage> {
   bool isPasswordHidden = true;
   bool isLoading = false;
   String userType = "";
-  bool _isValidUser = true;
   final _formKey = GlobalKey<FormState>();
 
   void _login() async {

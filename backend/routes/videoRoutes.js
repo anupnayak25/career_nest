@@ -39,7 +39,7 @@ router.post('/upload', upload.single('video'), (req, res) => {
     return res.status(400).json({ message: 'No file uploaded' });
   }
 
-  const videoUrl = `https://xn26sjz5-5000.inc1.devtunnels.ms/videos/${req.file.filename}`;
+  const videoUrl = `${req.protocol}://${req.get('host')}/videos/${req.file.filename}`;
   res.status(200).json({ message: 'Video uploaded successfully', url: videoUrl });
 });
 

@@ -1,8 +1,7 @@
+import 'package:career_nest/admin/dashboard.dart';
+import 'package:career_nest/student/dashboard.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../admin/dashboard.dart';
-import '../student/dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
@@ -21,7 +20,6 @@ class _LoginPageState extends State<LoginPage> {
   bool isPasswordHidden = true;
   bool isLoading = false;
   String userType = "";
-  bool _isValidUser = true;
   final _formKey = GlobalKey<FormState>();
 
   void _login() async {
@@ -42,38 +40,45 @@ class _LoginPageState extends State<LoginPage> {
           },
         );
 
-        if (userType == 'student') {
+        setState(() {
+          isLoading = false;
+        });
+
+        if (response.statusCode == 200) {
+          final responseData = json.decode(response.body);
+          await prefs.setString('auth_token', responseData['auth_token']);
+          await prefs.setString('userType', responseData['type']);
+          await prefs.setString('userName', responseData['name']);
+          await prefs.setString('userEmail', responseData['email']);
+          await prefs.setBool('isLoggedIn', true);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Logged in successfully! 🎉')),
+          );
+
+          if (userType == 'student') {
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => DashboardPage())); //userName: json.decode(response.body)['userName']
+              context,
+              MaterialPageRoute(
+                  builder: (_) =>  const DashboardPage()));
         } else {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => AdminDashboardPage())); //userName: json.decode(response.body)['userName']
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (_) => const AdminDashboardPage()));
+        }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Something went wrong.. Try again later..')),
+          );
         }
       } catch (error) {
+        print('Login error: $error');
         setState(() {
           isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Failed to connect to the server.')),
+          const SnackBar(content: Text('Failed to connect to the server.')),
         );
-      }
-
-      if (_isValidUser) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Successful ✅')),
-        );
-      } else {}
-
-      await prefs.setString('userType', userType);
-
-      await prefs.setBool('isLoggedIn', true);
-      if (userType == 'student') {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => DashboardPage()));//userName: json.decode(response.body)['userName']
-      } else {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => AdminDashboardPage()));//userName: json.decode(response.body)['userName']
       }
     }
   }

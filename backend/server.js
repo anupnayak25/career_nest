@@ -22,10 +22,17 @@ process.on('unhandledRejection', (reason, promise) => {
 app.use(cors());
 app.use(express.json());
 const path = require('path');
-const fetchuser = require('./middlewares/fetchUser');
+const fetchUser = require('./middlewares/fetchUser');
 const time = new Date();
 const formattedDate = `${time.getDate().toString().padStart(2, '0')}/${(time.getMonth() + 1).toString().padStart(2, '0')}/${time.getFullYear().toString().slice(-2)}`;
 const formattedTime = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:${time.getSeconds().toString().padStart(2, '0')}`;
+
+// For parsing application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+
+// For parsing application/json
+app.use(express.json());
+
 
 // Public routes
 app.get("/", async (req, res) => {
@@ -55,7 +62,7 @@ app.get('/api/logs', (req, res) => {
 
 
 // Apply fetchuser AFTER public routes
-app.use(fetchuser);
+app.use(fetchUser);
 
 // Protected API routes
 app.use('/api/technical', require('./routes/technicalRoutes'));

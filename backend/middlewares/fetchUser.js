@@ -27,7 +27,10 @@ const fetchUser = async (req, res, next) => {
 
             if(results.length!=0){
                 
-            req.user = {id:results[0].id};
+            req.user = {
+                id:results[0].id,
+                type:results[0].type
+            };
                 next();
 
     }

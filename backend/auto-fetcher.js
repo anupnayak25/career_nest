@@ -13,9 +13,7 @@ async function autoFetchAndPull() {
       console.log(`[AutoFetcher] Updates found. Pulling...`);
       await git.pull();
       console.log(`[AutoFetcher] Pull completed.`);
-    } else {
-      console.log(`[AutoFetcher] No updates.`);
-    }
+    } 
   } catch (err) {
     console.error(`[AutoFetcher] Error:`, err);
   }

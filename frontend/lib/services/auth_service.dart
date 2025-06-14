@@ -13,7 +13,7 @@ class AuthService {
       await prefs.setBool('isLoggedIn', true);
       await prefs.setString('userType', 'student');
       Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (_) => HomePage(userName: email)));
+          MaterialPageRoute(builder: (_) => DashboardPage()));
     } else if (email == "teacher@example.com" && password == "password") {
       await prefs.setBool('isLoggedIn', true);
       await prefs.setString('userType', 'teacher');
@@ -36,7 +36,7 @@ class AuthService {
 
     if (userType == 'student') {
       Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (_) => HomePage(userName: email)));
+          MaterialPageRoute(builder: (_) => DashboardPage()));
     } else {
       Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (_) => AdminDashboardPage()));

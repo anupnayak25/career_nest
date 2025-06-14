@@ -12,7 +12,8 @@
     "nodemon": "^3.1.10",
     "serverless-http": "^3.2.0",
     "simple-git": "^3.27.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "winston": "^3.17.0"
   },
   "scripts": {
     "dev": "concurrently \"nodemon server.js\" \"node auto-fetcher.js\""

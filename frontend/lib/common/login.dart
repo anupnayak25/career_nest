@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-<<<<<<< HEAD:frontend/lib/screens/login.dart
-import 'admin/admin_dashboard.dart';
-import './student/dashboard.dart';
-=======
 import '../admin/dashboard.dart';
 import '../student/dashboard.dart';
->>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/common/login.dart
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
@@ -47,51 +42,12 @@ class _LoginPageState extends State<LoginPage> {
           },
         );
 
-<<<<<<< HEAD:frontend/lib/screens/login.dart
-        setState(() {
-          isLoading = false;
-        });
-
-        if (response.statusCode == 200) {
-          final responseData = json.decode(response.body);
-          String userType = responseData['userType'];
-          await prefs.setString('auth_token', responseData['auth_token']);
-          await prefs.setString('userType', userType);
-          await prefs.setString('userName', responseData['userName']);
-          await prefs.setString('userEmail', responseData['userEmail']);
-          await prefs.setBool('isLoggedIn', true);
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Logged in successfully! 🎉')),
-          );
-
-          if (userType == 'student') {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => HomePage(userName: responseData['userName'])),
-            );
-          } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (_) =>
-                      AdminDashboard(userName: responseData['userName'])),
-            );
-          }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Something went wrong.. Try again later..')),
-          );
-=======
         if (userType == 'student') {
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (_) => DashboardPage())); //userName: json.decode(response.body)['userName']
         } else {
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (_) => AdminDashboardPage())); //userName: json.decode(response.body)['userName']
->>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/common/login.dart
         }
       } catch (error) {
         setState(() {
@@ -101,9 +57,6 @@ class _LoginPageState extends State<LoginPage> {
           const SnackBar(
               content: Text('Failed to connect to the server.')),
         );
-<<<<<<< HEAD:frontend/lib/screens/login.dart
-        print('Login error: $error');
-=======
       }
 
       if (_isValidUser) {
@@ -121,7 +74,6 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (_) => AdminDashboardPage()));//userName: json.decode(response.body)['userName']
->>>>>>> e9beca76bcc4bce8b1fd4ad35dc4b0416819cb0f:frontend/lib/common/login.dart
       }
     }
   }

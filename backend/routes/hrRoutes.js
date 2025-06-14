@@ -157,8 +157,6 @@ router.delete('/:id/:qno', (req, res) => {
 
 
 });
-
-
 //answer routes here
 
 router.post('/answers', (req, res) => {

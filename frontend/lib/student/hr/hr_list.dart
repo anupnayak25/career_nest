@@ -9,7 +9,7 @@ class HRListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Programming")),
+      appBar: AppBar(title: const Text("HR")),
       body: FutureBuilder<List<HrModel>>(
         future: HrService.fetchHrList(),
         builder: (context, snapshot) {
@@ -18,7 +18,7 @@ class HRListPage extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                final HR = snapshot.data![index];
+                final hR = snapshot.data![index];
                 final isDone = false; // restlt.status == 'Done';
 
                 return Card(
@@ -32,7 +32,7 @@ class HRListPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(HR.title,
+                        Text(hR.title,
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -42,15 +42,15 @@ class HRListPage extends StatelessWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Upload: ${HR.uploadDate}"),
-                                Text("Marks: ${HR.totalMarks}"),
+                                Text("Upload: ${hR.uploadDate}"),
+                                Text("Marks: ${hR.totalMarks}"),
                               ],
                             ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text("Due: ${HR.dueDate}"),
-                                Text("Status: Pending "),//${HR.status}
+                                Text("Due: ${hR.dueDate}"),
+                                Text("Status: Pending "),//${hR.status}
                               ],
                             ),
                           ],
@@ -65,7 +65,7 @@ class HRListPage extends StatelessWidget {
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) =>
-                                       HRAnswerPage(questions: HR.questions),
+                                       HRAnswerPage(questions: hR.questions),
                                   ),
                                 );
                               }
@@ -79,7 +79,7 @@ class HRListPage extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                           //   HR.status=="Pending"?
+                           //   hR.status=="Pending"?
                                   'Attempt ', // HR' : 'Result',
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold),

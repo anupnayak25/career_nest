@@ -24,9 +24,29 @@ router.post('/', (req, res) => {
 
 // Get all technical sets
 router.get('/', (req, res) => {
-  connection.query('SELECT * FROM technical_questions', (err, results) => {
+  connection.query('SELECT * FROM technical_questions', async(err,sets) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
+     try {
+      const setsWithQuestions = await Promise.all(
+        sets.map(set => {
+          return new Promise((resolve, reject) => {
+            connection.query(
+              "SELECT * FROM technical_question_items WHERE technical_id= ?",
+              [set.id],
+              (err, questions) => {
+                if (err) return reject(err);
+                set.questions = questions;
+                resolve(set);
+              }
+            );
+          });
+        })
+      );
+
+      res.json(setsWithQuestions);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   });
 });
 

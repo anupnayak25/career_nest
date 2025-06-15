@@ -5,9 +5,29 @@ const fetchUser = require('../middlewares/fetchUser');
 
 
 router.get('/', (req, res) => {
-  connection.query("SELECT * FROM hr_questions", (err, results) => {
+  connection.query("SELECT * FROM hr_questions", async (err,sets) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
+    try {
+      const setsWithQuestions = await Promise.all(
+        sets.map(set => {
+          return new Promise((resolve, reject) => {
+            connection.query(
+             "SELECT * FROM hr_question_items WHERE hr_question_id = ?",
+              [set.id],
+              (err, questions) => {
+                if (err) return reject(err);
+                set.questions = questions;
+                resolve(set);
+              }
+            );
+          });
+        })
+      );
+
+      res.json(setsWithQuestions);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   });
 });
 

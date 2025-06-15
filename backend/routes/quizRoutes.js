@@ -4,14 +4,14 @@ const connection = require('../db'); // Assuming db.js exists and works
 
 // Get all quizzes
 router.get('/', (req, res) => {
-  connection.query("SELECT * FROM quizzes", async (err, results) => {
+  connection.query("SELECT * FROM quizzes", async (err, sets) => {
     if (err) return res.status(500).json({ error: err.message });
       try {
       const setsWithQuestions = await Promise.all(
         sets.map(set => {
           return new Promise((resolve, reject) => {
             connection.query(
-              "SELECT * FROM program_questions WHERE program_set_id = ?",
+              "SELECT * FROM quiz_questions WHERE quiz_id = ?",
               [set.id],
               (err, questions) => {
                 if (err) return reject(err);

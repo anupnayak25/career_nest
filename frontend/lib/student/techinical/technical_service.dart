@@ -10,8 +10,8 @@ class TechnicalService {
       final response = await http.get(
         Uri.parse('$apiUrl/api/technical'),
         headers: {
-          'auth_token': token,
-          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
         },
       );
     if (response.statusCode == 200) {

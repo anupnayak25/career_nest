@@ -56,7 +56,7 @@ class _TechnicalAnswerPageState extends State<TechnicalAnswerPage> {
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  print("Submitted video answers: $videoAnswers");
+                //  print("Submitted video answers: $videoAnswers");
                   // Submit logic here
                 },
                 style: ElevatedButton.styleFrom(

@@ -60,7 +60,7 @@ class ProgrammingQuestion {
     return ProgrammingQuestion(
       qno: json['qno'],
       question: json['question'],
-      programSnippet: json['programm_snippet'],
+      programSnippet: json['program_snippet'],
       marks: json['marks'],
     );
   }

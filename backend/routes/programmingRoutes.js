@@ -1,11 +1,34 @@
 const express = require('express');
 const router = express.Router();
 const connection = require('../db'); // Assuming you have a db.js file for database connection
+const { set } = require('mongoose');
+
 
 router.get('/', (req, res) => {
-  connection.query("SELECT * FROM program_sets", (err, results) => {
+  connection.query("SELECT * FROM program_sets", async (err, sets) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
+
+    try {
+      const setsWithQuestions = await Promise.all(
+        sets.map(set => {
+          return new Promise((resolve, reject) => {
+            connection.query(
+              "SELECT * FROM program_questions WHERE program_set_id = ?",
+              [set.id],
+              (err, questions) => {
+                if (err) return reject(err);
+                set.questions = questions;
+                resolve(set);
+              }
+            );
+          });
+        })
+      );
+
+      res.json(setsWithQuestions);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   });
 });
 

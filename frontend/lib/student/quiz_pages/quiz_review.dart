@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'quiz_model.dart'; // make sure quiz_model.dart is imported
 
 class QuizReviewPage extends StatelessWidget {
-  final Quiz quiz;
+  final QuizList quiz;
   final Map<int, String> selectedAnswers;
 
   const QuizReviewPage({

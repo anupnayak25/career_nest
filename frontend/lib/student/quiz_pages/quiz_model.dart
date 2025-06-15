@@ -1,6 +1,6 @@
 import 'dart:convert';
-class Quiz {
-  final int id;
+class QuizList {
+   final int id;
   final String title;
   final String description;
   final String uploadDate;
@@ -8,25 +8,25 @@ class Quiz {
   final String userId;
   final bool displayResult;
   final String status; // Now assigned in constructor
-  final int totalMarks; // Use int type and assign in constructor
-  final List<Question> questions;
+  final int totalMarks; 
+  final List<QuizQuestion> questions;
 
-  Quiz({
+  QuizList({
     required this.id,
     required this.title,
     required this.description,
     required this.uploadDate,
     required this.dueDate,
-    required this.userId,
+required this.userId,
     required this.displayResult,
     this.status = "na",
     this.totalMarks = 0,
     required this.questions,
   });
 
-  factory Quiz.fromJson(Map<String, dynamic> json) {
-    return Quiz(
-      id: json['id'] as int,
+  factory QuizList.fromJson(Map<String, dynamic> json) {
+    return QuizList(
+     id: json['id'] as int,
       title: json['title'] as String,
       description: json['description'] as String,
       uploadDate: json['upload_date'] as String,
@@ -34,31 +34,33 @@ class Quiz {
       userId: json['user_id'] as String,
       displayResult: json['display_result'] == 1,
       questions: (json['questions'] as List<dynamic>?)
-              ?.map((e) => Question.fromJson(e))
+              ?.map((e) => QuizQuestion.fromJson(e))
               .toList() ?? [],
     );
   }
 }
 
-
-class Question {
+class QuizQuestion {
+  final int id;
   final int qno;
   final String question;
   final List<String> options;
   final String answer;
   final int marks;
 
-  Question({
-    required this.qno,
+  QuizQuestion({
+    required this.id,
+   required this.qno,
     required this.question,
     required this.options,
     required this.answer,
     required this.marks,
   });
 
-factory Question.fromJson(Map<String, dynamic> json) {
-  return Question(
-    qno: json['qno'] as int,
+  factory QuizQuestion.fromJson(Map<String, dynamic> json) {
+    return QuizQuestion(
+      id: json['id'],
+     qno: json['qno'] as int,
     question: json['question'] as String,
     options: json['options'] is String
         ? List<String>.from(jsonDecode(json['options']))
@@ -66,6 +68,6 @@ factory Question.fromJson(Map<String, dynamic> json) {
     answer: json['correct_ans'] as String,
     marks: json['marks'] as int,
   );
-}
+  }
+  }
 
-}

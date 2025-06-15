@@ -10,8 +10,8 @@ class QuizListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Quiz")),
-      body: FutureBuilder<List<Quiz>>(
-        future: ApiService.fetchQuizzes(),
+      body: FutureBuilder<List<QuizList>>(
+        future: ApiService.fetchQuizList(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(
@@ -19,7 +19,7 @@ class QuizListPage extends StatelessWidget {
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 final quiz = snapshot.data![index];
-                final isDone = quiz.status == 'Done';
+                final isDone = false;
 
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 10),
@@ -50,7 +50,7 @@ class QuizListPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text("Due: ${quiz.dueDate}"),
-                                Text("Status: ${quiz.status}"),
+                                Text("Status: $isDone"),
                               ],
                             ),
                           ],
@@ -61,39 +61,16 @@ class QuizListPage extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: () async {
                               if (!isDone) {
-                                final questions =
-                                    await ApiService.fetchQuestionsForQuiz(
-                                        quiz.id);
-                                if (questions.isNotEmpty) {
-                                  final fullQuiz = Quiz(
-                                    id: quiz.id,
-                                    title: quiz.title,
-                                    description: quiz.description,
-                                    uploadDate: quiz.uploadDate,
-                                    dueDate: quiz.dueDate,
-                                    userId: quiz.userId,
-                                    displayResult: quiz.displayResult,
-                                    status: quiz.status,
-                                    totalMarks: quiz.totalMarks,
-                                    questions: questions,
-                                  );
-
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) =>
-                                          QuizDetailPage(quiz: fullQuiz),
+                                          QuizDetailPage(quiz: quiz),
                                     ),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'Failed to load quiz questions')),
                                   );
                                 }
                               }
-                            },
+                            ,
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   isDone ? Colors.red : Colors.blue.shade700,
@@ -102,7 +79,7 @@ class QuizListPage extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              quiz.status == "Pending"
+                             !isDone
                                   ? 'Attempt Quiz'
                                   : 'Result',
                               style:

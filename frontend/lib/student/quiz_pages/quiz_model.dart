@@ -1,3 +1,4 @@
+import 'dart:convert';
 class Quiz {
   final int id;
   final String title;
@@ -55,13 +56,13 @@ class Question {
     required this.marks,
   });
 
- factory Question.fromJson(Map<String, dynamic> json) {
+factory Question.fromJson(Map<String, dynamic> json) {
   return Question(
     qno: json['qno'] as int,
     question: json['question'] as String,
-    options: (json['options'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList() ?? [],
+    options: json['options'] is String
+        ? List<String>.from(jsonDecode(json['options']))
+        : (json['options'] as List<dynamic>).map((e) => e.toString()).toList(),
     answer: json['correct_ans'] as String,
     marks: json['marks'] as int,
   );

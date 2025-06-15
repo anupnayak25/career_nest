@@ -61,10 +61,23 @@ class QuizListPage extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: () async {
                               if (!isDone) {
-                                final fullQuiz =
-                                    await ApiService.fetchQuizWithQuestions(
+                                final questions =
+                                    await ApiService.fetchQuestionsForQuiz(
                                         quiz.id);
-                                if (fullQuiz != null) {
+                                if (questions.isNotEmpty) {
+                                  final fullQuiz = Quiz(
+                                    id: quiz.id,
+                                    title: quiz.title,
+                                    description: quiz.description,
+                                    uploadDate: quiz.uploadDate,
+                                    dueDate: quiz.dueDate,
+                                    userId: quiz.userId,
+                                    displayResult: quiz.displayResult,
+                                    status: quiz.status,
+                                    totalMarks: quiz.totalMarks,
+                                    questions: questions,
+                                  );
+
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -76,7 +89,7 @@ class QuizListPage extends StatelessWidget {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                         content: Text(
-                                            'Failed to load quiz details')),
+                                            'Failed to load quiz questions')),
                                   );
                                 }
                               }

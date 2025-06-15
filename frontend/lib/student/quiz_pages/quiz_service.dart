@@ -18,7 +18,7 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final body = json.decode(response.body);
-
+      
       if (body is List) {
         return body.map((item) => Quiz.fromJson(item)).toList();
       } else {
@@ -30,29 +30,29 @@ class ApiService {
     }
   }
 
-  static Future<Quiz?> fetchQuizWithQuestions(int quizId) async {
-    final token = dotenv.get('AUTH_TOKEN');
-    final apiUrl = dotenv.get('API_URL');
+  static Future<List<Question>> fetchQuestionsForQuiz(int quizId) async {
+  final token = dotenv.get('AUTH_TOKEN');
+  final apiUrl = dotenv.get('API_URL');
 
-    final response = await http.get(
-      Uri.parse('$apiUrl/api/quiz/$quizId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
+  final response = await http.get(
+    Uri.parse('$apiUrl/api/quiz/$quizId'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
 
-    if (response.statusCode == 200) {
-      final body = json.decode(response.body);
+  if (response.statusCode == 200) {
+    final body = json.decode(response.body);
 
-      if (body is Map<String, dynamic>) {
-        return Quiz.fromJson(body);
-      } else {
-        print('Unexpected response format: ${response.body}');
-        return null;
-      }
+    if (body is List) {
+      return body.map((q) => Question.fromJson(q)).toList();
     } else {
-      throw Exception("Failed to load quiz (status: ${response.statusCode})");
+      print('Unexpected response format: ${response.body}');
+      return [];
     }
+  } else {
+    throw Exception("Failed to load questions (status: ${response.statusCode})");
   }
+}
 }

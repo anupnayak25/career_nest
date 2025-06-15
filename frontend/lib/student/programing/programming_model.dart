@@ -24,9 +24,11 @@ class ProgramingList {
       description: json['description'],
       uploadDate: json['upload_date'],
       dueDate: json['due_date'],
-      questions: (json['questions'] as List)
-          .map((q) => ProgrammingQuestion.fromJson(q))
-          .toList(),
+      questions: (json['questions'] != null)
+        ? (json['questions'] as List)
+            .map((q) => ProgrammingQuestion.fromJson(q))
+            .toList()
+        : [],
       totalMarks: json['total_marks'] ?? 0, // Default to 0 if not present
     );
   }

@@ -16,23 +16,23 @@ Future<void> main() async {
   }
 }
 
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   Future<Widget> _getInitialScreen() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    String userType = prefs.getString('userType') ?? '';
+    //   SharedPreferences prefs = await SharedPreferences.getInstance();
+    //   bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    //   String userType = prefs.getString('userType') ?? '';
 
-    if (isLoggedIn) {
-      if (userType == 'student') {
-        return DashboardPage();
-      } else if (userType == 'teacher') {
-        return AdminDashboardPage(); 
-      }
-    }
-    return const LoginPage();
+    //   if (isLoggedIn) {
+    //     if (userType == 'student') {
+    //       return DashboardPage();
+    //     } else if (userType == 'teacher') {
+    //       return AdminDashboardPage();
+    //     }
+    //   }
+    //   return const LoginPage();
+    return DashboardPage();
   }
 
   @override

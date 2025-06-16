@@ -1,3 +1,4 @@
+import './quiz_service.dart';
 import 'package:flutter/material.dart';
 import 'quiz_model.dart';
 import '../common_page/success_screen.dart'; // Adjust the path based on your project structure
@@ -83,15 +84,49 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
 
             const SizedBox(height: 16.0),
             Center(
               child: ElevatedButton(
                 child: const Text('Submit'),
-                onPressed: () {
-                  // Handle submission logic here
-                  print('Selected Answers: $selectedAnswers');
+                onPressed: () async {
+                  if (selectedAnswers.length != widget.quiz.questions.length) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Please answer all questions.')),
+                    );
+                    return;
+                  }
+
+                  final answerList = widget.quiz.questions.map((question) {
+                    final selected = selectedAnswers[question.qno];
+                    final isCorrect = selected == question.answer;
+
+                    return {
+                      "qno": question.qno,
+                      "selected_ans": selected,
+                      "is_correct": isCorrect,
+                      "marks_awarded": isCorrect ? question.marks : 0,
+                    };
+                  }).toList();
+
+                  final success = await ApiService.submitQuizAnswers(
+                    quizId: widget.quiz.id,
+                    answers: answerList,
+                  );
+
+                  if (success) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SuccessScreen()),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Failed to submit answers.')),
+                    );
+                  }
                 },
               ),
             ),

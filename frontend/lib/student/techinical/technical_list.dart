@@ -86,7 +86,7 @@ class TechnicalListPage extends StatelessWidget {
                             ),
                             child: const Text(
                               'Attempt',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),
                             ),
                           ),
                         )

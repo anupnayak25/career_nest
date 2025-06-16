@@ -43,7 +43,6 @@ app.get("/", async (req, res) => {
 
 // Serve static video files first
 app.use('/videos', express.static(path.join(__dirname, 'videos')));
-
 // Public routes
 app.use('/api/auth', require('./routes/authenticateRoutes'));
 

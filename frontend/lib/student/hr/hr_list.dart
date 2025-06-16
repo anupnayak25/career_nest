@@ -82,7 +82,7 @@ class HRListPage extends StatelessWidget {
                            //   hR.status=="Pending"?
                                   'Attempt ', // HR' : 'Result',
                               style: const TextStyle(
-                                  fontWeight: FontWeight.bold),
+                                  fontWeight: FontWeight.bold,color: Colors.white),
                             ),
                           ),
                         )

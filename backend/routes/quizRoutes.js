@@ -3,6 +3,8 @@ const router = express.Router();
 const connection = require('../db'); // Assuming db.js exists and works
 
 // Get all quizzes
+
+
 router.get('/', (req, res) => {
   connection.query("SELECT * FROM quizzes", async (err, sets) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -192,6 +194,27 @@ router.put('/publish/:id', (req, res) => {
   connection.query(query, [display_result], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });
+  });
+});
+
+router.get('/attempted/:id', (req, res) => {
+  const userId = req.params.id;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  const query = `
+    SELECT DISTINCT quiz_id 
+    FROM quiz_answers 
+    WHERE user_id = ?
+  `;
+
+  connection.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const attemptedQuizIds = results.map(row => row.quiz_id);
+    res.json({ attempted: attemptedQuizIds });
   });
 });
 

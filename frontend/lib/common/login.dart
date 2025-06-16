@@ -50,6 +50,7 @@ class _LoginPageState extends State<LoginPage> {
           await prefs.setString('userType', responseData['type']);
           await prefs.setString('userName', responseData['name']);
           await prefs.setString('userEmail', responseData['email']);
+          await prefs.setString('userId', responseData['id']);
           await prefs.setBool('isLoggedIn', true);
 
           ScaffoldMessenger.of(context).showSnackBar(

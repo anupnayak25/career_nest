@@ -82,7 +82,7 @@ class ProgramingListPage extends StatelessWidget {
                            //   programing.status=="Pending"?
                                   'Attempt ', // programing' : 'Result',
                               style: const TextStyle(
-                                  fontWeight: FontWeight.bold),
+                                  fontWeight: FontWeight.bold,color: Colors.white),
                             ),
                           ),
                         )

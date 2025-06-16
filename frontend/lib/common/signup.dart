@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'login.dart';
 import 'package:flutter/services.dart';
@@ -15,7 +17,7 @@ class SignUpPage extends StatefulWidget {
   State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _SignUpPageState extends State<SignUpPage> {final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
@@ -23,8 +25,33 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isConfirmPasswordHidden = true;
   bool isLoading = false;
   final TextEditingController _otpController = TextEditingController();
+  int _secondsRemaining = 0;
+  Timer? _timer;
+  void _startOtpTimer() {
+    setState(() {
+      _secondsRemaining = 60;
+    });
 
-  final _formKey = GlobalKey<FormState>();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsRemaining == 0) {
+        timer.cancel();
+      } else {
+        setState(() {
+          _secondsRemaining--;
+        });
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    emailController.addListener(() {
+      setState(() {}); // Refreshes UI when email changes
+    });
+  }
+
+  
 
   void _submit() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -61,10 +88,8 @@ class _SignUpPageState extends State<SignUpPage> {
         );
 
         if (responseData['type'] == 'student') {
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (_) =>  const DashboardPage()));
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (_) => const DashboardPage()));
         } else {
           Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (_) => const AdminDashboardPage()));
@@ -73,7 +98,7 @@ class _SignUpPageState extends State<SignUpPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invalid OTP.. Try again later..')),
         );
-
+        print(response.body);
         _otpController.text = "";
       } else {
         print(response.body);
@@ -93,27 +118,50 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   void _getOtp() async {
-    bool otpSent = false;
-
-    // final apiUrl= dotenv.get('API_URL');
-    // final apiUrl = dotenv.get('API_URL');
-    final apiUrl = dotenv.get('API_URL_LOCAL');
-    final response = await http.post(Uri.parse('$apiUrl/api/auth/otp'),
-        body: {'email': emailController.text});
-
-    if (response.statusCode == 200) {
-      otpSent = true;
-    } else {
-      otpSent = false;
-      print(response.statusCode);
-      print(response.body);
+    if (!_isValidEmail(emailController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid email')),
+      );
+      setState(() {
+        isLoading = false;
+        _secondsRemaining = 0;
+      });
+      return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content:
-              otpSent ? Text('OTP sent successfully 🎉') : Text('Try again')),
-    );
+    setState(() {
+      isLoading = true;
+    });
+
+
+    final apiUrl = dotenv.get('API_URL');
+    final response = await http.post(
+  Uri.parse('$apiUrl/api/auth/otp'),
+  body: {
+    'email': emailController.text,
+  },
+);
+
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('OTP sent successfully 🎉')),
+      );
+      _startOtpTimer(); // ← Start the countdown
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send OTP: ${response.body}')),
+      );
+      print(response.body);
+      _timer?.cancel(); // 🔴 Stop any existing timer if failed
+      setState(() {
+        _secondsRemaining = 0;
+      });
+    }
   }
 
   bool _isValidEmail(String email) {
@@ -190,7 +238,10 @@ class _SignUpPageState extends State<SignUpPage> {
                       Expanded(
                         flex: 1,
                         child: ElevatedButton(
-                          onPressed: isLoading ? null : _getOtp,
+                          onPressed: (!_isValidEmail(emailController.text) ||
+                                  isLoading)
+                              ? null
+                              : _getOtp,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green[400],
                             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -198,20 +249,38 @@ class _SignUpPageState extends State<SignUpPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                )
-                              : const Text(
-                                  "Get OTP",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
-                                ),
+                          child: (_secondsRemaining > 0)
+                              ? Text('Resend in $_secondsRemaining s',
+                                  style: TextStyle(color: Colors.white))
+                              : Text("Get OTP",
+                                  style: TextStyle(color: Colors.white)),
                         ),
+                      
                       ),
+                      // Expanded(
+                      //   flex:1,child: ElevatedButton(
+                      //   onPressed: () {
+                      //     if (_otpController.text.isEmpty) {
+                      //       ScaffoldMessenger.of(context).showSnackBar(
+                      //         const SnackBar(
+                      //             content: Text('Please enter OTP')),
+                      //       );
+                      //     } else {
+                      //       _submit();
+                      //     }
+                      //   },
+                      //   style: ElevatedButton.styleFrom(
+                      //     backgroundColor: Colors.blue,
+                      //     padding: const EdgeInsets.symmetric(vertical: 16),
+                      //     shape: RoundedRectangleBorder(
+                      //       borderRadius: BorderRadius.circular(12),
+                      //     ),
+                      //   ),
+                      //   child: const Text(
+                      //     "Verify OTP",
+                      //     style: TextStyle(color: Colors.white),
+                      //   ),
+                      // )),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -328,5 +397,11 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 }

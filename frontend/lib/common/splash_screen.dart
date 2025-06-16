@@ -1,5 +1,9 @@
 import 'package:career_nest/student/dashboard.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../admin/dashboard.dart';
+import 'login.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -9,26 +13,43 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    Future.delayed(const Duration(seconds: 5), () {
-      // Navigate to the login page after 3 seconds
-        //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-  //   String userType = prefs.getString('userType') ?? '';
+ @override
+void initState() {
+  super.initState();
 
-  //   if (isLoggedIn) {
-  //     if (userType == 'student') {
-  //       return DashboardPage();
-  //     } else if (userType == 'teacher') {
-  //       return AdminDashboardPage(); 
-  //     }
-  //   }
-  //   return const LoginPage();
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=> const DashboardPage()));
-    });
-    super.initState();
-  }
+  Future.delayed(const Duration(seconds: 3), () async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final userType = prefs.getString('userType') ?? '';
+
+    if (!mounted) return;
+
+    if (isLoggedIn) {
+      if (userType == 'student') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardPage()),
+        );
+      } else if (userType == 'teacher') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
+      }
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    }
+  });
+}
+
   @override
   Widget build(BuildContext context) {
     return const Scaffold(

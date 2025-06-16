@@ -1,10 +1,8 @@
-import 'package:career_nest/admin/dashboard.dart';
-import 'package:career_nest/common/login.dart';
 import 'package:career_nest/common/splash_screen.dart';
-import 'package:career_nest/student/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +10,8 @@ Future<void> main() async {
     await dotenv.load(fileName: ".env");
     runApp(const MyApp());
   } catch (e, stack) {
-    print("Error loading app: $e\n$stack");
+    // print("Error loading app: $e\n$stack");
+     Fluttertoast.showToast(msg:"Error loading app: $e  $stack", toastLength: Toast.LENGTH_LONG);
   }
 }
 
@@ -20,7 +19,7 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  Future<Widget> _getInitialScreen() async {
+ // Future<Widget> _getInitialScreen() async {
   //   SharedPreferences prefs = await SharedPreferences.getInstance();
   //   bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
   //   String userType = prefs.getString('userType') ?? '';
@@ -33,8 +32,8 @@ class MyApp extends StatelessWidget {
   //     }
   //   }
   //   return const LoginPage();
-  return DashboardPage();
-  }
+  // return DashboardPage();
+  // }
 
   @override
   Widget build(BuildContext context) {

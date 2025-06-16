@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:career_nest/student/hr/hr_list.dart';
 import 'package:career_nest/student/techinical/technical_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'programing/programming_list.dart';
-import 'quiz_pages/quiz_list.dart';
-import '../common/home_page.dart';
+import './programing/programming_list.dart';
+import './quiz_pages/quiz_list.dart';
+import "../common/home_page.dart";
 import 'package:career_nest/common/login.dart';
 
 // StatefulWidget for the main Dashboard page, as it manages the bottom navigation state.
@@ -77,7 +77,10 @@ class TestsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tests',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Colors.white)),
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: Padding(
@@ -134,7 +137,10 @@ class NotificationsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notifications',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Colors.white)),
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: ListView.builder(
@@ -194,7 +200,10 @@ class AccountPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Colors.white)),
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: Padding(
@@ -215,7 +224,8 @@ class AccountPage extends StatelessWidget {
             ),
             const SizedBox(height: 30),
             // Build a list of account option cards.
-            ...options.map((option) => _buildAccountOption(context, option)).toList(),
+            ...options
+                .map((option) => _buildAccountOption(context, option)),
           ],
         ),
       ),
@@ -224,32 +234,29 @@ class AccountPage extends StatelessWidget {
 
   // Helper function to build a reusable account option card.
   Widget _buildAccountOption(BuildContext context, String title) {
-  return Card(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    margin: const EdgeInsets.only(bottom: 10),
-    child: ListTile(
-      title: Text(title, style: const TextStyle(fontSize: 18)),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () async {
-        if (title == "Logout") {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('auth_token', "");
-          await prefs.setString('userType', "");
-          await prefs.setString('userName', "");
-          await prefs.setString('userEmail', "");
-          await prefs.setBool('isLoggedIn', false);
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const LoginPage()),
-            (Route<dynamic> route) => false,
-          );
-        }
-        else
-        print('$title tapped');
-      },
-    ),
-  );
-}
-
-
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        title: Text(title, style: const TextStyle(fontSize: 18)),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        onTap: () async {
+          if (title == "Logout") {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('auth_token', "");
+            await prefs.setString('userType', "");
+            await prefs.setString('userName', "");
+            await prefs.setString('userEmail', "");
+            await prefs.setBool('isLoggedIn', false);
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+              (Route<dynamic> route) => false,
+            );
+          } else
+            print('$title tapped');
+        },
+      ),
+    );
+  }
 }

@@ -9,7 +9,7 @@ class QuizListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Quiz")),
+      appBar: AppBar(title: const Text("Quiz")), 
       body: FutureBuilder<List<QuizList>>(
         future: ApiService.fetchQuizList(),
         builder: (context, snapshot) {

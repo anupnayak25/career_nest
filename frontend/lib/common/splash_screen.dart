@@ -11,9 +11,20 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
-    // TODO: implement initState
     Future.delayed(const Duration(seconds: 5), () {
       // Navigate to the login page after 3 seconds
+        //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+  //   String userType = prefs.getString('userType') ?? '';
+
+  //   if (isLoggedIn) {
+  //     if (userType == 'student') {
+  //       return DashboardPage();
+  //     } else if (userType == 'teacher') {
+  //       return AdminDashboardPage(); 
+  //     }
+  //   }
+  //   return const LoginPage();
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=> const DashboardPage()));
     });
     super.initState();

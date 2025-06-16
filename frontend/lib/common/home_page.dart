@@ -59,13 +59,13 @@ class _HomePageState extends State<HomePage> {
         });
       } else {
         // Log an error message if fetching videos failed.
-        print(
-            'Failed to fetch videos - Events: ${eventsResponse.statusCode}, Placements: ${placementsResponse.statusCode}');
+       // print(
+         //   'Failed to fetch videos - Events: ${eventsResponse.statusCode}, Placements: ${placementsResponse.statusCode}');
         // Optionally, you could show an error message to the user using a SnackBar or AlertDialog.
       }
     } catch (error) {
       // Log an error message if an exception occurred during the process.
-      print('Error fetching videos: $error');
+     // print('Error fetching videos: $error');
       // Optionally, show an error message to the user.
     }
   }
@@ -76,6 +76,7 @@ class _HomePageState extends State<HomePage> {
       length: 2, // Number of tabs.
       child: Scaffold(
         appBar: AppBar(
+          title: Text('Carreer Nest', style: TextStyle(color: Colors.white)),
           automaticallyImplyLeading: false,
           backgroundColor: Colors.blue,
           bottom: const TabBar(

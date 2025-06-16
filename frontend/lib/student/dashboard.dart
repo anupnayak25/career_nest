@@ -35,12 +35,12 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Career Nest',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blue,
-      ),
+      // appBar: AppBar(
+      //   automaticallyImplyLeading: false,
+      //   title: const Text('Career Nest',
+      //       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+      //   backgroundColor: Colors.blue,
+      // ),
       body: _pages[
           _selectedIndex], // Display the widget corresponding to the selected index.
       bottomNavigationBar: BottomNavigationBar(
@@ -77,7 +77,7 @@ class TestsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tests',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: Padding(
@@ -134,7 +134,7 @@ class NotificationsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notifications',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: ListView.builder(
@@ -193,8 +193,8 @@ class AccountPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your Profile',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        title: const Text('Profile',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: Padding(

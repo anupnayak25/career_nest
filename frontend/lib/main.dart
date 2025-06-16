@@ -16,23 +16,24 @@ Future<void> main() async {
   }
 }
 
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   Future<Widget> _getInitialScreen() async {
-    //   SharedPreferences prefs = await SharedPreferences.getInstance();
-    //   bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    //   String userType = prefs.getString('userType') ?? '';
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+  //   String userType = prefs.getString('userType') ?? '';
 
-    //   if (isLoggedIn) {
-    //     if (userType == 'student') {
-    //       return DashboardPage();
-    //     } else if (userType == 'teacher') {
-    //       return AdminDashboardPage();
-    //     }
-    //   }
-    //   return const LoginPage();
-    return DashboardPage();
+  //   if (isLoggedIn) {
+  //     if (userType == 'student') {
+  //       return DashboardPage();
+  //     } else if (userType == 'teacher') {
+  //       return AdminDashboardPage(); 
+  //     }
+  //   }
+  //   return const LoginPage();
+  return DashboardPage();
   }
 
   @override
@@ -44,16 +45,8 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: FutureBuilder<Widget>(
-        future: _getInitialScreen(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const SplashScreen();
-          } else {
-            return snapshot.data!;
-          }
-        },
-      ),
+      // 
+      home: SplashScreen(),
     );
   }
 }

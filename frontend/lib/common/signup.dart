@@ -356,7 +356,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       children: [
                         ElevatedButton(
                           // Disable when: invalid email, loading, or timer is running
-                          onPressed: (!_isValidEmail(emailController.text, context) || 
+                          onPressed: (
                                      isLoading || 
                                      _secondsRemaining > 0) ? null : _getOtp,
                           style: ElevatedButton.styleFrom(

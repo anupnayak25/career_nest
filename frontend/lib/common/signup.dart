@@ -26,9 +26,14 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isPasswordHidden = true;
   bool isConfirmPasswordHidden = true;
   bool isLoading = false;
+  var userType = "";
   final TextEditingController _otpController = TextEditingController();
   int _secondsRemaining = 0;
   Timer? _timer;
+  
+  // Add the boolean for OTP verification status
+  bool isOtpVerified = false;
+
   void _startOtpTimer() {
     setState(() {
       _secondsRemaining = 60;
@@ -45,16 +50,17 @@ class _SignUpPageState extends State<SignUpPage> {
     });
   }
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   emailController.addListener(() {
-  //     setState(() {}); // Refreshes UI when email changes
-  //   });
-  // }
-
   void _submit() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    
+    // Check if OTP is verified before allowing signup
+    if (!isOtpVerified) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please verify your email with OTP first')),
+      );
+      return;
+    }
+    
     if (_formKey.currentState!.validate()) {
       setState(() {
         isLoading = true;
@@ -63,13 +69,13 @@ class _SignUpPageState extends State<SignUpPage> {
       // Simulate network request
       await Future.delayed(const Duration(seconds: 2));
 
-      // final apiUrl = dotenv.get('API_URL');
       final apiUrl = dotenv.get('API_URL');
       final response =
           await http.post(Uri.parse('$apiUrl/api/auth/signup'), body: {
         'name': nameController.text,
         'email': emailController.text,
-        'password': passwordController.text
+        'password': passwordController.text,
+        'userType': userType,
       });
 
       print(response.body);
@@ -77,7 +83,7 @@ class _SignUpPageState extends State<SignUpPage> {
       if (response.statusCode == 201) {
         final responseData = json.decode(response.body);
         await prefs.setString('auth_token', responseData['auth_token']);
-        await prefs.setString('userType', responseData['type']);
+        await prefs.setString('userType', userType);
         await prefs.setString('userName', responseData['name']);
         await prefs.setString('userEmail', responseData['email']);
         await prefs.setString('userId', responseData['id']);
@@ -112,8 +118,6 @@ class _SignUpPageState extends State<SignUpPage> {
       setState(() {
         isLoading = false;
       });
-
-      // Assume OTP is always correct for now
     }
   }
 
@@ -149,13 +153,13 @@ class _SignUpPageState extends State<SignUpPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('OTP sent successfully 🎉')),
       );
-      _startOtpTimer(); // ← Start the countdown
+      _startOtpTimer();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to send OTP: ${response.body}')),
       );
       print(response.body);
-      _timer?.cancel(); // 🔴 Stop any existing timer if failed
+      _timer?.cancel();
       setState(() {
         _secondsRemaining = 0;
       });
@@ -174,46 +178,74 @@ class _SignUpPageState extends State<SignUpPage> {
       isLoading = true;
     });
 
-    final apiUrl = dotenv.get('API_URL');
-    final response = await http.post(
-      Uri.parse('$apiUrl/api/auth/verify-otp'),
-      body: {
-        'email': emailController.text,
-        'otp': _otpController.text,
-      },
-    );
-
-    setState(() {
-      isLoading = false;
-    });
-
-    if (response.statusCode == 200) {
-      // OTP verified
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('OTP verified successfully')),
+    try {
+      final apiUrl = dotenv.get('API_URL');
+      final response = await http.post(
+        Uri.parse('$apiUrl/api/auth/verify-otp'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'email': emailController.text,
+          'otp': _otpController.text,
+        },
       );
-    } else {
-      final errorMsg = jsonDecode(response.body)['error'];
-      print('Error verifying OTP: $errorMsg');
+
+      setState(() {
+        isLoading = false;
+      });
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        
+        // Set OTP as verified and stop timer
+        setState(() {
+          isOtpVerified = true;
+        });
+        _timer?.cancel();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseData['message'] ?? 'Email verified successfully! ✅'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        final responseData = jsonDecode(response.body);
+        String errorMsg = 'Verification failed';
+        
+        if (responseData['error'] != null) {
+          errorMsg = responseData['error'];
+        } else if (responseData['errors'] != null) {
+          errorMsg = responseData['errors'][0]['message'];
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMsg)),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Exception: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMsg ?? 'Verification failed')),
+        const SnackBar(content: Text('Network error occurred')),
       );
     }
   }
 
   bool _isValidEmail(String email, BuildContext context) {
-    // First, check the basic structure
     final emailRegex = RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
     if (!emailRegex.hasMatch(email)) {
-      return false; // invalid email format
+      return false;
     }
 
     try {
-      //final name = email.split('@')[0];
       final domain = email.split('@')[1].split('.')[0].toLowerCase();
 
       if (domain != "nmamit" && domain != "nitte") {
-        // Show alert dialog
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -230,10 +262,14 @@ class _SignUpPageState extends State<SignUpPage> {
         );
         return false;
       }
+      if(domain !="nitte"){
+          userType = "student";
+      }else{
+          userType = "admin";
+      }
 
       return true;
     } catch (e) {
-      // If splitting fails (bad format)
       return false;
     }
   }
@@ -267,11 +303,21 @@ class _SignUpPageState extends State<SignUpPage> {
                     style: TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 24),
+                  
+                  // Email field - disabled after verification
                   TextFormField(
                     controller: emailController,
-                    decoration: const InputDecoration(
+                    enabled: !isOtpVerified, // Disable when OTP is verified
+                    decoration: InputDecoration(
                       labelText: "Your Email",
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
+                      // Show verification status
+                      suffixIcon: isOtpVerified 
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : null,
+                      // Change colors when disabled
+                      fillColor: isOtpVerified ? Colors.green[50] : null,
+                      filled: isOtpVerified,
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -283,31 +329,36 @@ class _SignUpPageState extends State<SignUpPage> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  TextField(
-                    controller: _otpController,
-                    keyboardType: TextInputType.number,
-                    maxLength: 6,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(6),
-                    ],
-                    decoration: InputDecoration(
-                      labelText: "OTP",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  
+                  // Show OTP section only if not verified
+                  if (!isOtpVerified) ...[
+                    TextField(
+                      controller: _otpController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(6),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: "OTP",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        counterText: '',
                       ),
-                      counterText: '',
                     ),
-                  ),
-                  const SizedBox(width: 10), // add small gap between them
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
+                    const SizedBox(height: 20),
+                    
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
                         ElevatedButton(
-                          onPressed:
-                              // (!_isValidEmail(emailController.text,context) ||  isLoading) ? null :
-                              _getOtp,
+                          // Disable when: invalid email, loading, or timer is running
+                          onPressed: (!_isValidEmail(emailController.text, context) || 
+                                     isLoading || 
+                                     _secondsRemaining > 0) ? null : _getOtp,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue[700],
                             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -322,7 +373,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   style: TextStyle(color: Colors.white)),
                         ),
                         ElevatedButton(
-                          onPressed: () {
+                          onPressed: isLoading ? null : () {
                             if (_otpController.text.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -339,21 +390,64 @@ class _SignUpPageState extends State<SignUpPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            "Verify OTP",
-                            style: TextStyle(color: Colors.white),
-                          ),
+                          child: isLoading 
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                "Verify OTP",
+                                style: TextStyle(color: Colors.white),
+                              ),
                         ),
-                      
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                  
+                  // Show verification success message
+                  if (isOtpVerified) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 24),
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        border: Border.all(color: Colors.green),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.green),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Email verified successfully!",
+                            style: TextStyle(
+                              color: Colors.green[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   TextFormField(
                     controller: nameController,
                     decoration: InputDecoration(
                       labelText: "Name",
                       border: const OutlineInputBorder(),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your name';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 24),
                   TextFormField(

@@ -32,7 +32,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // In-memory store: { [email]: otp }
-const otpStore = {};
+ const otpStore = {};
 
 router.post('/otp', [
   body('email', 'Invalid email').isEmail(),
@@ -63,21 +63,47 @@ router.post('/otp', [
   }
 });
 
+
 router.post('/verify-otp', [
     body('email', 'Invalid email').isEmail(),
     body('otp')
         .isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits')
         .isNumeric().withMessage('OTP must contain only numbers'),
 ], async (req, res) => {
- const { email,otp } = req.body;  const storedOtp = otpStore[email];
-            if (!storedOtp) {
-                return res.status(406).json({ error: 'OTP not generated' });
-            }
-            if (otp !== storedOtp) {
-                return res.status(403).json({ error: 'OTP did not match' });
-            }
-}
-)
+    try {
+        // Check for validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                errors: errors.array().map(error => ({
+                    path: error.path,
+                    message: error.msg
+                }))
+            });
+        }
+
+        const { email, otp } = req.body;
+        const storedOtp = otpStore[email];
+        
+        if (!storedOtp) {
+            return res.status(406).json({ error: 'OTP not generated' });
+        }
+        
+        if (otp !== storedOtp) {
+            return res.status(403).json({ error: 'OTP did not match' });
+        }
+
+        // SUCCESS: OTP verified
+        return res.status(200).json({ 
+            success: true, 
+            message: 'OTP verified successfully' 
+        });
+
+    } catch (error) {
+        console.error('Error verifying OTP:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 
 router.post('/signup',

@@ -30,7 +30,7 @@ void initState() {
           context,
           MaterialPageRoute(builder: (_) => const DashboardPage()),
         );
-      } else if (userType == 'teacher') {
+      } else if (userType == 'admin') {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const AdminDashboardPage()),

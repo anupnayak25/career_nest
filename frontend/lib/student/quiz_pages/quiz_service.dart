@@ -7,7 +7,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiService {
   static Future<List<QuizList>> fetchQuizList() async {
-    final token = dotenv.get('AUTH_TOKEN');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('AUTH_TOKEN');
     final apiUrl = dotenv.get('API_URL');
     final response = await http.get(
       Uri.parse('$apiUrl/api/quiz'),
@@ -26,7 +27,7 @@ class ApiService {
   }
 
 //   static Future<List<Question>> fetchQuestionsForQuiz(int quizId) async {
-//   final token = dotenv.get('AUTH_TOKEN');
+//   final token = prefs.getString('AUTH_TOKEN');
 //   final apiUrl = dotenv.get('API_URL');
 
 //   final response = await http.get(
@@ -54,9 +55,9 @@ class ApiService {
     required int quizId,
     required List<Map<String, dynamic>> answers,
   }) async {
-    final token = dotenv.get('AUTH_TOKEN');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('AUTH_TOKEN');
     final apiUrl = dotenv.get('API_URL');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     String userId = prefs.getString('userId') ?? '';
 
     final url = Uri.parse('$apiUrl/api/quiz/answers');
@@ -89,9 +90,9 @@ class ApiService {
   }
 
   static Future<List<int>> fetchAttempted() async {
-    final token = dotenv.get('AUTH_TOKEN');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('AUTH_TOKEN');
     final apiUrl = dotenv.get('API_URL');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     String userId = prefs.getString('userId') ?? '';
     final url = Uri.parse('$apiUrl/api/quiz/attempted/$userId');
 

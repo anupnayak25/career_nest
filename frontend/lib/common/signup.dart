@@ -17,8 +17,10 @@ class SignUpPage extends StatefulWidget {
   State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {final _formKey = GlobalKey<FormState>();
+class _SignUpPageState extends State<SignUpPage> {
+  final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
+  final nameController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   bool isPasswordHidden = true;
@@ -43,15 +45,13 @@ class _SignUpPageState extends State<SignUpPage> {final _formKey = GlobalKey<For
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    emailController.addListener(() {
-      setState(() {}); // Refreshes UI when email changes
-    });
-  }
-
-  
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   emailController.addListener(() {
+  //     setState(() {}); // Refreshes UI when email changes
+  //   });
+  // }
 
   void _submit() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -67,7 +67,7 @@ class _SignUpPageState extends State<SignUpPage> {final _formKey = GlobalKey<For
       final apiUrl = dotenv.get('API_URL');
       final response =
           await http.post(Uri.parse('$apiUrl/api/auth/signup'), body: {
-        'otp': _otpController.text,
+        'name': nameController.text,
         'email': emailController.text,
         'password': passwordController.text
       });
@@ -118,7 +118,7 @@ class _SignUpPageState extends State<SignUpPage> {final _formKey = GlobalKey<For
   }
 
   void _getOtp() async {
-    if (!_isValidEmail(emailController.text)) {
+    if (!_isValidEmail(emailController.text, context)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid email')),
       );
@@ -133,15 +133,13 @@ class _SignUpPageState extends State<SignUpPage> {final _formKey = GlobalKey<For
       isLoading = true;
     });
 
-
     final apiUrl = dotenv.get('API_URL');
     final response = await http.post(
-  Uri.parse('$apiUrl/api/auth/otp'),
-  body: {
-    'email': emailController.text,
-  },
-);
-
+      Uri.parse('$apiUrl/api/auth/otp'),
+      body: {
+        'email': emailController.text,
+      },
+    );
 
     setState(() {
       isLoading = false;
@@ -164,8 +162,80 @@ class _SignUpPageState extends State<SignUpPage> {final _formKey = GlobalKey<For
     }
   }
 
-  bool _isValidEmail(String email) {
-    return RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(email);
+  _verifyOtp() async {
+    if (_otpController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter OTP')),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    final apiUrl = dotenv.get('API_URL');
+    final response = await http.post(
+      Uri.parse('$apiUrl/api/auth/verify-otp'),
+      body: {
+        'email': emailController.text,
+        'otp': _otpController.text,
+      },
+    );
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (response.statusCode == 200) {
+      // OTP verified
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('OTP verified successfully')),
+      );
+    } else {
+      final errorMsg = jsonDecode(response.body)['error'];
+      print('Error verifying OTP: $errorMsg');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMsg ?? 'Verification failed')),
+      );
+    }
+  }
+
+  bool _isValidEmail(String email, BuildContext context) {
+    // First, check the basic structure
+    final emailRegex = RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
+    if (!emailRegex.hasMatch(email)) {
+      return false; // invalid email format
+    }
+
+    try {
+      //final name = email.split('@')[0];
+      final domain = email.split('@')[1].split('.')[0].toLowerCase();
+
+      if (domain != "nmamit" && domain != "nitte") {
+        // Show alert dialog
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text("Invalid Email"),
+            content: Text(
+                "Please use an email provided by your college (nmamit or nitte)."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text("OK"),
+              ),
+            ],
+          ),
+        );
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      // If splitting fails (bad format)
+      return false;
+    }
   }
 
   @override
@@ -206,44 +276,40 @@ class _SignUpPageState extends State<SignUpPage> {final _formKey = GlobalKey<For
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter email';
-                      } else if (!_isValidEmail(value)) {
+                      } else if (!_isValidEmail(value, context)) {
                         return 'Please enter a valid email';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: TextField(
-                          controller: _otpController,
-                          keyboardType: TextInputType.number,
-                          maxLength: 6,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(6),
-                          ],
-                          decoration: InputDecoration(
-                            labelText: "OTP",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            counterText: '',
-                          ),
-                        ),
+                  TextField(
+                    controller: _otpController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(6),
+                    ],
+                    decoration: InputDecoration(
+                      labelText: "OTP",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(width: 10), // add small gap between them
-                      Expanded(
-                        flex: 1,
-                        child: ElevatedButton(
-                          onPressed: (!_isValidEmail(emailController.text) ||
-                                  isLoading)
-                              ? null
-                              : _getOtp,
+                      counterText: '',
+                    ),
+                  ),
+                  const SizedBox(width: 10), // add small gap between them
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                        ElevatedButton(
+                          onPressed:
+                              // (!_isValidEmail(emailController.text,context) ||  isLoading) ? null :
+                              _getOtp,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green[400],
+                            backgroundColor: Colors.blue[700],
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -255,33 +321,39 @@ class _SignUpPageState extends State<SignUpPage> {final _formKey = GlobalKey<For
                               : Text("Get OTP",
                                   style: TextStyle(color: Colors.white)),
                         ),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_otpController.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Please enter OTP')),
+                              );
+                            } else {
+                              _verifyOtp();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[900],
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            "Verify OTP",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
                       
-                      ),
-                      // Expanded(
-                      //   flex:1,child: ElevatedButton(
-                      //   onPressed: () {
-                      //     if (_otpController.text.isEmpty) {
-                      //       ScaffoldMessenger.of(context).showSnackBar(
-                      //         const SnackBar(
-                      //             content: Text('Please enter OTP')),
-                      //       );
-                      //     } else {
-                      //       _submit();
-                      //     }
-                      //   },
-                      //   style: ElevatedButton.styleFrom(
-                      //     backgroundColor: Colors.blue,
-                      //     padding: const EdgeInsets.symmetric(vertical: 16),
-                      //     shape: RoundedRectangleBorder(
-                      //       borderRadius: BorderRadius.circular(12),
-                      //     ),
-                      //   ),
-                      //   child: const Text(
-                      //     "Verify OTP",
-                      //     style: TextStyle(color: Colors.white),
-                      //   ),
-                      // )),
                     ],
+                  ),
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: "Name",
+                      border: const OutlineInputBorder(),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   TextFormField(

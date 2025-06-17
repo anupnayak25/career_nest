@@ -63,15 +63,27 @@ router.post('/otp', [
   }
 });
 
+router.post('/verify-otp', [
+    body('email', 'Invalid email').isEmail(),
+    body('otp')
+        .isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits')
+        .isNumeric().withMessage('OTP must contain only numbers'),
+], async (req, res) => {
+ const { email,otp } = req.body;  const storedOtp = otpStore[email];
+            if (!storedOtp) {
+                return res.status(406).json({ error: 'OTP not generated' });
+            }
+            if (otp !== storedOtp) {
+                return res.status(403).json({ error: 'OTP did not match' });
+            }
+}
+)
 
 
 router.post('/signup',
     [
         // Validating API inputs
         body('email', 'Invalid email').isEmail(),
-        body('otp')
-            .isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits')
-            .isNumeric().withMessage('OTP must contain only numbers'),
         body('password')
             .isLength({ min: 8 }).withMessage('At least 8 characters required')
             .matches(/[A-Z]/).withMessage('Must contain at least one uppercase letter')
@@ -90,16 +102,9 @@ router.post('/signup',
                 });
             }
 
-            const { otp, email, password } = req.body;
+            const { name, email, password } = req.body;
 
             // Validate OTP from in-memory store
-            const storedOtp = otpStore[email];
-            if (!storedOtp) {
-                return res.status(406).json({ error: 'OTP not generated' });
-            }
-            if (otp !== storedOtp) {
-                return res.status(403).json({ error: 'OTP did not match' });
-            }
 
             // Hash password
             const salt = await bcrypt.genSalt(10);
@@ -107,14 +112,7 @@ router.post('/signup',
             const id = uuidv4();
 
             // Extract name and type from email
-            const name = email.split('@')[0];
-            const domain = email.split('@')[1].split('.')[0].toLowerCase();
-            let type;
-            if (domain === "nmamit") type = 'student';
-            else if (domain === "nitte") type = 'teacher';
-            else {
-                return res.status(401).json({ message: 'Use email provided by school / college' });
-            }
+            
 
             // Insert user into database
             connection.query(

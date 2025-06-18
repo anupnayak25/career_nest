@@ -218,7 +218,8 @@ router.post('/signin', [
                         auth_token: authToken,
                         name: results[0].name,
                         email: email,
-                        type: results[0].type
+                        type: results[0].type,
+                        id: results[0].id
                     });
                 } else {
                     res.status(400).json({ path: "password", message: 'invalid' });

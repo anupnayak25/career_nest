@@ -367,8 +367,11 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                           ),
                           child: (_secondsRemaining > 0)
-                              ? Text('Resend in $_secondsRemaining s',
-                                  style: TextStyle(color: Colors.white))
+                              ? Padding(
+                                padding: const EdgeInsets.only(left: 8, right: 8),
+                                child: Text('Resend in $_secondsRemaining s',
+                                    style: TextStyle(color: Colors.blue)),
+                              )
                               : Text("Get OTP",
                                   style: TextStyle(color: Colors.white)),
                         ),

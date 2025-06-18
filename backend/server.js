@@ -2,10 +2,11 @@ require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 require('./logger'); 
-require('./auto-fetcher');
+// require('./auto-fetcher');
 
 const app = express();
 const PORT = 5000;
+
 
 
 // Catch uncaught exceptions

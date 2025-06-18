@@ -128,7 +128,7 @@ router.post('/signup',
                 });
             }
 
-            const { name, email, password } = req.body;
+            const { name, email, password,userType } = req.body;
 
             // Validate OTP from in-memory store
 
@@ -143,7 +143,7 @@ router.post('/signup',
             // Insert user into database
             connection.query(
                 "INSERT INTO user (id, name, email_id, password, type) VALUES (?, ?, ?, ?, ?)",
-                [id, name, email, hashedPassword, type],
+                [id, name, email, hashedPassword, userType],
                 (err, results) => {
                     if (err) {
                         console.error('Error inserting user:', err);
@@ -166,7 +166,8 @@ router.post('/signup',
                         auth_token: authToken,
                         name,
                         email,
-                        type
+                        userType,
+                        id
                     });
                 }
             );

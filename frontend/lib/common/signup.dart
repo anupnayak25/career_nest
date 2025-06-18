@@ -93,7 +93,7 @@ class _SignUpPageState extends State<SignUpPage> {
           const SnackBar(content: Text('Account created! 🎉')),
         );
 
-        if (responseData['type'] == 'student') {
+        if ( userType == 'student') {
           Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (_) => const DashboardPage()));
         } else {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 
@@ -27,7 +28,8 @@ class _HomePageState extends State<HomePage> {
   // Asynchronous function to fetch video data from the API.
   Future<void> _fetchVideos() async {
     // Replace with your actual API base URL
-    final token = dotenv.get('AUTH_TOKEN');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
     final apiUrl = dotenv.get('API_URL');
     final Uri eventsUri = Uri.parse('$apiUrl/api/videos');
     final Uri placementsUri =

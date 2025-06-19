@@ -197,7 +197,7 @@ router.post('/signin', [
 
     try {
 
-        connection.query("SELECT name, type, password FROM user WHERE email_id= ?", [email], (err, results) => {
+        connection.query("SELECT * FROM user WHERE email_id= ?", [email], (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
             if (results.length === 0)
                 return res.status(400).json({ path: "username", message: 'invalid' });
@@ -214,6 +214,7 @@ router.post('/signin', [
                         }
                     };
                     const authToken = jwt.sign(payload, JWT_SECRET);
+                  //  console.log("User logged in successfully"+results[0].name+" "+results[0].id+" "+results[0].type);
                     res.status(200).json({
                         auth_token: authToken,
                         name: results[0].name,

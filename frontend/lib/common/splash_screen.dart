@@ -17,7 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
 void initState() {
   super.initState();
 
-  Future.delayed(const Duration(seconds: 3), () async {
+  Future.delayed(const Duration(seconds: 10), () async {
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
     final userType = prefs.getString('userType') ?? '';

@@ -45,6 +45,7 @@ class _LoginPageState extends State<LoginPage> {
         });
 
         if (response.statusCode == 200) {
+          print('Login successful: ${response.body}');
           final responseData = json.decode(response.body);
           await prefs.setString('auth_token', responseData['auth_token']);
           await prefs.setString('userType', responseData['type']);
@@ -52,20 +53,18 @@ class _LoginPageState extends State<LoginPage> {
           await prefs.setString('userEmail', responseData['email']);
           await prefs.setString('userId', responseData['id']);
           await prefs.setBool('isLoggedIn', true);
-
+         String userType = await responseData['type'];
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Logged in successfully! 🎉')),
           );
-
+         //print(userType +""+responseData['auth_token']);
           if (userType == 'student') {
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (_) =>  const DashboardPage()));
-        } else {
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (_) => const AdminDashboardPage()));
-        }
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (_) => const DashboardPage()));
+          } else {
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (_) => const AdminDashboardPage()));
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -77,6 +76,7 @@ class _LoginPageState extends State<LoginPage> {
         setState(() {
           isLoading = false;
         });
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to connect to the server.')),
         );

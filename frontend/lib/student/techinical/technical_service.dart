@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class TechnicalService {
   static Future<List<TechnicalItem>> fetchTechnicalList() async {
     final prefs = await SharedPreferences.getInstance();
-     final token = prefs.getString('AUTH_TOKEN');
+     final token = prefs.getString('auth_token');
       final apiUrl= dotenv.get('API_URL');
       final response = await http.get(
         Uri.parse('$apiUrl/api/technical'),

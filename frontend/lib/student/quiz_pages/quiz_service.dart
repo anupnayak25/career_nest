@@ -8,7 +8,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class ApiService {
   static Future<List<QuizList>> fetchQuizList() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('AUTH_TOKEN');
+    final token = prefs.getString('auth_token');
+    if (token == null) {
+      throw Exception("No authentication token found");
+    }
     final apiUrl = dotenv.get('API_URL');
     final response = await http.get(
       Uri.parse('$apiUrl/api/quiz'),
@@ -17,17 +20,18 @@ class ApiService {
         'Content-Type': 'application/json',
       },
     );
-
+    log("Response status: ${response.statusCode} , Response body: ${response.body}");
     if (response.statusCode == 200) {
       final List jsonData = json.decode(response.body);
+
       return jsonData.map((item) => QuizList.fromJson(item)).toList();
     } else {
-      throw Exception("Failed to load quizzes $response.body");
+      throw Exception("Failed to load quizzes: ${response.body}");
     }
   }
 
 //   static Future<List<Question>> fetchQuestionsForQuiz(int quizId) async {
-//   final token = prefs.getString('AUTH_TOKEN');
+//   final token = prefs.getString('auth_token');
 //   final apiUrl = dotenv.get('API_URL');
 
 //   final response = await http.get(
@@ -56,7 +60,7 @@ class ApiService {
     required List<Map<String, dynamic>> answers,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('AUTH_TOKEN');
+    final token = prefs.getString('');
     final apiUrl = dotenv.get('API_URL');
     String userId = prefs.getString('userId') ?? '';
 
@@ -91,7 +95,7 @@ class ApiService {
 
   static Future<List<int>> fetchAttempted() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('AUTH_TOKEN');
+    final token = prefs.getString('auth_token');
     final apiUrl = dotenv.get('API_URL');
     String userId = prefs.getString('userId') ?? '';
     final url = Uri.parse('$apiUrl/api/quiz/attempted/$userId');

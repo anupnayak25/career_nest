@@ -1,3 +1,5 @@
+import 'package:career_nest/student/quiz_pages/quiz_list.dart';
+import 'package:career_nest/student/quiz_pages/quiz_model.dart';
 import 'package:flutter/material.dart';
 
 class SuccessScreen extends StatelessWidget {
@@ -55,9 +57,11 @@ class SuccessScreen extends StatelessWidget {
                   ),
                   onPressed: () {
                     // Navigating to the NextScreen
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => NextScreen()),
-                    );
+                   Navigator.pushAndRemoveUntil(
+  context,
+  MaterialPageRoute(builder: (context) => const QuizListPage()),
+  (Route<dynamic> route) => false, // Remove everything
+);
                   },
                   child: const Text(
                     'Next!',

@@ -53,11 +53,11 @@ class _LoginPageState extends State<LoginPage> {
           await prefs.setString('userEmail', responseData['email']);
           await prefs.setString('userId', responseData['id']);
           await prefs.setBool('isLoggedIn', true);
-         String userType = await responseData['type'];
+          String userType = await responseData['type'];
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Logged in successfully! 🎉')),
           );
-         //print(userType +""+responseData['auth_token']);
+          //print(userType +""+responseData['auth_token']);
           if (userType == 'student') {
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (_) => const DashboardPage()));
@@ -70,6 +70,7 @@ class _LoginPageState extends State<LoginPage> {
             const SnackBar(
                 content: Text('Something went wrong.. Try again later..')),
           );
+          print(response.body);
         }
       } catch (error) {
         print('Login error: $error');

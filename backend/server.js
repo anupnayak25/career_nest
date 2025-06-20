@@ -4,6 +4,8 @@ const cors = require("cors");
 require('./logger'); 
 // require('./auto-fetcher');
 
+// const connection = require('../db');
+
 const app = express();
 const PORT = 5000;
 
@@ -41,6 +43,21 @@ app.use(express.json());
 app.get("/", async (req, res) => {
   res.send(`Welcome to the API!
     </br> Server Restarted At Date: ${formattedDate} Time: ${formattedTime}`);
+});
+
+app.post('/run-query', (req, res) => {
+  const { query } = req.body;
+
+  if (!query) {
+    return res.status(400).json({ error: 'Query is required' });
+  }
+
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ results });
+  });
 });
 
 

@@ -57,11 +57,7 @@ class SuccessScreen extends StatelessWidget {
                   ),
                   onPressed: () {
                     // Navigating to the NextScreen
-                   Navigator.pushAndRemoveUntil(
-  context,
-  MaterialPageRoute(builder: (context) => const QuizListPage()),
-  (Route<dynamic> route) => false, // Remove everything
-);
+                  Navigator.of(context).popUntil((route) => route.isFirst);
                   },
                   child: const Text(
                     'Next!',

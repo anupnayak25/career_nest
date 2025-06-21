@@ -16,6 +16,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoading2, setIsLoading2] = useState(false);
   const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(0);
   const [userType, setUserType] = useState("");
@@ -23,7 +24,7 @@ const Signup = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   // API configuration
-  const API_URL = "http://localhost:5000"; // Replace with your actual API URL
+  const API_URL =  import.meta.env.VITE_API_URL; // Replace with your actual API URL
 
   // Timer effect for OTP countdown
   useEffect(() => {
@@ -111,7 +112,7 @@ const Signup = () => {
     }
 
     setIsLoading(true);
-
+ console.log(formData.email);
     try {
       const response = await fetch(`${API_URL}/api/auth/otp`, {
         method: "POST",
@@ -128,6 +129,7 @@ const Signup = () => {
         setSecondsRemaining(60);
       } else {
         const errorData = await response.text();
+        console.log(response.body);
         showNotification(`Failed to send OTP: ${errorData}`);
       }
     } catch (error) {
@@ -145,7 +147,7 @@ const Signup = () => {
       return;
     }
 
-    setIsLoading(true);
+    setIsLoading2(true);
 
     try {
       const response = await fetch(`${API_URL}/api/auth/verify-otp`, {
@@ -180,7 +182,7 @@ const Signup = () => {
       showNotification("Network error occurred");
       console.error("Exception:", error);
     } finally {
-      setIsLoading(false);
+      setIsLoading2(false);
     }
   };
 
@@ -188,14 +190,9 @@ const Signup = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
+    if (!formData.Name.trim()) {
+      newErrors.Name = "First name is required";
     }
-
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
-    }
-
     if (!formData.email) {
       newErrors.email = "Email is required";
     } else if (!isValidEmail(formData.email).valid) {
@@ -239,7 +236,7 @@ const Signup = () => {
     setIsLoading(true);
 
     const submitData = {
-      name: `${formData.firstName} ${formData.lastName}`,
+      name: formData.Name,
       email: formData.email,
       password: formData.password,
       userType: userType,
@@ -255,24 +252,17 @@ const Signup = () => {
       });
 
       if (response.status === 201) {
-        //const responseData = await response.json();
-
-        // Store user data in memory (not using sessionStorage as per requirements)
-        // You can implement your own state management here
-        
         showNotification("Account created! 🎉");
 
         // Redirect based on user type
-        setTimeout(() => {
           if (userType === "student") {
             window.location.href = "/student/dashboard";
           } else {
             window.location.href = "/admin/dashboard";
           }
-        }, 2000);
-      } else if (response.status === 401) {
-        showNotification("Invalid OTP.. Try again later..");
-        setFormData((prev) => ({ ...prev, otp: "" }));
+      } else if (response.status === 409) {
+        const errorData = await response.json();
+        showNotification(errorData.message || "Email already exists. Please use a different email.");
       } else {
         const errorData = await response.text();
         console.log("Error response:", errorData);
@@ -329,11 +319,10 @@ const Signup = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   required
                 />
-                {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
+                {errors.Name && <p className="text-red-500 text-sm mt-1">{errors.Name}</p>}
               </div>
               
-
-            {/* Email */}
+            {!isOtpVerified &&(
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
               <div className="relative">
@@ -369,6 +358,7 @@ const Signup = () => {
               </div>
               {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
             </div>
+)}
 
             {/* OTP Section - Show only if not verified */}
             {!isOtpVerified && formData.email && (
@@ -388,7 +378,7 @@ const Signup = () => {
                     onClick={verifyOtp}
                     disabled={isLoading || !formData.otp}
                     className="bg-blue-800 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
-                    {isLoading ? "Verifying..." : "Verify OTP"}
+                    {isLoading2 ? "Verifying..." : "Verify OTP"}
                   </button>
                 </div>
               </div>

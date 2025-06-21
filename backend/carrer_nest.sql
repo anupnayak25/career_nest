@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Apr 27, 2025 at 11:22 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Host: localhost
+-- Generation Time: Jun 21, 2025 at 06:49 PM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -58,7 +58,7 @@ CREATE TABLE `hr_questions` (
   `id` int(11) NOT NULL,
   `title` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
-  `upload_date` date DEFAULT NULL,
+  `upload_date` date DEFAULT current_timestamp(),
   `due_date` date DEFAULT NULL,
   `totalMarks` int(11) DEFAULT NULL,
   `user_id` varchar(255) DEFAULT NULL,
@@ -169,7 +169,7 @@ CREATE TABLE `program_sets` (
   `id` int(11) NOT NULL,
   `title` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
-  `upload_date` date DEFAULT NULL,
+  `upload_date` date DEFAULT current_timestamp(),
   `due_date` date DEFAULT NULL,
   `totalMarks` int(11) DEFAULT NULL,
   `user_id` text NOT NULL,
@@ -195,20 +195,22 @@ CREATE TABLE `quizzes` (
   `id` int(11) NOT NULL,
   `title` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
-  `upload_date` date DEFAULT NULL,
-  `due_date` date DEFAULT NULL,
+  `upload_date` datetime DEFAULT current_timestamp(),
+  `due_date` datetime DEFAULT NULL,
   `user_id` varchar(255) DEFAULT NULL,
-  `display_result` tinyint(1) NOT NULL DEFAULT 0
+  `display_result` tinyint(1) NOT NULL DEFAULT 0,
+  `totalMarks` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `quizzes`
 --
 
-INSERT INTO `quizzes` (`id`, `title`, `description`, `upload_date`, `due_date`, `user_id`, `display_result`) VALUES
-(1, 'Java Basics Quiz', 'This quiz tests fundamental Java knowledge including syntax, datatypes, and control flow.', '2025-04-06', '2025-04-13', 'user123', 0),
-(2, 'OOP Principles Quiz', 'Quiz on object-oriented principles such as inheritance, encapsulation, and polymorphism.', '2025-04-07', '2025-04-14', 'user123', 0),
-(3, 'Data Structures Quiz', 'Covers basics of arrays, stacks, and queues.', '2025-04-08', '2025-04-15', 'user123', 0);
+INSERT INTO `quizzes` (`id`, `title`, `description`, `upload_date`, `due_date`, `user_id`, `display_result`, `totalMarks`) VALUES
+(1, 'Java Basics Quiz', 'This quiz tests fundamental Java knowledge including syntax, datatypes, and control flow.', '2025-04-06 00:00:00', '2025-04-13 00:00:00', 'user123', 0, 0),
+(2, 'OOP Principles Quiz', 'Quiz on object-oriented principles such as inheritance, encapsulation, and polymorphism.', '2025-04-07 00:00:00', '2025-04-14 00:00:00', 'user123', 0, 0),
+(3, 'Data Structures Quiz', 'Covers basics of arrays, stacks, and queues.', '2025-04-08 00:00:00', '2025-04-15 00:00:00', 'user123', 0, 0),
+(10, 'Java', 'This is a test java quiz', '2025-06-21 22:07:06', '2025-06-25 00:00:00', 'dd60ebe0-bca8-48c4-a63c-34b596d58338', 0, 10101010);
 
 -- --------------------------------------------------------
 
@@ -222,8 +224,8 @@ CREATE TABLE `quiz_answers` (
   `user_id` varchar(255) DEFAULT NULL,
   `qno` int(11) DEFAULT NULL,
   `selected_ans` varchar(255) DEFAULT NULL,
-  `is_correct` tinyint(1) DEFAULT NULL,
-  `marks_awarded` int(11) DEFAULT 0,
+  `is_correct` tinyint(1) DEFAULT 0,
+  `marks_awarded` int(11) DEFAULT NULL,
   `submitted_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -237,7 +239,7 @@ INSERT INTO `quiz_answers` (`id`, `quiz_id`, `user_id`, `qno`, `selected_ans`, `
 (3, 1, 'dd60ebe0-bca8-48c4-a63c-34b596d58338', 3, 'for', 0, 0, '2025-04-22 09:05:00'),
 (4, 2, 'dd60ebe0-bca8-48c4-a63c-34b596d58338', 1, 'Encapsulation', 1, 5, '2025-04-23 14:20:00'),
 (5, 2, 'dd60ebe0-bca8-48c4-a63c-34b596d58338', 2, 'extends', 1, 5, '2025-04-23 14:22:00'),
-(6, 2, 'dd60ebe0-bca8-48c4-a63c-34b596d58338', 3, 'Both A and B', 1, 5, '2025-04-23 14:25:00'),
+(6, 3, 'dd60ebe0-bca8-48c4-a63c-34b596d58338', 3, 'Both A and B', 1, 5, '2025-04-23 14:25:00'),
 (7, 3, 'dd60ebe0-bca8-48c4-a63c-34b596d58338', 1, 'Stack', 1, 5, '2025-04-24 11:30:00'),
 (8, 3, 'dd60ebe0-bca8-48c4-a63c-34b596d58338', 2, 'Graph', 1, 5, '2025-04-24 11:35:00'),
 (9, 3, 'dd60ebe0-bca8-48c4-a63c-34b596d58338', 3, 'Array', 0, 0, '2025-04-24 11:40:00');
@@ -253,7 +255,7 @@ CREATE TABLE `quiz_questions` (
   `quiz_id` int(11) DEFAULT NULL,
   `qno` int(11) DEFAULT NULL,
   `question` text DEFAULT NULL,
-  `options` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`options`)),
+  `options` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `marks` int(11) DEFAULT NULL,
   `correct_ans` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -271,7 +273,11 @@ INSERT INTO `quiz_questions` (`id`, `quiz_id`, `qno`, `question`, `options`, `ma
 (6, 2, 3, 'Polymorphism is achieved in Java through:', '[\"Method Overloading\", \"Method Overriding\", \"Both A and B\", \"None of the above\"]', 5, 'Both A and B'),
 (7, 3, 1, 'Which data structure uses LIFO order?', '[\"Queue\", \"Array\", \"Stack\", \"Linked List\"]', 5, 'Stack'),
 (8, 3, 2, 'Which of the following is not a linear data structure?', '[\"Stack\", \"Queue\", \"Graph\", \"Array\"]', 5, 'Graph'),
-(9, 3, 3, 'Which of the following has dynamic memory allocation?', '[\"Array\", \"Stack\", \"Queue\", \"Linked List\"]', 5, 'Linked List');
+(9, 3, 3, 'Which of the following has dynamic memory allocation?', '[\"Array\", \"Stack\", \"Queue\", \"Linked List\"]', 5, 'Linked List'),
+(22, 10, 1, 'Java is a Object oriented language', '[\"True\",\"False\"]', 10, 'True'),
+(23, 10, 2, 'How to accept input from the user?', '[\"Scanner class\",\"print function\",\"outputstream\",\"switch cases\"]', 10, 'Scanner class'),
+(24, 10, 3, 'Java allows multi threading', '[\"True\",\"False\"]', 10, 'True'),
+(25, 10, 4, 'Java supports', '[\"Inheritence\",\"Abstraction\",\"Encapsulation\",\"Polymorphism\",\"All of the above\"]', 10, 'All of the above');
 
 -- --------------------------------------------------------
 
@@ -309,7 +315,7 @@ CREATE TABLE `technical_questions` (
   `id` int(11) NOT NULL,
   `title` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
-  `upload_date` date DEFAULT NULL,
+  `upload_date` date DEFAULT current_timestamp(),
   `due_date` date DEFAULT NULL,
   `user_id` text NOT NULL,
   `display_result` tinyint(1) NOT NULL DEFAULT 0
@@ -460,14 +466,15 @@ ALTER TABLE `quizzes`
 --
 ALTER TABLE `quiz_answers`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `quiz_id` (`quiz_id`);
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `fk_quiz_answers_quiz_id` (`quiz_id`);
 
 --
 -- Indexes for table `quiz_questions`
 --
 ALTER TABLE `quiz_questions`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `quiz_id` (`quiz_id`);
+  ADD KEY `fk_quiz_questions_quiz_id` (`quiz_id`);
 
 --
 -- Indexes for table `technical_answers`
@@ -531,6 +538,12 @@ ALTER TABLE `program_questions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT for table `quizzes`
+--
+ALTER TABLE `quizzes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
 -- AUTO_INCREMENT for table `quiz_answers`
 --
 ALTER TABLE `quiz_answers`
@@ -540,7 +553,7 @@ ALTER TABLE `quiz_answers`
 -- AUTO_INCREMENT for table `quiz_questions`
 --
 ALTER TABLE `quiz_questions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `technical_answers`
@@ -592,13 +605,14 @@ ALTER TABLE `program_questions`
 -- Constraints for table `quiz_answers`
 --
 ALTER TABLE `quiz_answers`
-  ADD CONSTRAINT `quiz_answers_ibfk_1` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_quiz_answers_quiz_id` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `quiz_answers_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
 
 --
 -- Constraints for table `quiz_questions`
 --
 ALTER TABLE `quiz_questions`
-  ADD CONSTRAINT `quiz_questions_ibfk_1` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_quiz_questions_quiz_id` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `technical_answers`

@@ -16,12 +16,15 @@ class _AnswerPageState extends State<AnswerPage> {
   Map<int, TextEditingController> _controllers = {};
 
   @override
-  void initState() {
-    super.initState();
-    for (var q in widget.programming) {
-      _controllers[q.qno] = TextEditingController();
-    }
+void initState() {
+  super.initState();
+  for (var q in widget.programming) {
+    _controllers[q.qno] = TextEditingController(
+      text: q.programSnippet ?? '//write', // Set the default text to the program snippet
+    );
   }
+}
+
 
   @override
   void dispose() {

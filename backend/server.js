@@ -8,9 +8,6 @@ require('./logger');
 
 const app = express();
 const PORT = 5000;
-
-
-
 // Catch uncaught exceptions
 process.on('uncaughtException', (err) => {
   console.error('[FATAL] Uncaught Exception:', err);

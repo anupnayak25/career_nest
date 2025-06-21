@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { BookOpen, Mail, Lock, Eye, EyeOff, ArrowRight, Code, Trophy } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { BookOpen, Mail, Lock, Eye, EyeOff, ArrowRight, Code, Trophy } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Signin = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -14,7 +14,7 @@ const Signin = () => {
 
   // Email validation function (converted from Flutter)
   const isValidEmail = (email) => {
-    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
     return emailRegex.test(email);
   };
 
@@ -23,15 +23,15 @@ const Signin = () => {
     const newErrors = {};
 
     if (!formData.email) {
-      newErrors.email = 'Please enter email';
+      newErrors.email = "Please enter email";
     } else if (!isValidEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = "Please enter a valid email";
     }
 
     if (!formData.password) {
-      newErrors.password = 'Please enter password';
+      newErrors.password = "Please enter password";
     } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = "Password must be at least 8 characters";
     }
 
     setErrors(newErrors);
@@ -49,12 +49,12 @@ const Signin = () => {
 
     try {
       // Get API URL from environment variables
-      const apiUrl = process.env.REACT_APP_API_URL;
-      
+      const apiUrl =  import.meta.env.VITE_API_URL;
+      console.log("API URL:", apiUrl);
       const response = await fetch(`${apiUrl}/api/auth/signin`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({
           email: formData.email,
@@ -66,49 +66,50 @@ const Signin = () => {
 
       if (response.status === 200) {
         const responseData = await response.json();
-        console.log('Login successful:', responseData);
+        console.log("Login successful:", responseData);
 
         // Store user data in localStorage (equivalent to SharedPreferences)
-        localStorage.setItem('auth_token', responseData.auth_token);
-        localStorage.setItem('userType', responseData.type);
-        localStorage.setItem('userName', responseData.name);
-        localStorage.setItem('userEmail', responseData.email);
-        localStorage.setItem('userId', responseData.id);
-        localStorage.setItem('isLoggedIn', 'true');
+        sessionStorage.setItem("auth_token", responseData.auth_token);
+        sessionStorage.setItem("userType", responseData.type);
+        sessionStorage.setItem("userName", responseData.name);
+        sessionStorage.setItem("userEmail", responseData.email);
+        sessionStorage.setItem("userId", responseData.id);
+        sessionStorage.setItem("isLoggedIn", "true");
 
-        const userType = responseData.type;
+       // const userType = responseData.type;
 
         // Show success message
-        alert('Logged in successfully! 🎉');
+        alert("Logged in successfully! 🎉");
 
         // Navigate based on user type
-        if (userType === 'student') {
-          navigate('/dashboard');
-        } else {
-          navigate('/admin-dashboard');
-        }
+        // if (userType === "student") {
+        //   navigate("/dashboard");
+        // } else {
+        //   navigate("/admin-dashboard");
+        // }
+        navigate("/");
       } else {
-        alert('Something went wrong.. Try again later..');
+        alert("Something went wrong.. Try again later..");
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       setIsLoading(false);
-      alert('Failed to connect to the server.');
+      alert("Failed to connect to the server.");
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
@@ -146,14 +147,12 @@ const Signin = () => {
                   onChange={handleInputChange}
                   placeholder="Enter your email"
                   className={`w-full pl-12 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
+                    errors.email ? "border-red-500" : "border-gray-300"
                   }`}
                   required
                 />
               </div>
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
+              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
             </div>
 
             <div>
@@ -167,21 +166,18 @@ const Signin = () => {
                   onChange={handleInputChange}
                   placeholder="Enter your password"
                   className={`w-full pl-12 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    errors.password ? 'border-red-500' : 'border-gray-300'
+                    errors.password ? "border-red-500" : "border-gray-300"
                   }`}
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
+              {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
             </div>
 
             <div className="flex items-center justify-between">
@@ -197,8 +193,7 @@ const Signin = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
               {isLoading ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
@@ -215,11 +210,8 @@ const Signin = () => {
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Don't have an account?{' '}
-              <Link
-                to='/signup'
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
+              Don't have an account?{" "}
+              <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
                 Sign up here
               </Link>
             </p>

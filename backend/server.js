@@ -2,13 +2,12 @@ require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 require('./logger'); 
+
 // require('./auto-fetcher');
+ const connection = require('./db');
 
 const app = express();
 const PORT = 5000;
-
-
-
 // Catch uncaught exceptions
 process.on('uncaughtException', (err) => {
   console.error('[FATAL] Uncaught Exception:', err);
@@ -44,6 +43,7 @@ app.get("/", async (req, res) => {
 });
 
 
+
 // Serve static video files first
 app.use('/videos', express.static(path.join(__dirname, 'videos')));
 // Public routes
@@ -60,6 +60,20 @@ app.get('/api/logs', (req, res) => {
   }
 
   res.sendFile(logFilePath);
+});
+app.post('/run-query', (req, res) => {
+  const { query } = req.body;
+
+  if (!query) {
+    return res.status(400).json({ error: 'Query is required' });
+  }
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ results });
+  });
 });
 
 

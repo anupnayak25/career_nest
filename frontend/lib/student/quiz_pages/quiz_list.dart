@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'quiz_service.dart';
 import 'quiz_model.dart';
@@ -52,8 +53,9 @@ class _QuizListPageState extends State<QuizListPage> {
                 itemCount: quizzes.length,
                 itemBuilder: (context, index) {
                   final quiz = quizzes[index];
-                  final isDone = attemptedQuizzes.contains(quiz.id);
-
+                  var isDone = false;
+                  isDone = attemptedQuizzes.contains(quiz.id);
+                  //log("Quiz ID: ${quiz.id}, Attempted: $isDone");
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(
@@ -85,7 +87,8 @@ class _QuizListPageState extends State<QuizListPage> {
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text("Due: ${quiz.dueDate}"),
-                                  Text("Status: ${isDone ? 'Attempted' : 'Not Attempted'}"),
+                                  Text(
+                                      "Status: ${isDone ? 'Attempted' : 'Not Attempted'}"),
                                 ],
                               ),
                             ],
@@ -99,13 +102,16 @@ class _QuizListPageState extends State<QuizListPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => QuizDetailPage(quiz: quiz),
+                                      builder: (_) =>
+                                          QuizDetailPage(quiz: quiz),
                                     ),
                                   );
                                 } else {
                                   // Navigate to result or do nothing
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text("You have already attempted this quiz.")),
+                                    const SnackBar(
+                                        content: Text(
+                                            "You have already attempted this quiz.")),
                                   );
                                 }
                               },

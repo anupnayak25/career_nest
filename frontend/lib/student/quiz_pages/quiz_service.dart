@@ -21,9 +21,10 @@ class ApiService {
       },
     );
     log("Response status: ${response.statusCode} , Response body: ${response.body}");
+    print(response.body);
     if (response.statusCode == 200) {
       final List jsonData = json.decode(response.body);
-
+      print(jsonData);
       return jsonData.map((item) => QuizList.fromJson(item)).toList();
     } else {
       throw Exception("Failed to load quizzes: ${response.body}");
@@ -59,49 +60,51 @@ class ApiService {
     required int quizId,
     required List<Map<String, dynamic>> answers,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('');
-    final apiUrl = dotenv.get('API_URL');
-    String userId = prefs.getString('userId') ?? '';
+    //   final prefs = await SharedPreferences.getInstance();
+    //   final token = prefs.getString('auth_token');
+    //   final apiUrl = dotenv.get('API_URL');
+    //   String userId = prefs.getString('userId') ?? '';
 
-    final url = Uri.parse('$apiUrl/api/quiz/answers');
-    final body = jsonEncode({
-      'quiz_id': quizId,
-      'user_id': userId,
-      'answers': answers,
-    });
+    //   final url = Uri.parse('$apiUrl/api/quiz/answers');
+    //   final body = jsonEncode({
+    //     'quiz_id': quizId,
+    //     'user_id': userId,
+    //     'answers': answers,
+    //   });
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: body,
-      );
-      if (response.statusCode == 201) {
-        return true;
-      } else {
-        log("Failed to submit answers: ${response.body}");
-        // print(response.body);
-        return false;
-      }
-    } catch (e) {
-      log("Error submitting answers: $e");
-      return false;
-    }
+    //   try {
+    //     final response = await http.post(
+    //       url,
+    //       headers: {
+    //         'Authorization': 'Bearer $token',
+    //         'Content-Type': 'application/json',
+    //       },
+    //       body: body,
+    //     );
+    //     if (response.statusCode == 201) {
+    //       return true;
+    //     } else {
+    //       log("Failed to submit answers: ${response.body}");
+    //       //print(response.body);
+    //       return false;
+    //     }
+    //   } catch (e) {
+    //     log("Error submitting answers: $e");
+    //     return false;
+    //   }
+    return true; // Placeholder return value
   }
 
   static Future<List<int>> fetchAttempted() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
+    print("Token: $token");
     final apiUrl = dotenv.get('API_URL');
     String userId = prefs.getString('userId') ?? '';
     final url = Uri.parse('$apiUrl/api/quiz/attempted/$userId');
 
     try {
-      final response = await http.post(
+      final response = await http.get(
         url,
         headers: {
           'Authorization': 'Bearer $token',
@@ -109,14 +112,15 @@ class ApiService {
         },
       );
 
-      if (response.statusCode == 201) {
-        return (List<int>.from(json.decode(response.body)));
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        return List<int>.from(decoded['attempted']);
       } else {
-        log("Failed to submit answers: ${response.body}");
+        print("Failed to fetch attempted quizzes: ${response.body}");
         return [];
       }
     } catch (e) {
-      log("Error submitting answers: $e");
+      print("Error fetching attempted quizzes: $e");
       return [];
     }
   }

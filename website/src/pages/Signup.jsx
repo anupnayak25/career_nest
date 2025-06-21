@@ -255,13 +255,11 @@ const Signup = () => {
         showNotification("Account created! 🎉");
 
         // Redirect based on user type
-        setTimeout(() => {
           if (userType === "student") {
             window.location.href = "/student/dashboard";
           } else {
             window.location.href = "/admin/dashboard";
           }
-        }, 2000);
       } else if (response.status === 409) {
         const errorData = await response.json();
         showNotification(errorData.message || "Email already exists. Please use a different email.");

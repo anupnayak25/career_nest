@@ -12,7 +12,8 @@ import Programming from './pages/ProgrammingPage';
 import Tehnical from './pages/TehnicalPage';
 
 function App() {
-  const { state } = useData();
+ // const { state } = useData();
+ 
 
   return (
     <>

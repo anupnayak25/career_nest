@@ -23,7 +23,7 @@ const Signup = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   // API configuration
-  const API_URL = "http://localhost:3000"; // Replace with your actual API URL
+  const API_URL = "http://localhost:5000"; // Replace with your actual API URL
 
   // Timer effect for OTP countdown
   useEffect(() => {

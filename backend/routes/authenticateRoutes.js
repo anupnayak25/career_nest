@@ -145,10 +145,15 @@ router.post('/signup',
                 "INSERT INTO user (id, name, email_id, password, type) VALUES (?, ?, ?, ?, ?)",
                 [id, name, email, hashedPassword, userType],
                 (err, results) => {
-                    if (err) {
-                        console.error('Error inserting user:', err);
-                        return res.status(500).json({ error: 'Failed to create user' });
-                    }
+                      if (err) {
+            // Duplicate entry error (email already exists)
+            if (err.code === 'ER_DUP_ENTRY') {
+                return res.status(409).json({ error: 'User already exists' }); // 409 Conflict
+            }
+
+            console.error('Error inserting user:', err);
+            return res.status(500).json({ error: 'Failed to create user' });
+        }
 
                     // Remove used OTP
                     delete otpStore[email];

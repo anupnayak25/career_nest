@@ -89,7 +89,7 @@ class _HRAnswerPageState extends State<HRAnswerPage> {
                         List<Map<String, dynamic>> answers =
                             videoAnswers.entries
                                 .map((e) => {
-                                      'question_no': e.key,
+                                      'qno': e.key,
                                       'answer': e.value,
                                     })
                                 .toList();

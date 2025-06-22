@@ -75,7 +75,7 @@ class HRListPage extends StatelessWidget {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: isDone
-                              ? null
+                              ? (){}
                               : () {
                                   Navigator.push(
                                     context,
@@ -89,14 +89,14 @@ class HRListPage extends StatelessWidget {
                                 },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: isDone
-                                ? Colors.grey
+                                ? Colors.red
                                 : Colors.blue.shade700,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
                           child: Text(
-                            isDone ? 'Attempted' : 'Attempt',
+                            isDone ? 'Results' : 'Attempt',
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white),

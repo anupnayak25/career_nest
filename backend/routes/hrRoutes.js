@@ -235,10 +235,31 @@ router.get('/answers/:id/:user_id', (req, res) => {
 router.put('/publish/:id', (req, res) => {
   const id = req.params.id;
   const { display_result } = req.body;
-  const query = `UPDATE technical_questions SET display_result=? WHERE id=?`;
+  const query = `UPDATE hr_questions SET display_result=? WHERE id=?`;
   connection.query(query, [display_result], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });
+  });
+});
+
+router.get('/attempted/:id', (req, res) => {
+  const userId = req.params.id;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  const query = `
+    SELECT DISTINCT hr_question_id 
+    FROM hr_answers 
+    WHERE user_id = ?
+  `;
+
+  connection.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const attemptedIds = results.map(row => row.hr_question_id);
+    res.json({ attempted: attemptedIds });
   });
 });
 

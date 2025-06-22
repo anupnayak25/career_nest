@@ -189,5 +189,26 @@ router.put('/publish/:id', (req, res) => {
   });
 });
 
+router.get('/attempted/:id', (req, res) => {
+  const userId = req.params.id;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  const query = `
+    SELECT DISTINCT program_set_id 
+    FROM program_answers 
+    WHERE user_id = ?
+  `;
+
+  connection.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const attemptedIds = results.map(row => row.program_set_id);
+    res.json({ attempted: attemptedIds });
+  });
+});
+
 
 module.exports = router;

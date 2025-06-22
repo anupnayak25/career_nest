@@ -23,4 +23,42 @@ class TechnicalService {
       throw Exception("Failed to load quizzes");
     }
   }
+   static Future<bool> submitTechnicalAnswers({
+    required int qno,
+    required List<Map<String, dynamic>> answers,
+  }) async {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final apiUrl = dotenv.get('API_URL');
+      String userId = prefs.getString('userId') ?? '';
+
+      final url = Uri.parse('$apiUrl/api/technical/answers');
+      final body = jsonEncode({
+        'hr_question_id': qno,
+        'user_id': userId,
+        'answers': answers,
+      });
+
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: body,
+        );
+        if (response.statusCode == 201) {
+          return true;
+        } else {
+          print("Failed to submit answers: ${response.body}");
+          //print(response.body);
+          return false;
+        }
+      } catch (e) {
+        print("Error submitting answers: $e");
+        return false;
+      }
+    //return true; // Placeholder return value
+  }
 }

@@ -46,7 +46,7 @@ router.post('/upload', upload.single('video'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' });
   }
-  const videoUrl = `${req.protocol}://${req.get('host')}/videos/${req.file.filename}`;
+  const videoUrl = `${req.file.filename}`;
   res.status(200).json({ message: 'Video uploaded successfully', url: videoUrl });
 });
 

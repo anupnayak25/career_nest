@@ -1,3 +1,4 @@
+import 'package:career_nest/student/common_page/service.dart';
 import 'package:flutter/material.dart';
 import 'technical_model.dart';
 import 'technical_service.dart';
@@ -8,18 +9,28 @@ class TechnicalListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+       final combinedFuture = Future.wait([
+      ApiService.fetchAttempted("technical"),
+      TechnicalService.fetchTechnicalList()]);
     return Scaffold(
       appBar: AppBar(title: const Text("Technical Assignments")),
-      body: FutureBuilder<List<TechnicalItem>>(
-        future: TechnicalService.fetchTechnicalList(),
+      body: FutureBuilder<List<dynamic>>(
+        future: combinedFuture,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
+
+          final attemptedList = snapshot.data![0] as List<int>;
+          final technicalList = snapshot.data![1] as List<TechnicalItem>;
             return ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                final technical = snapshot.data![index];
-                final isDone = false; // TODO: Replace with actual status logic
+                final technical = technicalList[index];
+                final isDone = attemptedList.contains(technical.id); // TODO: Replace with actual status logic
 
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 10),
@@ -71,7 +82,7 @@ class TechnicalListPage extends StatelessWidget {
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => TechnicalAnswerPage(
-                                        questions: technical.questions),
+                                        questions: technical.questions,QID: int.parse(technical.id.toString())),
                                   ),
                                 );
                               }
@@ -96,13 +107,9 @@ class TechnicalListPage extends StatelessWidget {
                 );
               },
             );
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
-          } else {
-            return const Center(child: CircularProgressIndicator());
           }
-        },
       ),
     );
   }
 }
+

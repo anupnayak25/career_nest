@@ -72,14 +72,16 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
-        return List<int>.from(decoded['attempted']);
+        return List<int>.from(decoded['attempted'])?.map((e) => e as int).toList() ?? [];
       } else {
-        print("Failed to fetch attempted quizzes: ${response.body}");
+        print("Failed to fetch attempted ${type}: ${response.body}");
         return [];
       }
     } catch (e) {
-      print("Error fetching attempted quizzes: $e");
+      print("Error fetching attempted ${type}: $e");
       return [];
     }
   }
+
+  
 }

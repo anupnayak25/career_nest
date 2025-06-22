@@ -205,7 +205,7 @@ router.post('/signin', [
         connection.query("SELECT * FROM user WHERE email_id= ?", [email], (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
             if (results.length === 0)
-                return res.status(400).json({ path: "username", message: 'invalid' });
+                return res.status(400).json({ path: "email", message: 'invalid' });
             
             // Compare passwords using bcrypt.compare()
             bcrypt.compare(password, results[0].password, (err, isMatch) => {

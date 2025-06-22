@@ -8,36 +8,32 @@ import { Link, Outlet } from 'react-router-dom';
 
 
 function Dashboard() {
-   const [activeTab, setActiveTab] = useState('dashboard');
- 
-  const menuItems = [
-    { id: 'dashboard', icon: Home, label: 'Dashboard', to:'/' },
-    { id: 'quiz', icon: BookOpen, label: 'Quiz', to:'/dashboard/quiz' },
-    { id: 'hr', icon: User, label: 'HR', to:'/dashboard/hr' },
-    { id: 'programming', icon: Code, label: 'Programming', to:'/dashboard/programming' },
-    { id: 'technical', icon: Cog, label: 'Technical', to:'/dashboard/technical' }
-  ];
+  const [activeTab, setActiveTab] = useState('dashboard');
 
+  const menuItems = [
+    { id: 'dashboard', icon: Home, label: 'Dashboard', to: '/' },
+    { id: 'quiz', icon: BookOpen, label: 'Quiz', to: '/dashboard/quiz' },
+    { id: 'hr', icon: User, label: 'HR', to: '/dashboard/hr' },
+    { id: 'programming', icon: Code, label: 'Programming', to: '/dashboard/programming' },
+    { id: 'technical', icon: Cog, label: 'Technical', to: '/dashboard/technical' }
+  ];
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-xl">
-        {/* Logo */}
+      <div className="w-64 h-screen fixed top-0 left-0 bg-white shadow-xl z-10">
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             CarrierNest
           </h1>
           <p className="text-sm text-gray-600 mt-1">Teacher Portal</p>
         </div>
-
-        {/* Navigation */}
         <nav className="mt-6 px-4">
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
               <Link
-              to={item.to}
+                to={item.to}
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center px-4 py-3 mb-2 rounded-lg transition-all duration-200 ${
@@ -54,10 +50,10 @@ function Dashboard() {
         </nav>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      {/* Main Content with margin to account for fixed sidebar */}
+      <div className="ml-64 flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+        <header className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 capitalize">
@@ -86,13 +82,14 @@ function Dashboard() {
           </div>
         </header>
 
-        {/* Content */}
-        <main className="flex-1 p-6 overflow-y-auto">
-          <Outlet/>
+        {/* Scrollable Content */}
+        <main className="flex-1 p-6 overflow-y-auto h-[calc(100vh-5rem)]">
+          <Outlet />
         </main>
       </div>
     </div>
   );
-};
+}
+
 
 export default Dashboard

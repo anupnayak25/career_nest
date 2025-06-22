@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const connection = require('../db'); // Assuming db.js exists and works
+const { body } = require('express-validator');
 
 // Get all quizzes
-
-
 router.get('/', (req, res) => {
   connection.query("SELECT * FROM quizzes", async (err, sets) => {
     if (err) return res.status(500).json({ error: err.message });
-      try {
+    try {
       const setsWithQuestions = await Promise.all(
         sets.map(set => {
           return new Promise((resolve, reject) => {
@@ -33,9 +32,9 @@ router.get('/', (req, res) => {
 });
 
 // Get a specific quiz's questions
-router.get('/:id', (req, res) => {
+router.get('/student/:id', (req, res) => {
   const id = req.params.id;
-  connection.query("SELECT * FROM quiz_questions WHERE quiz_id = ?", [id], (err, results) => {
+  connection.query("SELECT id, quiz_id, qno, question, options, marks FROM quiz_questions WHERE quiz_id = ?", [id], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     if (results.length === 0) return res.status(404).send('Quiz not found');
     res.json(results);
@@ -43,52 +42,55 @@ router.get('/:id', (req, res) => {
 });
 
 // Create a new quiz
-router.post('/', (req, res) => {
-  const { title, description, upload_date, due_date, user_id, quizQuestions } = req.body;
-  
+router.post('/', [
+  body('title', 'Must have a title').notEmpty()
+], (req, res) => {
+  const { title, description, due_date, quizQuestions } = req.body;
+
   // First, insert the quiz
-  const query = `INSERT INTO quizzes (title, description, upload_date, due_date, user_id, display_result)
-                 VALUES (?, ?, ?, ?, ?, 0)`;
-  
-  connection.query(query, [title, description, upload_date, due_date, user_id], (err, result) => {
+  const query = `INSERT INTO quizzes (title, description, due_date, user_id)
+                 VALUES (?, ?, ?, ?)`;
+
+  connection.query(query, [title, description, due_date, req.user.id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
-    
+
     const quiz_id = result.insertId;
-    
+
     // If there are no quiz questions to insert, return early
     if (!quizQuestions || !quizQuestions.length) {
-      return res.status(201).json({ 
+      return res.status(201).json({
         message: "Quiz created successfully with no questions",
-        id: quiz_id, 
-        ...req.body 
+        id: quiz_id,
+        ...req.body
       });
     }
-    
+
     // Insert quiz questions
     const queryInsertQuestion = `
       INSERT INTO quiz_questions (quiz_id, qno, question, options, marks, correct_ans)
       VALUES (?, ?, ?, ?, ?, ?)
     `;
-    
+
     // Convert each question insert into a Promise
-    const insertQuestionPromises = quizQuestions.map(({ qno, question, options, marks, correct_ans }) => {
+    const insertQuestionPromises = quizQuestions.map(({ question, options, marks, correct_ans }, index) => {
       // Ensure options is a JSON string
       const optionsString = typeof options === 'string' ? options : JSON.stringify(options);
-      
+
+
       return new Promise((resolve, reject) => {
-        connection.query(queryInsertQuestion, [quiz_id, qno, question, optionsString, marks, correct_ans], (err, result) => {
+        connection.query(queryInsertQuestion, [quiz_id, index + 1, question, optionsString, marks, correct_ans], (err, result) => {
           if (err) return reject(err);
           resolve(result);
         });
       });
     });
-    
+
     // Wait for all inserts to finish
     Promise.all(insertQuestionPromises)
       .then(() => {
         // Calculate total marks from all questions
         const totalMarks = quizQuestions.reduce((sum, question) => sum + question.marks, 0);
-        
+
         // Update the quiz with the calculated total marks
         const updateTotalMarksQuery = `UPDATE quizzes SET totalMarks = ? WHERE id = ?`;
         connection.query(updateTotalMarksQuery, [totalMarks, quiz_id], (err) => {
@@ -98,7 +100,7 @@ router.post('/', (req, res) => {
               message: "Quiz and questions created but failed to update total marks"
             });
           }
-          
+
           res.status(201).json({
             message: "Quiz and questions created successfully",
             id: quiz_id,
@@ -108,7 +110,7 @@ router.post('/', (req, res) => {
         });
       })
       .catch(error => {
-        res.status(500).json({ 
+        res.status(500).json({
           error: error.message,
           message: "Failed to create quiz questions"
         });
@@ -118,22 +120,114 @@ router.post('/', (req, res) => {
 
 // Update a quiz
 router.put('/:id', (req, res) => {
-  const id = req.params.id;
-  const { title, description, upload_date, due_date, totalMarks, user_id } = req.body;
-  const query = `UPDATE quizzes SET title=?, description=?, upload_date=?, due_date=?, totalMarks=?, user_id=? WHERE id=?`;
+  const quiz_id = req.params.id;
+  const { title, description, due_date, quizQuestions } = req.body;
+  const query = `UPDATE quizzes SET title=?, description=?, due_date=?, user_id=? WHERE id=?`;
 
-  connection.query(query, [title, description, upload_date, due_date, totalMarks, user_id, id], (err) => {
+
+  connection.query(query, [title, description, due_date, req.user.id, quiz_id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ id, ...req.body });
+
+
+    // If there are no quiz questions to insert, return early
+    if (!quizQuestions || !quizQuestions.length) {
+      return res.status(201).json({
+        message: "Quiz updated successfully with no questions",
+        id: quiz_id,
+        ...req.body
+      });
+    }
+
+    // Insert quiz questions
+    const queryInsertQuestion = `
+      INSERT INTO quiz_questions (quiz_id, qno, question, options, marks, correct_ans)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+
+
+    connection.query('delete from quiz_questions where quiz_id = ?', [quiz_id], (err, result) => {
+      if (err) return err;
+
+      // Convert each question insert into a Promise
+      const insertQuestionPromises = quizQuestions.map(({ question, options, marks, correct_ans }, index) => {
+        // Ensure options is a JSON string
+        const optionsString = typeof options === 'string' ? options : JSON.stringify(options);
+
+
+        return new Promise((resolve, reject) => {
+          connection.query(queryInsertQuestion, [quiz_id, index + 1, question, optionsString, marks, correct_ans], (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+          });
+        });
+      });
+
+
+
+      // Wait for all inserts to finish
+      Promise.all(insertQuestionPromises)
+        .then(() => {
+          // Calculate total marks from all questions
+          const totalMarks = quizQuestions.reduce((sum, question) => sum + question.marks, 0);
+
+          // Update the quiz with the calculated total marks
+          const updateTotalMarksQuery = `UPDATE quizzes SET totalMarks = ? WHERE id = ?`;
+          connection.query(updateTotalMarksQuery, [totalMarks, quiz_id], (err) => {
+            if (err) {
+              return res.status(500).json({
+                error: err.message,
+                message: "Quiz and questions updated but failed to update total marks"
+              });
+            }
+
+            res.status(201).json({
+              message: "Quiz and questions updated successfully",
+              id: quiz_id,
+              totalMarks: totalMarks,
+              ...req.body
+            });
+          });
+        })
+        .catch(error => {
+          res.status(500).json({
+            error: error.message,
+            message: "Failed to updat quiz questions"
+          });
+        });
+    });
+
+
   });
+
 });
 
 // Delete a quiz
 router.delete('/:id', (req, res) => {
   const id = req.params.id;
   connection.query("DELETE FROM quizzes WHERE id = ?", [id], (err) => {
+    
     if (err) return res.status(500).json({ error: err.message });
     res.send("Quiz deleted");
+  });
+});
+
+router.get('/myposts', (req, res) => {
+  connection.query("SELECT * FROM quizzes WHERE user_id = ?", [req.user.id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+router.get('/myposts/:id', (req, res) => {
+  const id = req.params.id;
+  connection.query("SELECT * FROM quizzes WHERE id = ?", [id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (result.length === 0) return res.status(404).send('Quiz not found');
+    connection.query("SELECT * FROM quiz_questions WHERE quiz_id = ?", [id], (err1, results) => {
+      if (err1) return res.status(500).json({ error: err.message });
+      res.json({ quiz: result, questions: results });
+    });
   });
 });
 

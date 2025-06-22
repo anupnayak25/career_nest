@@ -23,4 +23,42 @@ class ApiService {
       throw Exception("Failed to load programs");
     }
   }
+  static Future<bool> submitProgramingAnswers({
+  required int programmingId,
+  required List<Map<String, dynamic>> answers,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('auth_token');
+  final apiUrl = dotenv.get('API_URL');
+  final String userId = prefs.getString('userId') ?? '';
+
+  final url = Uri.parse('$apiUrl/api/programming/answers');
+  final body = jsonEncode({
+    'programming_id': programmingId,
+    'user_id': userId,
+    'answers': answers,
+  });
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    );
+
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      print("Failed to submit programming answers: ${response.body}");
+      return false;
+    }
+  } catch (e) {
+    print("Error submitting programming answers: $e");
+    return false;
+  }
+}
+
 }

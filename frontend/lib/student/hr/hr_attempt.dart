@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'hr_model.dart';
 import '../common_page/success_screen.dart'; // Adjust the path based on your project structure
+import '../../common/video_recoredr_screen.dart'; // Adjust the path based on your project structure
 
 class HRAnswerPage extends StatefulWidget {
   final List<Question> questions;
@@ -15,20 +16,19 @@ class HRAnswerPage extends StatefulWidget {
 class _HRAnswerPageState extends State<HRAnswerPage> {
   Map<int, String> videoAnswers = {};
 
-  Future<void> pickVideo(int qno) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.video,
-      allowMultiple: false,
-    );
+ Future<void> recordVideo(int qno) async {
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => VideoRecordScreen(qno: qno)),
+  );
 
-    if (result != null && result.files.single.path != null) {
-      String filePath = result.files.single.path!;
-      // TODO: Add 2-minute video duration check here if needed
-      setState(() {
-        videoAnswers[qno] = filePath;
-      });
-    }
+  if (result != null && result is String) {
+    setState(() {
+      videoAnswers[qno] = result;
+    });
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +93,7 @@ class _HRAnswerPageState extends State<HRAnswerPage> {
           ),
           const SizedBox(height: 8),
           GestureDetector(
-            onTap: () => pickVideo(q.qno),
+           onTap: () => recordVideo(q.qno),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.blueAccent,

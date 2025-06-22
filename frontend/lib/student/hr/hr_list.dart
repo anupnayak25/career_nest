@@ -1,3 +1,4 @@
+import 'package:career_nest/student/common_page/service.dart';
 import 'package:career_nest/student/hr/hr_attempt.dart';
 import 'package:career_nest/student/hr/hr_model.dart';
 import 'package:flutter/material.dart';
@@ -8,95 +9,106 @@ class HRListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Combine both futures
+    final combinedFuture = Future.wait([
+      ApiService.fetchAttempted("hr"),  // ✅ Adjusted from "quiz" to "hr" if needed
+      HrService.fetchHrList(),
+    ]);
+
     return Scaffold(
       appBar: AppBar(title: const Text("HR")),
-      body: FutureBuilder<List<HrModel>>(
-        future: HrService.fetchHrList(),
+      body: FutureBuilder<List<dynamic>>(
+        future: combinedFuture,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                final hR = snapshot.data![index];
-                final isDone = false; // restlt.status == 'Done';
-
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: Colors.blue, width: 2),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(hR.title,
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("Upload: ${hR.uploadDate}"),
-                                Text("Marks: ${hR.totalMarks}"),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text("Due: ${hR.dueDate}"),
-                                Text("Status: Pending "),//${hR.status}
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (!isDone) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                       HRAnswerPage(questions: hR.questions),
-                                  ),
-                                );
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: isDone
-                                  ? Colors.red
-                                  : Colors.blue.shade700,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                            child: Text(
-                           //   hR.status=="Pending"?
-                                  'Attempt ', // HR' : 'Result',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,color: Colors.white),
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text("Error: ${snapshot.error}"));
-          } else {
-            return const Center(child: CircularProgressIndicator());
           }
+
+          final attemptedList = snapshot.data![0] as List<int>;
+          final hrList = snapshot.data![1] as List<HrModel>;
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: hrList.length,
+            itemBuilder: (context, index) {
+              final hR = hrList[index];
+              final isDone = attemptedList.contains(int.parse(hR.id));
+
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: Colors.blue, width: 2),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(hR.title,
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Upload: ${hR.uploadDate}"),
+                              Text("Marks: ${hR.totalMarks}"),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text("Due: ${hR.dueDate}"),
+                              Text("Status: ${isDone ? "Done" : "Pending"}"),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: isDone
+                              ? null
+                              : () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => HRAnswerPage(
+                                        questions: hR.questions,
+                                        HRQId: int.parse(hR.id.toString()),
+                                      ),
+                                    ),
+                                  );
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isDone
+                                ? Colors.grey
+                                : Colors.blue.shade700,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: Text(
+                            isDone ? 'Attempted' : 'Attempt',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
         },
       ),
     );

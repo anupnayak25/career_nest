@@ -11,7 +11,7 @@ class ProgramingListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("Programming")),
       body: FutureBuilder<List<ProgramingList>>(
-        future: ApiService.fetchProgramingList(),
+        future: ProgrammingApiService.fetchProgramingList(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(

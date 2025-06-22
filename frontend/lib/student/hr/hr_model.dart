@@ -19,7 +19,7 @@ class HrModel {
 
   factory HrModel.fromJson(Map<String, dynamic> json) {
     return HrModel(
-      id: json['_id']?.toString() ?? '',  // fallback if not using Mongo _id
+      id: json['id']?.toString() ?? '',  // fallback if not using Mongo _id
       title: json['title']?.toString() ?? 'No Title',
       description: json['description']?.toString() ?? 'No Description',
       uploadDate: json['upload_date']?.toString() ?? '',

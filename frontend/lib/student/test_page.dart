@@ -49,19 +49,19 @@ class TestsPage extends StatelessWidget {
         trailing: const Icon(Icons.arrow_forward_ios),
         // Navigate to the specified page when the card is tapped.
         onTap: () async {
-          bool granted = await checkPermissions();
-          if (granted) {
+         // bool granted = await checkPermissions();
+        //  if (granted) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => page),
             );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content:
-                      Text('Camera and Microphone permissions are required.')),
-            );
-          }
+       //   } else {
+          //   ScaffoldMessenger.of(context).showSnackBar(
+          //     const SnackBar(
+          //         content:
+          //             Text('Camera and Microphone permissions are required.')),
+          //   );
+          // }
         },
       ),
     );

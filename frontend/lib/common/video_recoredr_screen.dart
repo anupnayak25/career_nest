@@ -17,6 +17,8 @@ class _VideoRecordScreenState extends State<VideoRecordScreen> {
   bool _isRecording = false;
   bool _isCameraInitialized = false;
   late List<CameraDescription> _cameras;
+  int _selectedCameraIndex = 0; // 0: Back, 1: Front (if available)
+
 
   @override
   void initState() {
@@ -24,21 +26,31 @@ class _VideoRecordScreenState extends State<VideoRecordScreen> {
     initCamera();
   }
 
-  Future<void> initCamera() async {
-    try {
-      _cameras = await availableCameras();
-      _controller = CameraController(_cameras.first, ResolutionPreset.medium);
-      await _controller!.initialize();
+ Future<void> initCamera() async {
+  try {
+    _cameras = await availableCameras();
 
-      if (mounted) {
-        setState(() {
-          _isCameraInitialized = true;
-        });
-      }
-    } catch (e) {
-      debugPrint("Camera initialization failed: $e");
+    // Safeguard: If selected index is out of range, default to first
+    if (_selectedCameraIndex >= _cameras.length) {
+      _selectedCameraIndex = 0;
     }
+
+    _controller = CameraController(
+      _cameras[_selectedCameraIndex],
+      ResolutionPreset.medium,
+    );
+
+    await _controller!.initialize();
+
+    if (mounted) {
+      setState(() {
+        _isCameraInitialized = true;
+      });
+    }
+  } catch (e) {
+    debugPrint("Camera initialization failed: $e");
   }
+}
 
   Future<void> startRecording() async {
     await _controller?.startVideoRecording();
@@ -69,7 +81,26 @@ class _VideoRecordScreenState extends State<VideoRecordScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Record Video")),
+      appBar: AppBar(
+  title: const Text("Record Video"),
+  actions: [
+    if (_cameras.length > 1)
+      IconButton(
+        icon: const Icon(Icons.cameraswitch),
+        onPressed: () async {
+          setState(() {
+            _selectedCameraIndex =
+                (_selectedCameraIndex + 1) % _cameras.length; // toggle camera
+            _isCameraInitialized = false;
+          });
+
+          await _controller?.dispose();
+          await initCamera();
+        },
+      ),
+  ],
+),
+
       body: Column(
         children: [
           Expanded(
@@ -87,6 +118,7 @@ class _VideoRecordScreenState extends State<VideoRecordScreen> {
             },
           ),
           const SizedBox(height: 20),
+         
         ],
       ),
     );

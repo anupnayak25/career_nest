@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:career_nest/student/common_page/service.dart';
 import 'package:flutter/material.dart';
 import 'quiz_service.dart';
 import 'quiz_model.dart';
@@ -18,8 +19,8 @@ class _QuizListPageState extends State<QuizListPage> {
   @override
   void initState() {
     super.initState();
-    quizzesFuture = ApiService.fetchQuizList();
-    attemptedFuture = ApiService.fetchAttempted();
+    quizzesFuture = QuizApiService.fetchQuizList();
+    attemptedFuture = ApiService.fetchAttempted("quiz");
   }
 
   @override

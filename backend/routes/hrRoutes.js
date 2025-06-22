@@ -184,7 +184,7 @@ router.post('/answers', (req, res) => {
 
 
   const query = `
-      'INSERT INTO hr_answers (hr_question_id, user_id, qno, answer) VALUES (?, ?, ?, ?)'
+      INSERT INTO hr_answers (hr_question_id, user_id, qno, answer) VALUES (?, ?, ?, ?)
     `;
       // Convert each item insert into a Promise
       const insertItemPromises = answers.map(({ qno, answer }) => {

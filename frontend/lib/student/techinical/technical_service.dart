@@ -20,7 +20,7 @@ class TechnicalService {
       final List jsonData = json.decode(response.body);
       return jsonData.map((item) => TechnicalItem.fromJson(item)).toList();
     } else {
-      throw Exception("Failed to load quizzes");
+      throw Exception("Failed to load ");
     }
   }
    static Future<bool> submitTechnicalAnswers({
@@ -34,7 +34,7 @@ class TechnicalService {
 
       final url = Uri.parse('$apiUrl/api/technical/answers');
       final body = jsonEncode({
-        'hr_question_id': qno,
+        'technical_id': qno,
         'user_id': userId,
         'answers': answers,
       });

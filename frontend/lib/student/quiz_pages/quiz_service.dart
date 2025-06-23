@@ -21,10 +21,10 @@ class QuizApiService {
       },
     );
     log("Response status: ${response.statusCode} , Response body: ${response.body}");
-    print(response.body);
+ //   print(response.body);
     if (response.statusCode == 200) {
       final List jsonData = json.decode(response.body);
-      print(jsonData);
+     // print(jsonData);
       return jsonData.map((item) => QuizList.fromJson(item)).toList();
     } else {
       throw Exception("Failed to load quizzes: ${response.body}");
@@ -68,5 +68,30 @@ class QuizApiService {
       return false;
     }
     //return true; // Placeholder return value
+  }
+
+   Future<List<Map<String, dynamic>>> fetchResults({required int quizId}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    String userId = prefs.getString('userId') ?? '';
+    if (token == null) {
+      throw Exception("No authentication token found");
+    }
+    final apiUrl = dotenv.get('API_URL');
+    final response = await http.get(
+      Uri.parse('$apiUrl/api/quiz//answers/$quizId/$userId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    log("Response status: ${response.statusCode} , Response body: ${response.body}");
+ //   print(response.body);
+    if (response.statusCode == 200) {
+    final List data = json.decode(response.body);
+    return data.map((e) => e as Map<String, dynamic>).toList();
+  } else {
+    throw Exception('Failed to load quiz answers: ${response.body}');
+  }
   }
 }

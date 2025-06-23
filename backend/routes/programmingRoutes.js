@@ -119,7 +119,7 @@ router.delete('/:id', (req, res) => {
 
 // POST /answers: Submit all answers
 router.post('/answers', (req, res) => {
-  const { program_set_id, answers } = req.body;
+  const { program_id, answers } = req.body;
   
   const query = `
     INSERT INTO program_answers (program_set_id, user_id, qno, submitted_code)
@@ -128,7 +128,7 @@ router.post('/answers', (req, res) => {
   
   const insertItemPromises = answers.map(({ qno, answer }) => {
     return new Promise((resolve, reject) => {
-      connection.query(query, [program_set_id, req.user.id, qno, answer], (err, result) => {
+      connection.query(query, [program_id, req.user.id, qno, answer], (err, result) => {
         if (err) return reject(err);
         resolve(result);
       });
@@ -139,7 +139,7 @@ router.post('/answers', (req, res) => {
     .then(() => {
       res.status(201).json({
         message: "Answers uploaded successfully",
-        program_set_id: program_set_id
+        program_id: program_id
       });
     })
     .catch((error) => {

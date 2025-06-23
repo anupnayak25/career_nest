@@ -23,6 +23,7 @@ class ProgrammingApiService {
       throw Exception("Failed to load programs");
     }
   }
+
   static Future<bool> submitProgramingAnswers({
   required int programmingId,
   required List<Map<String, dynamic>> answers,
@@ -34,7 +35,7 @@ class ProgrammingApiService {
 
   final url = Uri.parse('$apiUrl/api/programming/answers');
   final body = jsonEncode({
-    'programming_id': programmingId,
+    'program_id': programmingId,
     'user_id': userId,
     'answers': answers,
   });

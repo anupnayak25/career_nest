@@ -5,6 +5,7 @@ class TechnicalItem {
   final String uploadDate;
   final String dueDate;
   final List<TechnicalQuestion> questions;
+   final bool displayResult;
 
   TechnicalItem({
     required this.id,
@@ -13,6 +14,7 @@ class TechnicalItem {
     required this.uploadDate,
     required this.dueDate,
     required this.questions,
+     required this.displayResult,
   });
 
   factory TechnicalItem.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class TechnicalItem {
       description: json['description'],
       uploadDate: json['upload_date'],
       dueDate: json['due_date'],
+       displayResult: json['display_result'] == 1,
       questions: (json['questions'] as List)
           .map((q) => TechnicalQuestion.fromJson(q))
           .toList(),
@@ -65,4 +68,16 @@ class TechnicalQuestion {
       'marks': marks,
     };
   }
+ 
+}
+ class TechnicalResultSummary {
+  final int obtainedMarks;
+  final int totalMarks;
+  final double percentage;
+
+  TechnicalResultSummary({
+    required this.obtainedMarks,
+    required this.totalMarks,
+    required this.percentage,
+  });
 }

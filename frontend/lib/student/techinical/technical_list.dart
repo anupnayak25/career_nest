@@ -1,4 +1,5 @@
 import 'package:career_nest/student/common_page/service.dart';
+import 'package:career_nest/student/techinical/technical_result.dart';
 import 'package:flutter/material.dart';
 import 'technical_model.dart';
 import 'technical_service.dart';
@@ -75,31 +76,68 @@ class TechnicalListPage extends StatelessWidget {
                         const SizedBox(height: 10),
                         SizedBox(
                           width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (!isDone) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => TechnicalAnswerPage(
-                                        questions: technical.questions,QID: int.parse(technical.id.toString())),
+                          child: !isDone
+                                ? ElevatedButton(
+                                    onPressed: () {
+                                      if (!isDone) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                              TechnicalAnswerPage(
+                                                questions: technical.questions,
+                                                QID: technical.id,
+                                      ),
+                                          ),
+                                        );
+                                      } else {
+                                        // Navigate to result or do nothing
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  "You have already attempted this quiz.")),
+                                        );
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: isDone
+                                          ? Colors.red
+                                          : Colors.blue.shade700,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      isDone ? 'Result' : 'Attempt Quiz',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
+                                  )
+                                : ElevatedButton.icon(
+                                    onPressed: (technical.displayResult == true)
+                                        ? () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                   TechnicalResultPage(technicalList: technical),
+                                              ),
+                                            );
+                                          }
+                                        : null, // disables the button if conditions not met
+                                    icon: const Icon(Icons.bar_chart),
+                                    label: const Text('Display Result'),
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                      backgroundColor: Colors.blue,
+                                      foregroundColor: Colors.white,
+                                      disabledBackgroundColor:
+                                          Colors.grey.shade400,
+                                      disabledForegroundColor: Colors.black38,
+                                    ),
                                   ),
-                                );
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: isDone
-                                  ? Colors.red
-                                  : Colors.blue.shade700,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                            child: const Text(
-                              'Attempt',
-                              style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),
-                            ),
-                          ),
                         )
                       ],
                     ),

@@ -1,44 +1,43 @@
 import 'package:career_nest/student/common_page/service.dart';
-import 'package:career_nest/student/hr/hr_model.dart';
+import 'package:career_nest/student/techinical/technical_model.dart';
 import 'package:flutter/material.dart';
 
-class HrResultPage extends StatefulWidget {
-  final HrModel hrList;
+class TechnicalResultPage extends StatefulWidget {
+  final TechnicalItem technicalList;
 
-  const HrResultPage({
+  const TechnicalResultPage({
     Key? key,
-    required this.hrList,
+    required this.technicalList,
   }) : super(key: key);
 
   @override
-  State<HrResultPage> createState() => _HrResultPageState();
+  State<TechnicalResultPage> createState() => _TechnicalResultPageState();
 }
 
-class _HrResultPageState extends State<HrResultPage> {
-  late Future<HrResultSummary> resultSummaryFuture;
+class _TechnicalResultPageState extends State<TechnicalResultPage> {
+  late Future<TechnicalResultSummary> resultSummaryFuture;
   List<Map<String, dynamic>> results = [];
+
   @override
   void initState() {
     super.initState();
     resultSummaryFuture = loadResults();
   }
 
-  Future<HrResultSummary> loadResults() async {
+  Future<TechnicalResultSummary> loadResults() async {
     results = await ApiService.fetchResults(
-      id: int.parse(widget.hrList.id),
-      type: 'hr',
+      id: widget.technicalList.id,
+      type: 'technical',
     );
 
-    int correct = 0;
-    int wrong = 0;
     int totalMarks = 0;
     int obtainedMarks = 0;
 
-    for (final question in widget.hrList.questions) {
+    for (final question in widget.technicalList.questions) {
       totalMarks += question.marks;
       final match = results.firstWhere(
         (ans) => ans['qno'] == question.qno,
-        orElse: () => {},
+        orElse: () => <String, dynamic>{},
       );
 
       final awarded =
@@ -49,7 +48,7 @@ class _HrResultPageState extends State<HrResultPage> {
     double percentage =
         totalMarks > 0 ? (obtainedMarks / totalMarks) * 100 : 0.0;
 
-    return HrResultSummary(
+    return TechnicalResultSummary(
       obtainedMarks: obtainedMarks,
       totalMarks: totalMarks,
       percentage: percentage,
@@ -58,7 +57,7 @@ class _HrResultPageState extends State<HrResultPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<HrResultSummary>(
+    return FutureBuilder<TechnicalResultSummary>(
       future: resultSummaryFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -77,10 +76,10 @@ class _HrResultPageState extends State<HrResultPage> {
     );
   }
 
-  Widget _buildResultUI(HrResultSummary resultSummary) {
+  Widget _buildResultUI(TechnicalResultSummary resultSummary) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.hrList.title} - Results'),
+        title: Text('${widget.technicalList.title} - Results'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
@@ -102,7 +101,6 @@ class _HrResultPageState extends State<HrResultPage> {
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(
-                    // color: Colors.blue.withValues(opacity: 0.2),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -111,7 +109,7 @@ class _HrResultPageState extends State<HrResultPage> {
               child: Column(
                 children: [
                   const Text(
-                    'Quiz Completed!',
+                    'Attempt Completed!',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -143,8 +141,7 @@ class _HrResultPageState extends State<HrResultPage> {
             // Performance Badge
             Center(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(
                   color: _getPerformanceColor(resultSummary.percentage),
                   borderRadius: BorderRadius.circular(25),
@@ -162,7 +159,6 @@ class _HrResultPageState extends State<HrResultPage> {
 
             const SizedBox(height: 24),
 
-            // Questions Review Header
             const Text(
               'Questions Review:',
               style: TextStyle(
@@ -174,7 +170,7 @@ class _HrResultPageState extends State<HrResultPage> {
             const SizedBox(height: 16),
 
             // Questions List
-            ...widget.hrList.questions.map((question) {
+            ...widget.technicalList.questions.map((question) {
               final res = results.firstWhere(
                 (r) => r['qno'] == question.qno,
                 orElse: () => <String, dynamic>{},
@@ -222,7 +218,6 @@ class _HrResultPageState extends State<HrResultPage> {
 
             const SizedBox(height: 24),
 
-            // Action Buttons
             Row(
               children: [
                 Expanded(

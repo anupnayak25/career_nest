@@ -5,6 +5,7 @@ class ProgramingList {
   final String uploadDate;
   final String dueDate;
   final int totalMarks;
+   final bool displayResult;
   final List<ProgrammingQuestion> questions;
 
   ProgramingList({
@@ -13,6 +14,7 @@ class ProgramingList {
     required this.description,
     required this.uploadDate,
     required this.dueDate,
+     required this.displayResult,
     required this.questions,
     required this.totalMarks,
   });
@@ -24,6 +26,7 @@ class ProgramingList {
       description: json['description'],
       uploadDate: json['upload_date'],
       dueDate: json['due_date'],
+      displayResult: json['display_result'] == 1,
       questions: (json['questions'] != null)
         ? (json['questions'] as List)
             .map((q) => ProgrammingQuestion.fromJson(q))
@@ -71,5 +74,16 @@ class ProgrammingQuestion {
         'programm_snippet': programSnippet,
         'marks': marks,
       };
+}
+class ProgrammingResultSummary {
+  final int obtainedMarks;
+  final int totalMarks;
+  final double percentage;
+
+  ProgrammingResultSummary({
+    required this.obtainedMarks,
+    required this.totalMarks,
+    required this.percentage,
+  });
 }
 

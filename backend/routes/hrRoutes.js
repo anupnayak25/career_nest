@@ -224,7 +224,7 @@ router.get('/answers/:id', (req, res) => {
 router.get('/answers/:id/:user_id', (req, res) => {
   const id = req.params.id;
   const user_id = req.params.user_id;
-  connection.query("SELECT qno, answer FROM hr_answers where hr_question_id=? and  user_id = ? and (select user_id from hr_questions where id = ?)=?", [id, user_id, id, req.user.id], (err, results) => {
+  connection.query("SELECT * FROM hr_answers where hr_question_id=? and  user_id = ?", [id, user_id], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     if (results.length == 0) return res.status(404).json({ message: "No answers yet" });
     res.json(results);

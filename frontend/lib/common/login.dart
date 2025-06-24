@@ -45,7 +45,7 @@ class _LoginPageState extends State<LoginPage> {
         });
 
         if (response.statusCode == 200) {
-          print('Login successful: ${response.body}');
+         // print('Login successful: ${response.body}');
           final responseData = json.decode(response.body);
           await prefs.setString('auth_token', responseData['auth_token']);
           await prefs.setString('userType', responseData['type']);
@@ -70,10 +70,10 @@ class _LoginPageState extends State<LoginPage> {
             const SnackBar(
                 content: Text('Something went wrong.. Try again later..')),
           );
-          print(response.body);
+         // print(response.body);
         }
       } catch (error) {
-        print('Login error: $error');
+      //  print('Login error: $error');
         setState(() {
           isLoading = false;
         });

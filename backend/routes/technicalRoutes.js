@@ -125,7 +125,7 @@ router.get('/answers/:id', (req, res) => {
 // Get all answers of a specific user for a technical set
 router.get('/answers/:id/:user_id', (req, res) => {
   const { id, user_id } = req.params;
-  const query = `SELECT qno, answer FROM technical_answers WHERE technical_question_id = ? AND user_id = ?`;
+  const query = `SELECT * FROM technical_answers WHERE technical_id = ? AND user_id = ?`;
 
   connection.query(query, [id, user_id], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });

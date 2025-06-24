@@ -6,6 +6,7 @@ class HrModel {
   final String dueDate;
   final List<Question> questions;
   final int totalMarks;
+  final bool displayResult;
 
   HrModel({
     required this.id,
@@ -14,6 +15,7 @@ class HrModel {
     required this.uploadDate,
     required this.dueDate,
     required this.questions,
+    required this.displayResult,
     required this.totalMarks,
   });
 
@@ -24,6 +26,7 @@ class HrModel {
       description: json['description']?.toString() ?? 'No Description',
       uploadDate: json['upload_date']?.toString() ?? '',
       dueDate: json['due_date']?.toString() ?? '',
+      displayResult: json['display_result'] == 1,
       questions: (json['questions'] as List<dynamic>?)
               ?.map((e) => Question.fromJson(e))
               .toList() ??
@@ -51,4 +54,15 @@ class Question {
       marks: json['marks'] ?? 0,
     );
   }
+}
+class HrResultSummary {
+  final int obtainedMarks;
+  final int totalMarks;
+  final double percentage;
+
+  HrResultSummary({
+    required this.obtainedMarks,
+    required this.totalMarks,
+    required this.percentage,
+  });
 }

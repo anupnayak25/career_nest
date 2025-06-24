@@ -1,22 +1,109 @@
 // quiz_result_page.dart
+import 'package:career_nest/student/common_page/service.dart';
+import 'package:career_nest/student/quiz_pages/quiz_service.dart';
 import 'package:flutter/material.dart';
 import 'quiz_model.dart';
 
-class QuizResultPage extends StatelessWidget {
+
+class QuizResultPage extends StatefulWidget {
   final QuizList quiz;
- // final QuizResultSummary resultSummary;
 
   const QuizResultPage({
-    super.key,
+    Key? key,
     required this.quiz,
-  //  required this.resultSummary,
-  });
+  }) : super(key: key);
+
+  @override
+  State<QuizResultPage> createState() => _QuizResultPageState();
+}
+
+class _QuizResultPageState extends State<QuizResultPage> {
+  late Future<QuizResultSummary> resultSummaryFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    resultSummaryFuture = loadResults();
+  }
+
+  Future<QuizResultSummary> loadResults() async {
+    final results = await ApiService.fetchResults(id: widget.quiz.id,type: 'quiz');
+
+    int correct = 0;
+    int wrong = 0;
+    int totalMarks = 0;
+    int obtainedMarks = 0;
+
+    List<QuestionResult> processedResults = [];
+
+    for (final question in widget.quiz.questions) {
+      totalMarks += question.marks;
+      final match = results.firstWhere(
+        (ans) => ans['qno'] == question.qno,
+        orElse: () => {},
+      );
+
+      final selectedAns = match['selected_ans'] ?? '';
+      final isCorrect = match['is_correct'] == 1;
+      final marksAwarded = int.tryParse(match['marks_awarded'].toString()) ?? 0;
+
+      if (isCorrect) {
+        correct++;
+      } else {
+        wrong++;
+      }
+
+      obtainedMarks += marksAwarded;
+
+      processedResults.add(
+        QuestionResult(
+          qno: question.qno,
+          selectedAns: selectedAns,
+          isCorrect: isCorrect,
+          marksAwarded: marksAwarded,
+        ),
+      );
+    }
+
+    double percentage = totalMarks > 0
+        ? (obtainedMarks / totalMarks) * 100
+        : 0.0;
+
+    return QuizResultSummary(
+      correctAnswers: correct,
+      wrongAnswers: wrong,
+      obtainedMarks: obtainedMarks,
+      totalMarks: totalMarks,
+      percentage: percentage,
+      results: processedResults,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<QuizResultSummary>(
+      future: resultSummaryFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        } else if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(child: Text('Error: ${snapshot.error}')),
+          );
+        }
+
+        final resultSummary = snapshot.data!;
+        return _buildResultUI(resultSummary);
+      },
+    );
+  }
+
+  Widget _buildResultUI(QuizResultSummary resultSummary) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${quiz.title} - Results'),
+        title: Text('${widget.quiz.title} - Results'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
@@ -125,7 +212,7 @@ class QuizResultPage extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Questions List
-            ...quiz.questions.map((question) {
+            ...widget.quiz.questions.map((question) {
               final result = resultSummary.results.firstWhere(
                 (r) => r.qno == question.qno,
               );
@@ -311,21 +398,21 @@ class QuizResultPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retake Quiz'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ),
+                // const SizedBox(width: 16),
+                // Expanded(
+                //   child: ElevatedButton.icon(
+                //     onPressed: () {
+                //       Navigator.of(context).pop();
+                //     },
+                //     icon: const Icon(Icons.refresh),
+                //     label: const Text('Retake Quiz'),
+                //     style: ElevatedButton.styleFrom(
+                //       padding: const EdgeInsets.symmetric(vertical: 12),
+                //       backgroundColor: Colors.blue,
+                //       foregroundColor: Colors.white,
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ],

@@ -1,5 +1,6 @@
 import 'package:career_nest/student/common_page/service.dart';
 import 'package:career_nest/student/programing/programm_attempt.dart';
+import 'package:career_nest/student/programing/programming_attempt.dart';
 import 'package:flutter/material.dart';
 import 'programming_model.dart';
 import 'programming_service.dart';
@@ -72,34 +73,68 @@ class ProgramingListPage extends StatelessWidget {
                       const SizedBox(height: 10),
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: isDone
-                              ? null
-                              : () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => AnswerPage(
-                                        programming: programing.questions,
-                                        QID: int.parse(programing.id.toString()),
+                        child: !isDone
+                                ? ElevatedButton(
+                                    onPressed: () {
+                                      if (!isDone) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                              AnswerPage(
+                                                programming: programing.questions,
+                                                QID: programing.id,
+                                      ),
+                                          ),
+                                        );
+                                      } else {
+                                        // Navigate to result or do nothing
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  "You have already attempted this quiz.")),
+                                        );
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: isDone
+                                          ? Colors.red
+                                          : Colors.blue.shade700,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
                                       ),
                                     ),
-                                  );
-                                },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                isDone ? Colors.grey : Colors.blue.shade700,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          child: Text(
-                            isDone ? 'Attempted' : 'Attempt',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
-                        ),
+                                    child: Text(
+                                      isDone ? 'Result' : 'Attempt Quiz',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
+                                  )
+                                : ElevatedButton.icon(
+                                    onPressed: (programing.displayResult == true)
+                                        ? () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                  ProgrammingAttemptPage(program: programing,),
+                                              ),
+                                            );
+                                          }
+                                        : null, // disables the button if conditions not met
+                                    icon: const Icon(Icons.bar_chart),
+                                    label: const Text('Display Result'),
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                      backgroundColor: Colors.blue,
+                                      foregroundColor: Colors.white,
+                                      disabledBackgroundColor:
+                                          Colors.grey.shade400,
+                                      disabledForegroundColor: Colors.black38,
+                                    ),
+                                  ),
                       )
                     ],
                   ),

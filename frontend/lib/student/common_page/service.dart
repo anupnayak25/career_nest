@@ -91,4 +91,32 @@ class ApiService {
       return [];
     }
   }
+
+
+  static Future<List<Map<String, dynamic>>> fetchResults({required int id,required String type}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    String userId = prefs.getString('userId') ?? '';
+    if (token == null) {
+      throw Exception("No authentication token found");
+    }
+    final apiUrl = dotenv.get('API_URL');
+    print('$apiUrl/api/$type/answers/$id/$userId');
+    final response = await http.get(
+      
+      Uri.parse('$apiUrl/api/$type/answers/$id/$userId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    //log("Response status: ${response.statusCode} , Response body: ${response.body}");
+    print(response.body);
+    if (response.statusCode == 200) {
+    final List data = json.decode(response.body);
+    return data.map((e) => e as Map<String, dynamic>).toList();
+  } else {
+    throw Exception('Failed to load $type answers: ${response.body}');
+  }
+  }
 }

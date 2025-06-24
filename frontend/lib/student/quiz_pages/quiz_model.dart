@@ -71,40 +71,34 @@ class QuizQuestion {
   }
   }
 
-  // class QuizResultSummary {
-  // final List<QuizResult> results;
-  // final int totalMarks;
-  // final int obtainedMarks;
-  // final double percentage;
-  // final int totalQuestions;
-  // final int correctAnswers;
-  // final int wrongAnswers;
+  class QuestionResult {
+  final int qno;
+  final String selectedAns;
+  final bool isCorrect;
+  final int marksAwarded;
 
-  // QuizResultSummary({
-  //   required this.results,
-  //   required this.totalMarks,
-  //   required this.obtainedMarks,
-  //   required this.percentage,
-  //   required this.totalQuestions,
-  //   required this.correctAnswers,
-  //   required this.wrongAnswers,
-  // });
+  QuestionResult({
+    required this.qno,
+    required this.selectedAns,
+    required this.isCorrect,
+    required this.marksAwarded,
+  });
+}
 
-  // factory QuizResultSummary.fromResults(List<QuizResult> results, int totalPossibleMarks) {
-  //   final obtainedMarks = results.fold<int>(0, (sum, result) => sum + result.marksAwarded);
-  //   final correctAnswers = results.where((result) => result.isCorrect).length;
-  //   final wrongAnswers = results.length - correctAnswers;
-  //   final percentage = totalPossibleMarks > 0 ? (obtainedMarks / totalPossibleMarks) * 100 : 0.0;
+class QuizResultSummary {
+  final int correctAnswers;
+  final int wrongAnswers;
+  final int obtainedMarks;
+  final int totalMarks;
+  final double percentage;
+  final List<QuestionResult> results;
 
-  //   return QuizResultSummary(
-  //     results: results,
-  //     totalMarks: totalPossibleMarks,
-  //     obtainedMarks: obtainedMarks,
-  //     percentage: percentage,
-  //     totalQuestions: results.length,
-  //     correctAnswers: correctAnswers,
-  //     wrongAnswers: wrongAnswers,
-  //   );
-  // }
-// }
-
+  QuizResultSummary({
+    required this.correctAnswers,
+    required this.wrongAnswers,
+    required this.obtainedMarks,
+    required this.totalMarks,
+    required this.percentage,
+    required this.results,
+  });
+}

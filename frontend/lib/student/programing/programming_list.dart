@@ -1,6 +1,6 @@
 import 'package:career_nest/student/common_page/service.dart';
 import 'package:career_nest/student/programing/programm_attempt.dart';
-import 'package:career_nest/student/programing/programming_attempt.dart';
+import 'package:career_nest/student/programing/result_page.dart';
 import 'package:flutter/material.dart';
 import 'programming_model.dart';
 import 'programming_service.dart';
@@ -118,7 +118,8 @@ class ProgramingListPage extends StatelessWidget {
                                             Navigator.of(context).push(
                                               MaterialPageRoute(
                                                 builder: (context) =>
-                                                  ProgrammingAttemptPage(program: programing,),
+                                                  ProgrammingResultPage(
+                                                    programmingList: programing,),
                                               ),
                                             );
                                           }

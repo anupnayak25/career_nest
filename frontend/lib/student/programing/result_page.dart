@@ -80,7 +80,7 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.programmingList.title} - Result'),
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -94,7 +94,7 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.teal.shade400, Colors.teal.shade600],
+                  colors: [Colors.blue.shade400, Colors.blue.shade600],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -190,7 +190,7 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
                       offset: const Offset(0, 2),
                     ),
                   ],
-                  border: Border.all(color: Colors.teal),
+                  border: Border.all(color: Colors.blue),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

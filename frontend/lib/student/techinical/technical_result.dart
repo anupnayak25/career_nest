@@ -1,21 +1,21 @@
 import 'package:career_nest/student/common_page/service.dart';
-import 'package:career_nest/student/programing/programming_model.dart';
+import 'package:career_nest/student/techinical/technical_model.dart';
 import 'package:flutter/material.dart';
 
-class ProgrammingResultPage extends StatefulWidget {
-  final ProgramingList programmingList;
+class TechnicalResultPage extends StatefulWidget {
+  final TechnicalItem technicalList;
 
-  const ProgrammingResultPage({
+  const TechnicalResultPage({
     Key? key,
-    required this.programmingList,
+    required this.technicalList,
   }) : super(key: key);
 
   @override
-  State<ProgrammingResultPage> createState() => _ProgrammingResultPageState();
+  State<TechnicalResultPage> createState() => _TechnicalResultPageState();
 }
 
-class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
-  late Future<ProgrammingResultSummary> resultSummaryFuture;
+class _TechnicalResultPageState extends State<TechnicalResultPage> {
+  late Future<TechnicalResultSummary> resultSummaryFuture;
   List<Map<String, dynamic>> results = [];
 
   @override
@@ -24,16 +24,16 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
     resultSummaryFuture = loadResults();
   }
 
-  Future<ProgrammingResultSummary> loadResults() async {
+  Future<TechnicalResultSummary> loadResults() async {
     results = await ApiService.fetchResults(
-      id: widget.programmingList.id,
-      type: 'programming',
+      id: widget.technicalList.id,
+      type: 'technical',
     );
 
     int totalMarks = 0;
     int obtainedMarks = 0;
 
-    for (final question in widget.programmingList.questions) {
+    for (final question in widget.technicalList.questions) {
       totalMarks += question.marks;
       final match = results.firstWhere(
         (ans) => ans['qno'] == question.qno,
@@ -48,7 +48,7 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
     double percentage =
         totalMarks > 0 ? (obtainedMarks / totalMarks) * 100 : 0.0;
 
-    return ProgrammingResultSummary(
+    return TechnicalResultSummary(
       obtainedMarks: obtainedMarks,
       totalMarks: totalMarks,
       percentage: percentage,
@@ -57,7 +57,7 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<ProgrammingResultSummary>(
+    return FutureBuilder<TechnicalResultSummary>(
       future: resultSummaryFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -76,10 +76,10 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
     );
   }
 
-  Widget _buildResultUI(ProgrammingResultSummary resultSummary) {
+  Widget _buildResultUI(TechnicalResultSummary resultSummary) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.programmingList.title} - Result'),
+        title: Text('${widget.technicalList.title} - Results'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
@@ -88,7 +88,7 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Score Summary
+            // Score Summary Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20.0),
@@ -99,10 +99,10 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(15),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
                     blurRadius: 10,
-                    offset: Offset(0, 5),
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
@@ -123,7 +123,7 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
                       _buildScoreItem(
                         'Score',
                         '${resultSummary.obtainedMarks}/${resultSummary.totalMarks}',
-                        Icons.code,
+                        Icons.star,
                       ),
                       _buildScoreItem(
                         'Percentage',
@@ -135,6 +135,7 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
                 ],
               ),
             ),
+
             const SizedBox(height: 24),
 
             // Performance Badge
@@ -159,7 +160,7 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
             const SizedBox(height: 24),
 
             const Text(
-              'Code Review:',
+              'Questions Review:',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -168,14 +169,14 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
             ),
             const SizedBox(height: 16),
 
-            // Questions Review
-            ...widget.programmingList.questions.map((question) {
+            // Questions List
+            ...widget.technicalList.questions.map((question) {
               final res = results.firstWhere(
                 (r) => r['qno'] == question.qno,
                 orElse: () => <String, dynamic>{},
               );
+
               final marksAwarded = res['marks_awarded']?.toString() ?? '0';
-              final answer = res['answer']?.toString() ?? 'No answer submitted';
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -190,7 +191,7 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
                       offset: const Offset(0, 2),
                     ),
                   ],
-                  border: Border.all(color: Colors.blue),
+                  border: Border.all(color: Colors.blueAccent),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,27 +206,9 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
                     const SizedBox(height: 8),
                     Text(
                       'Marks Awarded: $marksAwarded / ${question.marks}',
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Your Code:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        answer,
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 13,
-                        ),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
                       ),
                     ),
                   ],
@@ -246,7 +229,7 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
                     label: const Text('Back to Home'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      backgroundColor: Colors.grey.shade700,
+                      backgroundColor: Colors.grey.shade600,
                       foregroundColor: Colors.white,
                     ),
                   ),
@@ -274,7 +257,10 @@ class _ProgrammingResultPageState extends State<ProgrammingResultPage> {
         ),
         Text(
           label,
-          style: const TextStyle(fontSize: 14, color: Colors.white70),
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.white70,
+          ),
         ),
       ],
     );

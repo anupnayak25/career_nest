@@ -184,7 +184,7 @@ router.post('/answers', (req, res) => {
 
 
   const query = `
-      'INSERT INTO hr_answers (hr_question_id, user_id, qno, answer) VALUES (?, ?, ?, ?)'
+      INSERT INTO hr_answers (hr_question_id, user_id, qno, answer) VALUES (?, ?, ?, ?)
     `;
       // Convert each item insert into a Promise
       const insertItemPromises = answers.map(({ qno, answer }) => {
@@ -224,7 +224,7 @@ router.get('/answers/:id', (req, res) => {
 router.get('/answers/:id/:user_id', (req, res) => {
   const id = req.params.id;
   const user_id = req.params.user_id;
-  connection.query("SELECT qno, answer FROM hr_answers where hr_question_id=? and  user_id = ? and (select user_id from hr_questions where id = ?)=?", [id, user_id, id, req.user.id], (err, results) => {
+  connection.query("SELECT * FROM hr_answers where hr_question_id=? and  user_id = ?", [id, user_id], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     if (results.length == 0) return res.status(404).json({ message: "No answers yet" });
     res.json(results);
@@ -235,10 +235,31 @@ router.get('/answers/:id/:user_id', (req, res) => {
 router.put('/publish/:id', (req, res) => {
   const id = req.params.id;
   const { display_result } = req.body;
-  const query = `UPDATE technical_questions SET display_result=? WHERE id=?`;
+  const query = `UPDATE hr_questions SET display_result=? WHERE id=?`;
   connection.query(query, [display_result], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });
+  });
+});
+
+router.get('/attempted/:id', (req, res) => {
+  const userId = req.params.id;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  const query = `
+    SELECT DISTINCT hr_question_id 
+    FROM hr_answers 
+    WHERE user_id = ?
+  `;
+
+  connection.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const attemptedIds = results.map(row => row.hr_question_id);
+    res.json({ attempted: attemptedIds });
   });
 });
 

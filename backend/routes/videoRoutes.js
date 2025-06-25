@@ -20,15 +20,23 @@ const storage = multer.diskStorage({
 // Init upload
 const upload = multer({
   storage,
-  limits: { fileSize: 100 * 1024 * 1024 }, // limit 100MB
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
   fileFilter: (req, file, cb) => {
-    const filetypes = /mp4|mov|avi|mkv/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
-    if (extname && mimetype) {
+    const allowedMimeTypes = [
+      'video/mp4',
+      'video/quicktime', // .mov
+      'video/x-msvideo', // .avi
+      'video/x-matroska', // .mkv
+      'application/octet-stream' // fallback
+    ];
+
+    const extname = /\.(mp4|mov|avi|mkv)$/i.test(path.extname(file.originalname));
+
+    if (extname && allowedMimeTypes.includes(file.mimetype)) {
       return cb(null, true);
     } else {
-      cb('Error: Videos Only!');
+      console.error(`[UPLOAD] Rejected file: ${file.originalname}, MIME: ${file.mimetype}`);
+      return cb(new Error('Error: Videos Only!'));
     }
   }
 });
@@ -38,8 +46,7 @@ router.post('/upload', upload.single('video'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' });
   }
-
-  const videoUrl = `${req.protocol}://${req.get('host')}/videos/${req.file.filename}`;
+  const videoUrl = `${req.file.filename}`;
   res.status(200).json({ message: 'Video uploaded successfully', url: videoUrl });
 });
 

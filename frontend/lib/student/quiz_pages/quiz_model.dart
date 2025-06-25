@@ -71,3 +71,34 @@ class QuizQuestion {
   }
   }
 
+  class QuestionResult {
+  final int qno;
+  final String selectedAns;
+  final bool isCorrect;
+  final int marksAwarded;
+
+  QuestionResult({
+    required this.qno,
+    required this.selectedAns,
+    required this.isCorrect,
+    required this.marksAwarded,
+  });
+}
+
+class QuizResultSummary {
+  final int correctAnswers;
+  final int wrongAnswers;
+  final int obtainedMarks;
+  final int totalMarks;
+  final double percentage;
+  final List<QuestionResult> results;
+
+  QuizResultSummary({
+    required this.correctAnswers,
+    required this.wrongAnswers,
+    required this.obtainedMarks,
+    required this.totalMarks,
+    required this.percentage,
+    required this.results,
+  });
+}

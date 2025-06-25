@@ -111,7 +111,7 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
                     };
                   }).toList();
 
-                  final success = await ApiService.submitQuizAnswers(
+                  final success = await QuizApiService.submitQuizAnswers(
                     quizId: widget.quiz.id,
                     answers: answerList,
                   );

@@ -94,20 +94,19 @@ router.delete('/:id', (req, res) => {
   });
 });
 
-
 //================= ANSWERS API ==================
 
 // Submit answers
 router.post('/answers', (req, res) => {
-  const { technical_question_id, answers } = req.body;
+  const { technical_id, answers } = req.body;
   const user_id = req.user.id; // assuming req.user.id is set after auth middleware
 
   const insertAnswerQuery = `INSERT INTO technical_answers (technical_id, user_id, qno, answer) VALUES ?`;
-  const values = answers.map(({ qno, answer }) => [technical_question_id, user_id, qno, answer]);
+  const values = answers.map(({ qno, answer }) => [technical_id, user_id, qno, answer]);
 
   connection.query(insertAnswerQuery, [values], (err) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.status(201).json({ message: "Answers submitted successfully", technical_question_id });
+    res.status(201).json({ message: "Answers submitted successfully", technical_id });
   });
 });
 
@@ -126,7 +125,7 @@ router.get('/answers/:id', (req, res) => {
 // Get all answers of a specific user for a technical set
 router.get('/answers/:id/:user_id', (req, res) => {
   const { id, user_id } = req.params;
-  const query = `SELECT qno, answer FROM technical_answers WHERE technical_question_id = ? AND user_id = ?`;
+  const query = `SELECT * FROM technical_answers WHERE technical_id = ? AND user_id = ?`;
 
   connection.query(query, [id, user_id], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -142,6 +141,27 @@ router.put('/publish/:id', (req, res) => {
   connection.query(query, [display_result], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });
+  });
+});
+
+router.get('/attempted/:id', (req, res) => {
+  const userId = req.params.id;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  const query = `
+    SELECT DISTINCT technical_id 
+    FROM technical_answers 
+    WHERE user_id = ?
+  `;
+
+  connection.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const attemptedIds = results.map(row => row.technical_id);
+    res.json({ attempted: attemptedIds });
   });
 });
 

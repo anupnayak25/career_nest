@@ -1,13 +1,11 @@
+import 'package:career_nest/student/notification_screen.dart';
+import 'package:career_nest/student/profile_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:career_nest/student/hr/hr_list.dart';
-import 'package:career_nest/student/techinical/technical_list.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import './programing/programming_list.dart';
-import './quiz_pages/quiz_list.dart';
+import 'package:flutter/services.dart';
 import "../common/home_page.dart";
-import 'package:career_nest/common/login.dart';
+import './test_page.dart';
 
-// StatefulWidget for the main Dashboard page, as it manages the bottom navigation state.
+// Enhanced StatefulWidget for the main Dashboard page with modern UI
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -15,248 +13,223 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
-  // Index to track the currently selected tab in the bottom navigation bar.
+class _DashboardPageState extends State<DashboardPage>
+    with TickerProviderStateMixin {
+  // Index to track the currently selected tab in the bottom navigation bar
   int _selectedIndex = 0;
+  
+  // Animation controller for smooth transitions
+  late AnimationController _animationController;
 
-  // List of widgets to display for each tab in the bottom navigation bar.
-  final List<Widget> _pages = const [
+  // List of widgets to display for each tab in the bottom navigation bar
+  final List<Widget> _pages = [
     HomePage(userName: 'Kristin'), // Home screen
     TestsPage(), // Tests listing screen
     NotificationsPage(), // Notifications screen
     AccountPage(userName: 'Kristin'), // User account screen
   ];
 
-  // Function to update the selected index when a bottom navigation item is tapped.
+  // Navigation items with enhanced styling data
+  final List<NavigationItem> _navItems = [
+    NavigationItem(
+      icon: Icons.home_rounded,
+      activeIcon: Icons.home,
+      label: 'Home',
+      color: Colors.blue,
+    ),
+    NavigationItem(
+      icon: Icons.assignment_outlined,
+      activeIcon: Icons.assignment,
+      label: 'Tests',
+      color: Colors.purple,
+    ),
+    NavigationItem(
+      icon: Icons.notifications_outlined,
+      activeIcon: Icons.notifications,
+      label: 'Notifications',
+      color: Colors.orange,
+    ),
+    NavigationItem(
+      icon: Icons.account_circle_outlined,
+      activeIcon: Icons.account_circle,
+      label: 'Account',
+      color: Colors.green,
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  // Enhanced function to update the selected index with animation
   void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
+    if (_selectedIndex != index) {
+      // Haptic feedback for better user experience
+      HapticFeedback.lightImpact();
+      
+      setState(() => _selectedIndex = index);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   automaticallyImplyLeading: false,
-      //   title: const Text('Career Nest',
-      //       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-      //   backgroundColor: Colors.blue,
-      // ),
-      body: _pages[
-          _selectedIndex], // Display the widget corresponding to the selected index.
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex:
-            _selectedIndex, // Set the current index of the bottom navigation bar.
-        selectedItemColor: Colors.blue, // Color for the selected item.
-        unselectedItemColor: Colors.grey, // Color for unselected items.
-        onTap: _onItemTapped, // Call _onItemTapped when an item is pressed.
-        type: BottomNavigationBarType
-            .fixed, // Ensures all labels are always visible.
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Tests'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.notifications), label: 'Notifications'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle), label: 'Account'),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------- HOME SCREEN ----------------
-
-// ---------------- TESTS SCREEN ----------------
-
-// StatelessWidget for the Tests screen, as it displays static content and navigates to other test-related screens.
-class TestsPage extends StatelessWidget {
-  const TestsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tests',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white)),
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            const Text('Choose your Test',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            // Build cards for different test categories, navigating to their respective screens on tap.
-            _buildTestCard(context, 'QUIZ', const QuizListPage()),
-            _buildTestCard(context, 'Programming', const ProgramingListPage()),
-            _buildTestCard(context, 'HR', const HRListPage()),
-            _buildTestCard(context, 'Technical', const TechnicalListPage()),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Helper function to build a reusable test category card.
-  Widget _buildTestCard(BuildContext context, String title, Widget page) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      elevation: 3,
-      child: ListTile(
-        title: Text(title, style: const TextStyle(fontSize: 18)),
-        leading: const Icon(Icons.assignment, color: Colors.blue),
-        trailing: const Icon(Icons.arrow_forward_ios),
-        // Navigate to the specified page when the card is tapped.
-        onTap: () => Navigator.push(
-            context, MaterialPageRoute(builder: (context) => page)),
-      ),
-    );
-  }
-}
-
-// ---------------- NOTIFICATIONS SCREEN ----------------
-
-// StatelessWidget for the Notifications screen, displaying a static list of notifications.
-class NotificationsPage extends StatelessWidget {
-  const NotificationsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // Example list of notifications. In a real app, this would likely be fetched from an API.
-    final List<Map<String, String>> notifications = const [
-      {'title': 'Congratulations on completing the test!', 'time': 'Just now'},
-      {'title': 'Your course has been updated', 'time': 'Today'},
-      {'title': 'You have a new message', 'time': '1 hour ago'},
-    ];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notifications',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white)),
-        backgroundColor: Colors.blue,
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: notifications.length,
-        itemBuilder: (context, index) {
-          // Build a NotificationCard widget for each notification item.
-          return NotificationCard(
-            title: notifications[index]['title']!,
-            time: notifications[index]['time']!,
+      backgroundColor: Colors.grey[50],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, animation) {
+          // Create a slide animation for this specific transition
+          final slideAnimation = Tween<Offset>(
+            begin: const Offset(0.1, 0.0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          ));
+          
+          return SlideTransition(
+            position: slideAnimation,
+            child: FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
           );
         },
-      ),
-    );
-  }
-}
-
-// StatelessWidget to display a single notification card.
-class NotificationCard extends StatelessWidget {
-  final String title;
-  final String time;
-
-  const NotificationCard({super.key, required this.title, required this.time});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: ListTile(
-        leading: const Icon(Icons.notifications, color: Colors.blue),
-        title: Text(title),
-        subtitle: Text(time, style: const TextStyle(color: Colors.grey)),
-      ),
-    );
-  }
-}
-
-// ---------------- ACCOUNT SCREEN ----------------
-
-// StatelessWidget for the Account screen, displaying user profile information and options.
-class AccountPage extends StatelessWidget {
-  final String userName;
-  const AccountPage({super.key, required this.userName});
-
-  @override
-  Widget build(BuildContext context) {
-    // Example list of account options.
-    final List<String> options = [
-      'Favourite',
-      'Edit Account',
-      'Settings and Privacy',
-      'Help',
-      'Logout'
-    ];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white)),
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Display user profile information at the top.
-            Center(
-              child: Column(
-                children: [
-                  const CircleAvatar(radius: 40, backgroundColor: Colors.blue),
-                  const SizedBox(height: 10),
-                  Text(userName,
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 30),
-            // Build a list of account option cards.
-            ...options
-                .map((option) => _buildAccountOption(context, option)),
-          ],
+        child: Container(
+          key: ValueKey<int>(_selectedIndex),
+          child: _pages[_selectedIndex],
         ),
       ),
-    );
-  }
-
-  // Helper function to build a reusable account option card.
-  Widget _buildAccountOption(BuildContext context, String title) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        title: Text(title, style: const TextStyle(fontSize: 18)),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () async {
-          if (title == "Logout") {
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setString('auth_token', "");
-            await prefs.setString('userType', "");
-            await prefs.setString('userName', "");
-            await prefs.setString('userEmail', "");
-            await prefs.setBool('isLoggedIn', false);
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => const LoginPage()),
-              (Route<dynamic> route) => false,
-            );
-          } else
-            print('$title tapped');
-        },
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(25),
+            topRight: Radius.circular(25),
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(25),
+            topRight: Radius.circular(25),
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            selectedFontSize: 12,
+            unselectedFontSize: 11,
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w500,
+            ),
+            items: _navItems.asMap().entries.map((entry) {
+              int index = entry.key;
+              NavigationItem item = entry.value;
+              bool isSelected = _selectedIndex == index;
+              
+              return BottomNavigationBarItem(
+                icon: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                        ? item.color.withOpacity(0.15)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      isSelected ? item.activeIcon : item.icon,
+                      key: ValueKey(isSelected),
+                      color: isSelected ? item.color : Colors.grey[600],
+                      size: isSelected ? 26 : 24,
+                    ),
+                  ),
+                ),
+                label: item.label,
+                activeIcon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: item.color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    item.activeIcon,
+                    color: item.color,
+                    size: 26,
+                  ),
+                ),
+              );
+            }).toList(),
+            selectedItemColor: _navItems[_selectedIndex].color,
+            unselectedItemColor: Colors.grey[600],
+          ),
+        ),
       ),
+      // Optional: Add a floating action button for quick actions
+      // floatingActionButton: _selectedIndex == 0 
+      //     ? FloatingActionButton(
+      //         onPressed: () {
+      //           // Quick action - could navigate to create new test or notification
+      //           HapticFeedback.mediumImpact();
+      //           ScaffoldMessenger.of(context).showSnackBar(
+      //             SnackBar(
+      //               content: const Text('Quick Action Pressed!'),
+      //               backgroundColor: _navItems[_selectedIndex].color,
+      //               behavior: SnackBarBehavior.floating,
+      //               shape: RoundedRectangleBorder(
+      //                 borderRadius: BorderRadius.circular(10),
+      //               ),
+      //             ),
+      //           );
+      //         },
+      //         backgroundColor: _navItems[_selectedIndex].color,
+      //         elevation: 8,
+      //         child: const Icon(Icons.add, color: Colors.white),
+      //       )
+      //     : null,
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
+}
+
+// Helper class for navigation item data
+class NavigationItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final Color color;
+
+  NavigationItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.color,
+  });
 }

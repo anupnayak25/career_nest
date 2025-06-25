@@ -148,6 +148,7 @@ router.post('/signup',
                       if (err) {
             // Duplicate entry error (email already exists)
             if (err.code === 'ER_DUP_ENTRY') {
+                console.error('Duplicate entry for email:', email);
                 return res.status(409).json({ error: 'User already exists' }); // 409 Conflict
             }
 
@@ -228,6 +229,7 @@ router.post('/signin', [
                         id: results[0].id
                     });
                 } else {
+                    console.log("Invalid password");
                     res.status(400).json({ path: "password", message: 'invalid' });
                 }
             });

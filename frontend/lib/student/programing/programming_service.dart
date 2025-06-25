@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ApiService {
+class ProgrammingApiService {
   static Future<List<ProgramingList>> fetchProgramingList() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -23,6 +23,7 @@ class ApiService {
       throw Exception("Failed to load programs");
     }
   }
+
   static Future<bool> submitProgramingAnswers({
   required int programmingId,
   required List<Map<String, dynamic>> answers,
@@ -34,7 +35,7 @@ class ApiService {
 
   final url = Uri.parse('$apiUrl/api/programming/answers');
   final body = jsonEncode({
-    'programming_id': programmingId,
+    'program_id': programmingId,
     'user_id': userId,
     'answers': answers,
   });

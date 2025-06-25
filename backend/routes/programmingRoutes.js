@@ -119,7 +119,7 @@ router.delete('/:id', (req, res) => {
 
 // POST /answers: Submit all answers
 router.post('/answers', (req, res) => {
-  const { program_set_id, answers } = req.body;
+  const { program_id, answers } = req.body;
   
   const query = `
     INSERT INTO program_answers (program_set_id, user_id, qno, submitted_code)
@@ -128,7 +128,7 @@ router.post('/answers', (req, res) => {
   
   const insertItemPromises = answers.map(({ qno, answer }) => {
     return new Promise((resolve, reject) => {
-      connection.query(query, [program_set_id, req.user.id, qno, answer], (err, result) => {
+      connection.query(query, [program_id, req.user.id, qno, answer], (err, result) => {
         if (err) return reject(err);
         resolve(result);
       });
@@ -139,7 +139,7 @@ router.post('/answers', (req, res) => {
     .then(() => {
       res.status(201).json({
         message: "Answers uploaded successfully",
-        program_set_id: program_set_id
+        program_id: program_id
       });
     })
     .catch((error) => {
@@ -186,6 +186,27 @@ router.put('/publish/:id', (req, res) => {
   connection.query(query, [display_result], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });
+  });
+});
+
+router.get('/attempted/:id', (req, res) => {
+  const userId = req.params.id;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  const query = `
+    SELECT DISTINCT program_set_id 
+    FROM program_answers 
+    WHERE user_id = ?
+  `;
+
+  connection.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const attemptedIds = results.map(row => row.program_set_id);
+    res.json({ attempted: attemptedIds });
   });
 });
 

@@ -1,12 +1,19 @@
+import 'dart:io';
+
+import 'package:career_nest/common/video_recoredr_screen.dart';
+import 'package:career_nest/student/common_page/service.dart';
 import 'package:career_nest/student/techinical/technical_model.dart';
+import 'package:career_nest/student/techinical/technical_service.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../common_page/success_screen.dart'; // Adjust the path based on your project structure
 
 class TechnicalAnswerPage extends StatefulWidget {
   final List<TechnicalQuestion> questions;
+  final int QID;
 
-  const TechnicalAnswerPage({super.key, required this.questions});
+  const TechnicalAnswerPage(
+      {super.key, required this.questions, required this.QID});
 
   @override
   State<TechnicalAnswerPage> createState() => _TechnicalAnswerPageState();
@@ -14,24 +21,36 @@ class TechnicalAnswerPage extends StatefulWidget {
 
 class _TechnicalAnswerPageState extends State<TechnicalAnswerPage> {
   Map<int, String> videoAnswers = {};
+  Set<int> uploadingQuestions = {};
 
-  Future<void> pickVideo(int qno) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.video,
-      allowMultiple: false,
+  Future<void> recordVideo(int qno) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => VideoRecordScreen(qno: qno)),
     );
 
-    if (result != null && result.files.single.path != null) {
-      String filePath = result.files.single.path!;
-      // TODO: Add 2-minute video duration check here if needed
+    if (result != null && result is String) {
       setState(() {
-        videoAnswers[qno] = filePath;
+        uploadingQuestions.add(qno); // show loading under that question
+      });
+
+      final uploadedUrl = await ApiService.uploadVideo(File(result));
+
+      if (uploadedUrl != null) {
+        setState(() {
+          videoAnswers[qno] = uploadedUrl;
+        });
+      }
+
+      setState(() {
+        uploadingQuestions.remove(qno); // hide loader
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    bool isSubmitting = false;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -55,14 +74,55 @@ class _TechnicalAnswerPageState extends State<TechnicalAnswerPage> {
             const SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                //  print("Submitted video answers: $videoAnswers");
-                  // Submit logic here
-                },
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        if (videoAnswers.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please upload at least one video'),
+                            ),
+                          );
+                          return;
+                        }
+
+                        setState(() => isSubmitting = true); // Start loading
+
+                        List<Map<String, dynamic>> answers =
+                            videoAnswers.entries
+                                .map((e) => {
+                                      'qno': e.key,
+                                      'answer': e.value,
+                                    })
+                                .toList();
+
+                        final success =
+                            await TechnicalService.submitTechnicalAnswers(
+                          qno: widget.QID,
+                          answers: answers,
+                        );
+
+                        setState(() => isSubmitting = false); // Stop loading
+
+                        if (success) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const SuccessScreen()),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Failed to submit answers')),
+                          );
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 50, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
                 ),
                 child: const Text(
                   'Submit',
@@ -77,6 +137,7 @@ class _TechnicalAnswerPageState extends State<TechnicalAnswerPage> {
   }
 
   Widget _buildVideoUploadCard(TechnicalQuestion q) {
+    bool uploaded = videoAnswers[q.qno] != null;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -93,10 +154,10 @@ class _TechnicalAnswerPageState extends State<TechnicalAnswerPage> {
           ),
           const SizedBox(height: 8),
           GestureDetector(
-            onTap: () => pickVideo(q.qno),
+            onTap: () => recordVideo(q.qno),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.blueAccent,
+                color: uploaded ? Colors.green : Colors.blueAccent,
                 borderRadius: BorderRadius.circular(30),
               ),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
@@ -105,17 +166,28 @@ class _TechnicalAnswerPageState extends State<TechnicalAnswerPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      videoAnswers[q.qno] != null
-                          ? "Video Selected"
-                          : "Click Here To Add Video",
+                      uploaded ? "Video Uploaded" : "Click Here To Add Video",
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ),
-                  const Icon(Icons.add, color: Colors.white),
+                  Icon(uploaded ? Icons.check : Icons.add, color: Colors.white),
                 ],
               ),
             ),
           ),
+          const SizedBox(height: 10),
+          if (uploadingQuestions
+              .contains(q.qno)) // 👈 show loading only for this question
+            const Row(
+              children: [
+                SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2)),
+                SizedBox(width: 10),
+                Text("Uploading...", style: TextStyle(fontSize: 13)),
+              ],
+            ),
         ],
       ),
     );

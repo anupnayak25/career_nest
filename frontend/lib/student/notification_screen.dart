@@ -1,3 +1,4 @@
+import 'package:career_nest/common/animated_appbar.dart';
 import 'package:flutter/material.dart';
 
 class NotificationsPage extends StatefulWidget {
@@ -72,39 +73,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      // appBar: AppBar(
-      //   title: Column(
-      //     mainAxisSize: MainAxisSize.min,
-      //     children: [
-      //       const Text(
-      //         'Notifications',
-      //         style: TextStyle(
-      //           fontSize: 20,
-      //           fontWeight: FontWeight.bold,
-      //           color: Colors.white,
-      //         ),
-      //       ),
-      //       if (unreadCount > 0)
-      //         Text(
-      //           '$unreadCount new notifications',
-      //           style: const TextStyle(
-      //             fontSize: 12,
-      //             color: Colors.white70,
-      //           ),
-      //         ),
-      //     ],
-      //   ),
-      //   backgroundColor: Colors.blue,
-      //   centerTitle: true,
-      //   actions: [
-      //     if (unreadCount > 0)
-      //       IconButton(
-      //         onPressed: _markAllAsRead,
-      //         icon: const Icon(Icons.done_all, color: Colors.white),
-      //         tooltip: 'Mark all as read',
-      //       ),
-      //   ],
-      // ),
+     appBar: AnimatedCurvedAppBar(title: "Notifications",),
       body: notifications.isEmpty
           ? _buildEmptyState()
           : ListView.builder(

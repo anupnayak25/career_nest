@@ -61,20 +61,13 @@ class _HomePageState extends State<HomePage> {
           _eventVideos = eventsData.cast<Map<String, dynamic>>();
           _placementVideos = placementsData.cast<Map<String, dynamic>>();
           _isLoading = false;
-          _isLoading = false;
         });
       } else {
         setState(() {
           _isLoading = false;
         });
-        setState(() {
-          _isLoading = false;
-        });
       }
     } catch (error) {
-      setState(() {
-        _isLoading = false;
-      });
       setState(() {
         _isLoading = false;
       });

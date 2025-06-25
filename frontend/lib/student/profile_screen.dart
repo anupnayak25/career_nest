@@ -24,14 +24,14 @@ class _AccountPageState extends State<AccountPage> {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white)),
-        backgroundColor: Colors.blue,
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Profile',
+      //       style: TextStyle(
+      //           fontSize: 20,
+      //           fontWeight: FontWeight.bold,
+      //           color: Colors.white)),
+      //   backgroundColor: Colors.blue,
+      // ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

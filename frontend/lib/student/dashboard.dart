@@ -35,25 +35,21 @@ class _DashboardPageState extends State<DashboardPage>
       icon: Icons.home_rounded,
       activeIcon: Icons.home,
       label: 'Home',
-      color: Colors.blue,
     ),
     NavigationItem(
       icon: Icons.assignment_outlined,
       activeIcon: Icons.assignment,
       label: 'Tests',
-      color: Colors.purple,
     ),
     NavigationItem(
       icon: Icons.notifications_outlined,
       activeIcon: Icons.notifications,
       label: 'Notifications',
-      color: Colors.orange,
     ),
     NavigationItem(
       icon: Icons.account_circle_outlined,
       activeIcon: Icons.account_circle,
       label: 'Account',
-      color: Colors.green,
     ),
   ];
 
@@ -224,12 +220,11 @@ class NavigationItem {
   final IconData icon;
   final IconData activeIcon;
   final String label;
-  final Color color;
+  final Color color = Colors.blue; // Default color, can be customized
 
   NavigationItem({
     required this.icon,
     required this.activeIcon,
     required this.label,
-    required this.color,
   });
 }

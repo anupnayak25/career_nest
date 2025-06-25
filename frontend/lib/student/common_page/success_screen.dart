@@ -1,5 +1,3 @@
-import 'package:career_nest/student/quiz_pages/quiz_list.dart';
-import 'package:career_nest/student/quiz_pages/quiz_model.dart';
 import 'package:flutter/material.dart';
 
 class SuccessScreen extends StatelessWidget {

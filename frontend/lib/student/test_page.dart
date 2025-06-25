@@ -1,3 +1,4 @@
+import 'package:career_nest/common/animated_appbar.dart';
 import 'package:flutter/material.dart';
 import './programing/programming_list.dart';
 import './quiz_pages/quiz_list.dart';
@@ -105,54 +106,39 @@ class _TestsPageState extends State<TestsPage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: const Text(
-          'All Test List',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black87, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _testCategories.length,
-                itemBuilder: (context, index) {
-                  return SlideTransition(
-                    position: _slideAnimations[index],
-                    child: FadeTransition(
-                      opacity: _fadeAnimations[index],
-                      child: _buildAnimatedTestCard(
-                        context,
-                        _testCategories[index],
-                        index,
-                      ),
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFF5F5F5),
+    appBar: const AnimatedCurvedAppBar(title: 'Tests'),
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 10),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _testCategories.length,
+              itemBuilder: (context, index) {
+                return SlideTransition(
+                  position: _slideAnimations[index],
+                  child: FadeTransition(
+                    opacity: _fadeAnimations[index],
+                    child: _buildAnimatedTestCard(
+                      context,
+                      _testCategories[index],
+                      index,
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildAnimatedTestCard(
     BuildContext context,

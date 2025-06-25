@@ -1,11 +1,11 @@
-
+//home_page.dart
+import 'package:career_nest/common/animated_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 
 class HomePage extends StatefulWidget {
   final String userName;
@@ -16,161 +16,362 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Lists to store event and placement videos fetched from the API.
   List<Map<String, dynamic>> _eventVideos = [];
   List<Map<String, dynamic>> _placementVideos = [];
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
-    _fetchVideos(); // Fetch videos when the widget is initialized.
+    _fetchVideos();
   }
 
-  // Asynchronous function to fetch video data from the API.
   Future<void> _fetchVideos() async {
-    // Replace with your actual API base URL
+    setState(() {
+      _isLoading = true;
+    });
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final apiUrl = dotenv.get('API_URL');
     final Uri eventsUri = Uri.parse('$apiUrl/api/videos');
-    final Uri placementsUri =
-        Uri.parse('$apiUrl/api/videos/');
+    final Uri placementsUri = Uri.parse('$apiUrl/api/videos/');
 
     try {
-      // Make HTTP GET requests to fetch event and placement videos.
       final eventsResponse = await http.get(eventsUri, headers: {
-        'Authorization': 'Bearer $token', // Fixed: Added 'Bearer'
+        'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       });
       final placementsResponse = await http.get(placementsUri, headers: {
-        'Authorization': 'Bearer $token', // Fixed: Added 'Bearer'
+        'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       });
 
-      // Check if both requests were successful (status code 200).
       if (eventsResponse.statusCode == 200 &&
           placementsResponse.statusCode == 200) {
-        // Decode the JSON response body into List<dynamic>.
         final List<dynamic> eventsData = json.decode(eventsResponse.body);
         final List<dynamic> placementsData =
             json.decode(placementsResponse.body);
 
-        // Update the state with the fetched video data.
         setState(() {
           _eventVideos = eventsData.cast<Map<String, dynamic>>();
           _placementVideos = placementsData.cast<Map<String, dynamic>>();
+          _isLoading = false;
         });
       } else {
-        // Log an error message if fetching videos failed.
-       // print(
-         //   'Failed to fetch videos - Events: ${eventsResponse.statusCode}, Placements: ${placementsResponse.statusCode}');
-        // Optionally, you could show an error message to the user using a SnackBar or AlertDialog.
+        setState(() {
+          _isLoading = false;
+        });
       }
     } catch (error) {
-      // Log an error message if an exception occurred during the process.
-     // print('Error fetching videos: $error');
-      // Optionally, show an error message to the user.
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2, // Number of tabs.
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Carreer Nest', style: TextStyle(color: Colors.white)),
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.blue,
-          bottom: const TabBar(
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            tabs: [
-              Tab(text: 'Events'),
-              Tab(text: 'Placements'),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            // Display a progress indicator if event videos are still loading, otherwise show the VideoList.
-            _eventVideos.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : VideoList(videos: _eventVideos),
-            // Display a message if no placement videos are available, otherwise show the VideoList.
-            _placementVideos.isEmpty
-                ? const Center(child: Text('No placement videos yet.'))
-                : VideoList(videos: _placementVideos),
-          ],
-        ),
+      length: 2,
+      child: Builder(
+        builder: (context) {
+          final tabController = DefaultTabController.of(context);
+
+          return Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AnimatedCurvedAppBar(title: "Carrier Nest", tabController: tabController),
+            body: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: Colors.red),
+                  )
+                : TabBarView(
+                    controller: tabController,
+                    children: [
+                      YouTubeVideoGrid(videos: _eventVideos, type: 'Events'),
+                      YouTubeVideoGrid(
+                          videos: _placementVideos, type: 'Placements'),
+                    ],
+                  ),
+          );
+        },
       ),
     );
   }
 }
-// StatelessWidget to display a list of videos.
-class VideoList extends StatelessWidget {
-  final List<Map<String, dynamic>> videos;
-  const VideoList({super.key, required this.videos});
 
-  // Asynchronous function to launch a URL using the url_launcher package.
+class YouTubeVideoGrid extends StatelessWidget {
+  final List<Map<String, dynamic>> videos;
+  final String type;
+
+  const YouTubeVideoGrid({
+    super.key,
+    required this.videos,
+    required this.type,
+  });
+
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
-    // Check if the URL can be launched.
     if (!await launchUrl(uri)) {
-      // If it cannot be launched, throw an exception.
       throw Exception('Could not launch $url');
     }
+  }
 
+  String _formatDuration(String? duration) {
+    // Mock duration - in real app, you'd get this from your API
+    return "12:34";
+  }
+
+  String _formatViewCount(int views) {
+    if (views >= 1000000) {
+      return '${(views / 1000000).toStringAsFixed(1)}M views';
+    } else if (views >= 1000) {
+      return '${(views / 1000).toStringAsFixed(1)}K views';
+    } else {
+      return '$views views';
+    }
+  }
+
+  String _formatUploadTime(String? uploadDateTime) {
+    if (uploadDateTime == null) return 'Date not available';
+
+    final uploadDate = DateTime.parse(uploadDateTime);
+    final now = DateTime.now();
+    final difference = now.difference(uploadDate);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''} ago';
+    } else {
+      return 'Just now';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: videos.length,
-      itemBuilder: (context, index) {
-        final video = videos[index];
-        return Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          elevation: 4,
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            title: Text(video['title'] ?? 'No Title',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  video['uploaded_datetime'] != null
-                      ? 'Uploaded: ${DateTime.parse(video['uploaded_datetime']).toLocal().toString().split('.').first}'
-                      : 'Date not available',
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                if (video['description'] != null)
-                  Text(
-                    video['description'],
-                    style: const TextStyle(color: Colors.black87),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-              ],
+    if (videos.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              type == 'Events' ? Icons.event_busy : Icons.work_off,
+              size: 80,
+              color: Colors.grey[600],
             ),
-            leading: const Icon(Icons.video_collection, color: Colors.blue),
+            const SizedBox(height: 16),
+            Text(
+              'No $type videos yet',
+              style: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Check back later for new content',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      color: Colors.white,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: videos.length,
+        itemBuilder: (context, index) {
+          final video = videos[index];
+          return GestureDetector(
             onTap: () {
-              // Call _launchURL when a video item is tapped, if the URL is available.
               if (video['url'] != null) {
                 _launchURL(video['url']);
               } else {
-                // Show a SnackBar if the video URL is not available.
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Video URL not available.')),
+                  const SnackBar(
+                    content: Text('Video URL not available.'),
+                    backgroundColor: Colors.red,
+                  ),
                 );
               }
             },
-            
-          ),
-        );
-      },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Video Thumbnail
+                  Container(
+                    width: double.infinity,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.grey[900],
+                    ),
+                    child: Stack(
+                      children: [
+                        // Placeholder thumbnail
+                        Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.red.withOpacity(0.3),
+                                Colors.blue.withOpacity(0.3),
+                              ],
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.play_circle_outline,
+                            size: 60,
+                            color: Colors.black,
+                          ),
+                        ),
+                        // Duration badge
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              _formatDuration(video['duration']),
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Video Info
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Channel Avatar
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.red,
+                        child: Text(
+                          'CN',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Video Details
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              video['title'] ?? 'No Title',
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                height: 1.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Career Nest',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Text(
+                                  _formatViewCount(
+                                    (video['views'] as int?) ??
+                                        (100 + (index * 50)), // Mock view count
+                                  ),
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                Text(
+                                  ' • ',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                Text(
+                                  _formatUploadTime(video['uploaded_datetime']),
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (video['description'] != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                video['description'],
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 13,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      // More options
+                      IconButton(
+                        icon: Icon(
+                          Icons.more_vert,
+                          color: Colors.grey[400],
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          // Add more options functionality
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

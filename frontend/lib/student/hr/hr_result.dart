@@ -29,8 +29,6 @@ class _HrResultPageState extends State<HrResultPage> {
       type: 'hr',
     );
 
-    int correct = 0;
-    int wrong = 0;
     int totalMarks = 0;
     int obtainedMarks = 0;
 

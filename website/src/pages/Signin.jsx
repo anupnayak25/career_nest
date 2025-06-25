@@ -79,7 +79,7 @@ const Signin = () => {
        // const userType = responseData.type;
 
         // Show success message
-        alert("Logged in successfully! 🎉");
+        alert("Logged in successfully! ");
 
         // Navigate based on user type
         // if (userType === "student") {

@@ -20,8 +20,6 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> _placementVideos = [];
   bool _isLoading = true;
 
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
@@ -43,16 +41,13 @@ class _HomePageState extends State<HomePage> {
     final apiUrl = dotenv.get('API_URL');
     final Uri eventsUri = Uri.parse('$apiUrl/api/videos');
     final Uri placementsUri = Uri.parse('$apiUrl/api/videos/');
-    final Uri placementsUri = Uri.parse('$apiUrl/api/videos/');
 
     try {
       final eventsResponse = await http.get(eventsUri, headers: {
         'Authorization': 'Bearer $token',
-        'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       });
       final placementsResponse = await http.get(placementsUri, headers: {
-        'Authorization': 'Bearer $token',
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       });
@@ -104,7 +99,6 @@ class _HomePageState extends State<HomePage> {
                 : TabBarView(
                     controller: tabController,
                     children: [
-                      YouTubeVideoGrid(videos: _eventVideos, type: 'Events'),
                       YouTubeVideoGrid(
                           videos: _placementVideos, type: 'Placements'),
                     ],
@@ -116,18 +110,9 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class YouTubeVideoGrid extends StatelessWidget {
 
 class YouTubeVideoGrid extends StatelessWidget {
   final List<Map<String, dynamic>> videos;
-  final String type;
-
-  const YouTubeVideoGrid({
-    super.key,
-    required this.videos,
-    required this.type,
-  });
-
   final String type;
 
   const YouTubeVideoGrid({
@@ -227,10 +212,7 @@ class YouTubeVideoGrid extends StatelessWidget {
                     content: Text('Video URL not available.'),
                     backgroundColor: Colors.red,
                   ),
-                  const SnackBar(
-                    content: Text('Video URL not available.'),
-                    backgroundColor: Colors.red,
-                  ),
+      
                 );
               }
             },

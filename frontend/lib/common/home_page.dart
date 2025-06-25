@@ -20,13 +20,20 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> _placementVideos = [];
   bool _isLoading = true;
 
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
     _fetchVideos();
+    _fetchVideos();
   }
 
   Future<void> _fetchVideos() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     setState(() {
       _isLoading = true;
     });
@@ -36,13 +43,16 @@ class _HomePageState extends State<HomePage> {
     final apiUrl = dotenv.get('API_URL');
     final Uri eventsUri = Uri.parse('$apiUrl/api/videos');
     final Uri placementsUri = Uri.parse('$apiUrl/api/videos/');
+    final Uri placementsUri = Uri.parse('$apiUrl/api/videos/');
 
     try {
       final eventsResponse = await http.get(eventsUri, headers: {
         'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       });
       final placementsResponse = await http.get(placementsUri, headers: {
+        'Authorization': 'Bearer $token',
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       });
@@ -50,20 +60,26 @@ class _HomePageState extends State<HomePage> {
       if (eventsResponse.statusCode == 200 &&
           placementsResponse.statusCode == 200) {
         final List<dynamic> eventsData = json.decode(eventsResponse.body);
-        final List<dynamic> placementsData =
-            json.decode(placementsResponse.body);
+        final List<dynamic> placementsData = json.decode(placementsResponse.body);
 
         setState(() {
           _eventVideos = eventsData.cast<Map<String, dynamic>>();
           _placementVideos = placementsData.cast<Map<String, dynamic>>();
+          _isLoading = false;
           _isLoading = false;
         });
       } else {
         setState(() {
           _isLoading = false;
         });
+        setState(() {
+          _isLoading = false;
+        });
       }
     } catch (error) {
+      setState(() {
+        _isLoading = false;
+      });
       setState(() {
         _isLoading = false;
       });
@@ -101,7 +117,17 @@ class _HomePageState extends State<HomePage> {
 }
 
 class YouTubeVideoGrid extends StatelessWidget {
+
+class YouTubeVideoGrid extends StatelessWidget {
   final List<Map<String, dynamic>> videos;
+  final String type;
+
+  const YouTubeVideoGrid({
+    super.key,
+    required this.videos,
+    required this.type,
+  });
+
   final String type;
 
   const YouTubeVideoGrid({
@@ -197,6 +223,10 @@ class YouTubeVideoGrid extends StatelessWidget {
                 _launchURL(video['url']);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Video URL not available.'),
+                    backgroundColor: Colors.red,
+                  ),
                   const SnackBar(
                     content: Text('Video URL not available.'),
                     backgroundColor: Colors.red,

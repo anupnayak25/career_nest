@@ -1,4 +1,5 @@
 // StatelessWidget for the Account screen, displaying user profile information and options.
+import 'package:career_nest/common/animated_appbar.dart';
 import 'package:career_nest/common/login.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,14 +25,7 @@ class _AccountPageState extends State<AccountPage> {
     ];
 
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('Profile',
-      //       style: TextStyle(
-      //           fontSize: 20,
-      //           fontWeight: FontWeight.bold,
-      //           color: Colors.white)),
-      //   backgroundColor: Colors.blue,
-      // ),
+      appBar: AnimatedCurvedAppBar(title: "Profile"),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

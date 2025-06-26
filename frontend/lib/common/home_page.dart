@@ -15,17 +15,10 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   List<Map<String, dynamic>> _eventVideos = [];
   List<Map<String, dynamic>> _placementVideos = [];
   bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchVideos();
-    _fetchVideos();
-  }
 
   Future<void> _fetchVideos() async {
     setState(() {
@@ -55,7 +48,8 @@ class _HomePageState extends State<HomePage> {
       if (eventsResponse.statusCode == 200 &&
           placementsResponse.statusCode == 200) {
         final List<dynamic> eventsData = json.decode(eventsResponse.body);
-        final List<dynamic> placementsData = json.decode(placementsResponse.body);
+        final List<dynamic> placementsData =
+            json.decode(placementsResponse.body);
 
         setState(() {
           _eventVideos = eventsData.cast<Map<String, dynamic>>();
@@ -74,35 +68,39 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  late TabController _tabController; // Add this to your _HomePageState class
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _fetchVideos();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Builder(
-        builder: (context) {
-          final tabController = DefaultTabController.of(context);
-
-          return Scaffold(
-            backgroundColor: Colors.white,
-            appBar: AnimatedCurvedAppBar(title: "Carrier Nest", tabController: tabController),
-            body: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: Colors.red),
-                  )
-                : TabBarView(
-                    controller: tabController,
-                    children: [
-                      YouTubeVideoGrid(
-                          videos: _placementVideos, type: 'Placements'),
-                    ],
-                  ),
-          );
-        },
-      ),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AnimatedCurvedAppBar(
+          title: "Career Nest", tabController: _tabController),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.red))
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                YouTubeVideoGrid(videos: _eventVideos, type: 'Events'),
+                YouTubeVideoGrid(videos: _placementVideos, type: 'Placements'),
+              ],
+            ),
     );
   }
 }
-
 
 class YouTubeVideoGrid extends StatelessWidget {
   final List<Map<String, dynamic>> videos;
@@ -205,7 +203,6 @@ class YouTubeVideoGrid extends StatelessWidget {
                     content: Text('Video URL not available.'),
                     backgroundColor: Colors.red,
                   ),
-      
                 );
               }
             },

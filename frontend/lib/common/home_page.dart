@@ -15,58 +15,63 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   List<Map<String, dynamic>> _eventVideos = [];
   List<Map<String, dynamic>> _placementVideos = [];
   bool _isLoading = true;
 
   Future<void> _fetchVideos() async {
+  if (mounted) {
     setState(() {
       _isLoading = true;
     });
+  }
 
-    setState(() {
-      _isLoading = true;
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('auth_token');
+  final apiUrl = dotenv.get('API_URL');
+  final Uri eventsUri = Uri.parse('$apiUrl/api/videos');
+  final Uri placementsUri = Uri.parse('$apiUrl/api/videos/');
+
+  try {
+    final eventsResponse = await http.get(eventsUri, headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    });
+    final placementsResponse = await http.get(placementsUri, headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
     });
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    final apiUrl = dotenv.get('API_URL');
-    final Uri eventsUri = Uri.parse('$apiUrl/api/videos');
-    final Uri placementsUri = Uri.parse('$apiUrl/api/videos/');
+    if (eventsResponse.statusCode == 200 &&
+        placementsResponse.statusCode == 200) {
+      final List<dynamic> eventsData = json.decode(eventsResponse.body);
+      final List<dynamic> placementsData = json.decode(placementsResponse.body);
 
-    try {
-      final eventsResponse = await http.get(eventsUri, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      });
-      final placementsResponse = await http.get(placementsUri, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      });
-
-      if (eventsResponse.statusCode == 200 &&
-          placementsResponse.statusCode == 200) {
-        final List<dynamic> eventsData = json.decode(eventsResponse.body);
-        final List<dynamic> placementsData =
-            json.decode(placementsResponse.body);
-
+      if (mounted) {
         setState(() {
           _eventVideos = eventsData.cast<Map<String, dynamic>>();
           _placementVideos = placementsData.cast<Map<String, dynamic>>();
           _isLoading = false;
         });
-      } else {
+      }
+    } else {
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
-    } catch (error) {
+    }
+  } catch (error) {
+    if (mounted) {
       setState(() {
         _isLoading = false;
       });
     }
   }
+}
+
 
   late TabController _tabController; // Add this to your _HomePageState class
 
@@ -86,18 +91,32 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: Colors.white,
-      appBar: AnimatedCurvedAppBar(
-          title: "Career Nest", tabController: _tabController),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.red))
-          : TabBarView(
+      body: Stack(
+        children: [
+          // Background Content (Tab Views)
+          Padding(
+            padding: const EdgeInsets.only(top: 120), // Same height as AppBar
+            child: TabBarView(
               controller: _tabController,
               children: [
                 YouTubeVideoGrid(videos: _eventVideos, type: 'Events'),
                 YouTubeVideoGrid(videos: _placementVideos, type: 'Placements'),
               ],
             ),
+          ),
+
+          // Floating AppBar on top of content
+          SizedBox(
+            height: 120,
+            child: AnimatedCurvedAppBar(
+              title: "Career Nest",
+              tabController: _tabController,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

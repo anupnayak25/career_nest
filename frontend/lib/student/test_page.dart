@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:career_nest/common/animated_appbar.dart';
 import 'package:flutter/material.dart';
 import './programing/programming_list.dart';
@@ -54,50 +56,50 @@ class _TestsPageState extends State<TestsPage>
     ),
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
+ @override
+void initState() {
+  super.initState();
+  _animationController = AnimationController(
+    duration: const Duration(milliseconds: 1200),
+    vsync: this,
+  );
 
-    _slideAnimations = List.generate(
-      _testCategories.length,
-      (index) => Tween<Offset>(
-        begin: const Offset(0, 1),
-        end: Offset.zero,
-      ).animate(
-        CurvedAnimation(
-          parent: _animationController,
-          curve: Interval(
-            index * 0.2,
-            0.8 + (index * 0.1),
-            curve: Curves.easeOutBack,
-          ),
+  _slideAnimations = List.generate(
+    _testCategories.length,
+    (index) => Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Interval(
+          index * 0.2,
+          min(1.0, 0.8 + (index * 0.1)), // ✅ cap at 1.0
+          curve: Curves.easeOutBack,
         ),
       ),
-    );
+    ),
+  );
 
-    _fadeAnimations = List.generate(
-      _testCategories.length,
-      (index) => Tween<double>(
-        begin: 0.0,
-        end: 1.0,
-      ).animate(
-        CurvedAnimation(
-          parent: _animationController,
-          curve: Interval(
-            index * 0.15,
-            0.7 + (index * 0.1),
-            curve: Curves.easeOut,
-          ),
+  _fadeAnimations = List.generate(
+    _testCategories.length,
+    (index) => Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Interval(
+          index * 0.15,
+          min(1.0, 0.7 + (index * 0.1)), // ✅ cap at 1.0
+          curve: Curves.easeOut,
         ),
       ),
-    );
+    ),
+  );
 
-    _animationController.forward();
-  }
+  _animationController.forward();
+}
 
   @override
   void dispose() {

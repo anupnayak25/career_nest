@@ -1,67 +1,124 @@
-import React, { useState } from 'react'
-import { BookOpen, Brain, Code, Cog, Home, Play, Calendar, Trophy, User, Bell, Search, Plus } from 'lucide-react';
-import Quiz from './QuizPage';
-import Hr from './HrPage';
-import Programing from './ProgrammingPage';
-import Technical from './TehnicalPage';
-import { Link, Outlet } from 'react-router-dom';
-
+import React, { useState } from "react";
+import { BookOpen, Brain, Code, Cog, Home, Play, Calendar, Trophy, User, Bell, Search, Plus, Menu, X } from "lucide-react";
+import Quiz from "./QuizPage";
+import Hr from "./HrPage";
+import Programing from "./ProgrammingPage";
+import Technical from "./TehnicalPage";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 function Dashboard() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const pathname = location.pathname;
+
+  // Map route to tab ID
+  const pathToTab = (path) => {
+    if (path.startsWith("/dashboard/quiz")) return "quiz";
+    if (path.startsWith("/dashboard/hr")) return "hr";
+    if (path.startsWith("/dashboard/programming")) return "programming";
+    if (path.startsWith("/dashboard/technical")) return "technical";
+    return "dashboard";
+  };
+
+  const activeTab = pathToTab(pathname);
+
+  useEffect(() => {
+    const isLoggedIn = sessionStorage.getItem("isLoggedIn");
+
+    if (!isLoggedIn || isLoggedIn !== "true") {
+      console.warn("🔐 Not logged in, redirecting to login...");
+      navigate("/signin"); // or your login route
+      return;
+    }
+
+    //   console.log("🧠 User Session Data:");
+    //   for (let i = 0; i < sessionStorage.length; i++) {
+    //     const key = sessionStorage.key(i);
+    //     const value = sessionStorage.getItem(key);
+    //     console.log(`${key}: ${value}`);
+    //   }
+  }, [navigate]);
 
   const menuItems = [
-    { id: 'dashboard', icon: Home, label: 'Dashboard', to: '/' },
-    { id: 'quiz', icon: BookOpen, label: 'Quiz', to: '/dashboard/quiz' },
-    { id: 'hr', icon: User, label: 'HR', to: '/dashboard/hr' },
-    { id: 'programming', icon: Code, label: 'Programming', to: '/dashboard/programming' },
-    { id: 'technical', icon: Cog, label: 'Technical', to: '/dashboard/technical' }
+    { id: "dashboard", icon: Home, label: "Dashboard", to: "/dashboard" },
+    { id: "quiz", icon: BookOpen, label: "Quiz", to: "/dashboard/quiz" },
+    { id: "hr", icon: User, label: "HR", to: "/dashboard/hr" },
+    { id: "programming", icon: Code, label: "Programming", to: "/dashboard/programming" },
+    { id: "technical", icon: Cog, label: "Technical", to: "/dashboard/technical" },
   ];
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="w-64 h-screen fixed top-0 left-0 bg-white shadow-xl z-10">
+      <div
+        className={`${
+          sidebarOpen ? "w-64" : "w-16"
+        } h-screen fixed top-0 left-0 bg-white shadow-xl z-10 transition-all duration-300 ease-in-out`}
+      >
         <div className="p-6 border-b border-gray-200">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            CarrierNest
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">Teacher Portal</p>
+          <div className="flex items-center justify-between">
+            {sidebarOpen && (
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  CarrierNest
+                </h1>
+                <p className="text-sm text-gray-600 mt-1">Teacher Portal</p>
+              </div>
+            )}
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+            >
+              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </div>
-        <nav className="mt-6 px-4">
+        <nav className={`mt-6 ${sidebarOpen ? "px-4" : "px-2"}`}>
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
               <Link
                 to={item.to}
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center px-4 py-3 mb-2 rounded-lg transition-all duration-200 ${
+                className={`w-full flex items-center mb-2 rounded-lg transition-all duration-200 group relative ${
+                  sidebarOpen ? "px-4 py-3" : "px-2 py-3 justify-center"
+                } ${
                   activeTab === item.id
-                    ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? "bg-blue-50 text-blue-600 border-r-4 border-blue-600"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }`}
+                title={!sidebarOpen ? item.label : ""}
               >
-                <Icon size={20} className="mr-3" />
-                {item.label}
+                <Icon size={20} className={sidebarOpen ? "mr-3" : ""} />
+                {sidebarOpen && <span>{item.label}</span>}
+                {!sidebarOpen && (
+                  <div className="absolute left-full ml-2 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20">
+                    {item.label}
+                  </div>
+                )}
               </Link>
             );
           })}
         </nav>
       </div>
 
-      {/* Main Content with margin to account for fixed sidebar */}
-      <div className="ml-64 flex-1 flex flex-col">
+      {/* Main Content with dynamic margin to account for sidebar width */}
+      <div className={`${sidebarOpen ? "ml-64" : "ml-16"} flex-1 flex flex-col transition-all duration-300 ease-in-out`}>
         {/* Header */}
         <header className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 capitalize">
-                {activeTab === 'dashboard' ? 'Dashboard' : activeTab}
+                {activeTab === "dashboard" ? "Dashboard" : activeTab}
               </h2>
-              <p className="text-sm text-gray-600">
-                Welcome back, Professor! Here's what's happening today.
-              </p>
+              <p className="text-sm text-gray-600">Welcome back, Professor! Here's what's happening today.</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
@@ -91,5 +148,4 @@ function Dashboard() {
   );
 }
 
-
-export default Dashboard
+export default Dashboard;

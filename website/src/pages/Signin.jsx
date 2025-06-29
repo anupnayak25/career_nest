@@ -38,65 +38,81 @@ const Signin = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Login function (converted from Flutter)
-  const handleLogin = async () => {
-    if (!validateForm()) {
-      return;
-    }
+const handleLogin = async () => {
+  if (!validateForm()) return;
 
-    setIsLoading(true);
-    setErrors({});
+  setIsLoading(true);
+  setErrors({});
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  try {
+    const response = await fetch(`${apiUrl}/api/auth/signin`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        email: formData.email.trim(),
+        password: formData.password,
+      }),
+    });
+
+    // Try to read response body (may fail for 4xx/5xx)
+    let responseData = {};
     try {
-      // Get API URL from environment variables
-      const apiUrl =  import.meta.env.VITE_API_URL;
-      console.log("API URL:", apiUrl);
-      const response = await fetch(`${apiUrl}/api/auth/signin`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      setIsLoading(false);
-
-      if (response.status === 200) {
-        const responseData = await response.json();
-        console.log("Login successful:", responseData);
-
-        // Store user data in localStorage (equivalent to SharedPreferences)
-        sessionStorage.setItem("auth_token", responseData.auth_token);
-        sessionStorage.setItem("userType", responseData.type);
-        sessionStorage.setItem("userName", responseData.name);
-        sessionStorage.setItem("userEmail", responseData.email);
-        sessionStorage.setItem("userId", responseData.id);
-        sessionStorage.setItem("isLoggedIn", "true");
-
-       // const userType = responseData.type;
-
-        // Show success message
-        alert("Logged in successfully! ");
-
-        // Navigate based on user type
-        // if (userType === "student") {
-        //   navigate("/dashboard");
-        // } else {
-        //   navigate("/admin-dashboard");
-        // }
-        navigate("/");
-      } else {
-        alert("Something went wrong.. Try again later..");
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      setIsLoading(false);
-      alert("Failed to connect to the server.");
+      responseData = await response.json();
+    } catch (jsonErr) {
+      console.warn("Failed to parse response JSON", jsonErr);
     }
-  };
+
+    if (response.status === 200) {
+      console.log("Login success:", responseData);
+
+      sessionStorage.setItem("auth_token", responseData.auth_token);
+      sessionStorage.setItem("userType", responseData.type);
+      sessionStorage.setItem("userName", responseData.name);
+      sessionStorage.setItem("userEmail", responseData.email);
+      sessionStorage.setItem("userId", responseData.id);
+      sessionStorage.setItem("isLoggedIn", "true");
+
+      alert("Welcome back! Login successful 🎉");
+
+      setTimeout(() => {
+        if (responseData.type === "student") {
+          navigate("/dashboard");
+        } else {
+          navigate("/admin-dashboard");
+        }
+      }, 1500);
+    } else {
+      setIsLoading(false);
+      // Handle known status codes
+      switch (response.status) {
+        case 400:
+          alert("Invalid email or password.");
+          break;
+        case 401:
+          alert("Authentication failed.");
+          break;
+        case 404:
+          alert("Account not found.");
+          break;
+        case 429:
+          alert("Too many login attempts. Try again later.");
+          break;
+        default:
+          alert("Unexpected error occurred. Please try again.");
+      }
+      console.warn("Login failed:", response.status, responseData);
+    }
+  } catch (error) {
+    setIsLoading(false);
+    console.error("Network or server error:", error);
+    alert("Unable to connect to the server. Please try again.");
+  }
+};
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -112,11 +128,6 @@ const Signin = () => {
         [name]: "",
       }));
     }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    handleLogin();
   };
 
   return (
@@ -135,7 +146,7 @@ const Signin = () => {
 
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8 backdrop-blur-sm">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
               <div className="relative">
@@ -191,7 +202,7 @@ const Signin = () => {
             </div>
 
             <button
-              type="submit"
+            onClick={handleLogin}
               disabled={isLoading}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
               {isLoading ? (
@@ -206,7 +217,7 @@ const Signin = () => {
                 </>
               )}
             </button>
-          </form>
+          </div>
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">

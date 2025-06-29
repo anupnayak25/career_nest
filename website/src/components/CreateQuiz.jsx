@@ -12,6 +12,9 @@ function CreateQuiz() {
   })
   const [message, setMessage] = useState(null)
 
+   const token = sessionStorage.getItem('auth_token');
+//console.log(token);
+
   const handleQuizChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
@@ -64,14 +67,13 @@ function CreateQuiz() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const response = await fetch('http://localhost:5000/api/quiz', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: localStorage.getItem('career-nest-token')
-        },
-        body: JSON.stringify(formData)
-      })
+      const response = await fetch(`http://localhost:5000/api/quiz`, {
+  method: 'GET', // or 'POST', 'PUT', etc.
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  }
+})
 
       if (!response.ok) throw new Error(`Server error: ${response.status}`)
       await response.json()

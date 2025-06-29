@@ -7,11 +7,17 @@ function Quiz() {
   const [quizzes, setQuizzes] = useState([])
   const [showConfirm, setShowConfirm] = useState(false)
   const [selectedQuiz, setSelectedQuiz] = useState(null)
+   const token = sessionStorage.getItem('auth_token');
+//console.log(token);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/quiz/myposts', {
-      headers: { Authorization: localStorage.getItem('career-nest-token') }
-    })
+   fetch(`http://localhost:5000/api/quiz/myposts`, {
+  method: 'GET', // or 'POST', 'PUT', etc.
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  }
+})
       .then(res => res.json())
       .then(setQuizzes)
       .catch(console.error)

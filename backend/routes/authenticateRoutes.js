@@ -12,6 +12,7 @@ const router = express.Router();
 router.use(express.json());
 const JWT_SECRET = process.env.SECRET_KEY;
 const nodemailer = require("nodemailer");
+const { Console } = require("console");
 
 // Replace with your actual email and app password
 const EMAIL = "nnm24mc014@nmamit.in";
@@ -198,59 +199,71 @@ router.post(
   }
 );
 
-// '/login' route for logging in the user
 router.post(
   "/signin",
-  [body("email", "invalid").isEmail(), body("password", "at least 8 characters required").isLength({ min: 4 })],
+  [
+    body("email", "invalid").isEmail(),
+    body("password", "at least 4 characters required").isLength({ min: 4 }),
+  ],
   async (req, res) => {
+   // console.log("signin route hit");
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        errors: errors.array().map((error) => {
-          return { path: error.path, message: error.msg };
-        }),
+        errors: errors.array().map((error) => ({
+          path: error.path,
+          message: error.msg,
+        })),
       });
     }
 
     const { email, password } = req.body;
 
     try {
-      connection.query("SELECT * FROM user WHERE email_id= ?", [email], (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (results.length === 0) return res.status(400).json({ path: "email", message: "invalid" });
+      const [results] = await connection
+        .promise()
+        .query("SELECT * FROM user WHERE email_id = ?", [email]);
 
-        // Compare passwords using bcrypt.compare()
-        bcrypt.compare(password, results[0].password, (err, isMatch) => {
-          if (err) {
-            throw err; // Handle the error
-          }
-          if (isMatch) {
-            const payload = {
-              user: {
-                id: results[0].id,
-              },
-            };
-            const authToken = jwt.sign(payload, JWT_SECRET);
-            //  console.log("User logged in successfully"+results[0].name+" "+results[0].id+" "+results[0].type);
-            res.status(200).json({
-              auth_token: authToken,
-              name: results[0].name,
-              email: email,
-              type: results[0].type,
-              id: results[0].id,
-            });
-          } else {
-            console.log("Invalid password");
-            res.status(400).json({ path: "password", message: "invalid" });
-          }
-        });
+      if (results.length === 0) {
+        return res
+          .status(400)
+          .json({ path: "email", message: "Account not found" });
+      }
+
+      const user = results[0];
+
+      const isMatch = await bcrypt.compare(password, user.password);
+
+      if (!isMatch) {
+        return res
+          .status(400)
+          .json({ path: "password", message: "Incorrect password" });
+      }
+
+      const payload = {
+        user: {
+          id: user.id,
+        },
+      };
+
+      const authToken = jwt.sign(payload, JWT_SECRET);
+
+      return res.status(200).json({
+        auth_token: authToken,
+        name: user.name,
+        email: user.email_id,
+        type: user.type,
+        id: user.id,
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "internal server error" });
+      console.error("Signin error:", error);
+      return res.status(500).json({ message: "Internal server error" });
     }
   }
 );
+
+module.exports = router;
 
 //forget password
 router.put(

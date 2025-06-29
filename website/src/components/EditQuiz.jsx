@@ -7,11 +7,17 @@ function EditQuiz() {
   const navigate = useNavigate()
   const [formData, setFormData] = useState(null)
   const [message, setMessage] = useState(null)
-
+  const token = sessionStorage.getItem('auth_token');
+//console.log(token);
   useEffect(() => {
-    fetch(`http://localhost:5000/api/quiz/myposts/${id}`, {
-      headers: { Authorization: localStorage.getItem('career-nest-token') }
-    })
+
+fetch(`http://localhost:5000/api/quiz/myposts/${id}`, {
+  method: 'GET', // or 'POST', 'PUT', etc.
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  }
+})
       .then(res => res.json())
       .then(({ quiz, questions }) => {
         const q = quiz[0]

@@ -46,6 +46,8 @@ router.post('/', [
   body('title', 'Must have a title').notEmpty()
 ], (req, res) => {
   const { title, description, due_date, quizQuestions } = req.body;
+console.log("Received Data:", req.body);
+console.log("User:", req.user); // Ensure user is not undefined
 
   // First, insert the quiz
   const query = `INSERT INTO quizzes (title, description, due_date, user_id)

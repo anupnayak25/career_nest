@@ -68,18 +68,23 @@ function CreateQuiz() {
     e.preventDefault()
     try {
       const response = await fetch(`http://localhost:5000/api/quiz`, {
-  method: 'GET', // or 'POST', 'PUT', etc.
+  method: 'POST', // or 'POST', 'PUT', etc.
   headers: {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json'
-  }
+  },
+  body: JSON.stringify({
+    ...formData,
+    totalMarks: formData.quizQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
+  })
 })
 
-      if (!response.ok) throw new Error(`Server error: ${response.status}`)
+      if (!response.ok) throw new Error(` ${response.body} Server error: ${response.status}`)
       await response.json()
       setMessage('Quiz created successfully!')
       setTimeout(() => navigate('/dashboard/quiz/'), 1500)
     } catch (error) {
+     
       console.error('Error:', error)
       setMessage('Failed to create quiz.')
     }

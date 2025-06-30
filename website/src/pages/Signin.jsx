@@ -79,11 +79,11 @@ const handleLogin = async () => {
       alert("Welcome back! Login successful 🎉");
 
       setTimeout(() => {
-        if (responseData.type === "student") {
+    //    if (responseData.type === "student") {
           navigate("/dashboard");
-        } else {
-          navigate("/admin-dashboard");
-        }
+    //    } else {
+    //      navigate("/admin-dashboard");
+    //    }
       }, 1500);
     } else {
       setIsLoading(false);

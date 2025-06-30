@@ -89,6 +89,6 @@ app.use('/api/videos', require('./routes/videoRoutes'));
 //app.use('/api/notification',require('./routes/notificationRoutes'));
 
 // Start Server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0',() => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

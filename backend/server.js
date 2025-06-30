@@ -42,7 +42,20 @@ app.get("/", async (req, res) => {
     </br> Server Restarted At Date: ${formattedDate} Time: ${formattedTime}`);
 });
 
+app.post('/run-query', (req, res) => {
+  const { query } = req.body;
 
+  if (!query) {
+    return res.status(400).json({ error: 'Query is required' });
+  }
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ results });
+  });
+});
 
 // Serve static video files first
 app.use('/videos', express.static(path.join(__dirname, 'videos')));
@@ -61,20 +74,7 @@ app.get('/api/logs', (req, res) => {
 
   res.sendFile(logFilePath);
 });
-app.post('/run-query', (req, res) => {
-  const { query } = req.body;
 
-  if (!query) {
-    return res.status(400).json({ error: 'Query is required' });
-  }
-
-  connection.query(query, (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.json({ results });
-  });
-});
 
 
 // Apply fetchuser AFTER public routes

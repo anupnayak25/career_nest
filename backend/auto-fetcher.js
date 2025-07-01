@@ -6,6 +6,7 @@ const git = simpleGit(path.resolve(__dirname));
 
 async function autoFetchAndPull() {
   try {
+    console.log("[AutoFetcher] Running...");
     await git.fetch();
 
     const status = await git.status();

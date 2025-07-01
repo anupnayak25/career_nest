@@ -35,5 +35,6 @@ const mysql = require('mysql2');
    console.error('❌ Error creating MySQL pool:', error);
 //   process.exit(1); // optional: stop app if DB fails
  }
-module.exports = pool;
+ const promisePool = pool.promise();
+module.exports = promisePool;
 

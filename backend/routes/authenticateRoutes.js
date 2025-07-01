@@ -145,10 +145,10 @@ router.post(
         return res.status(403).json({ error: "OTP not verified" });
       }
       // Validate OTP from in-memory store
-// const [existingUsers] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
-// if (existingUsers.length > 0) {
-//   return res.status(409).json({ message: "User already exists" });
-// }
+      const [existingUsers] = await connection.query("SELECT * FROM users WHERE email = ?", [email]);
+      if (existingUsers.length > 0) {
+        return res.status(409).json({ message: "User already exists" });
+      }
       // Hash password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
@@ -204,12 +204,9 @@ router.post(
 
 router.post(
   "/signin",
-  [
-    body("email", "invalid").isEmail(),
-    body("password", "at least 4 characters required").isLength({ min: 4 }),
-  ],
+  [body("email", "invalid").isEmail(), body("password", "at least 4 characters required").isLength({ min: 4 })],
   async (req, res) => {
-   // console.log("signin route hit");
+    // console.log("signin route hit");
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -224,14 +221,10 @@ router.post(
     const { email, password } = req.body;
 
     try {
-      const [results] = await connection
-        .promise()
-        .query("SELECT * FROM user WHERE email_id = ?", [email]);
+      const [results] = await connection.promise().query("SELECT * FROM user WHERE email_id = ?", [email]);
 
       if (results.length === 0) {
-        return res
-          .status(400)
-          .json({ path: "email", message: "Account not found" });
+        return res.status(400).json({ path: "email", message: "Account not found" });
       }
 
       const user = results[0];
@@ -239,9 +232,7 @@ router.post(
       const isMatch = await bcrypt.compare(password, user.password);
 
       if (!isMatch) {
-        return res
-          .status(400)
-          .json({ path: "password", message: "Incorrect password" });
+        return res.status(400).json({ path: "password", message: "Incorrect password" });
       }
 
       const payload = {

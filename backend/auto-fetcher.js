@@ -20,6 +20,6 @@ async function autoFetchAndPull() {
 }
 
 // Check every 60 seconds
-setInterval(autoFetchAndPull, 60 * 1000);
+setInterval(autoFetchAndPull, 30 * 1000);
 
 console.log("[AutoFetcher] Running...");

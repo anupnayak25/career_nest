@@ -35,7 +35,6 @@ app.use(express.urlencoded({ extended: true }));
 // For parsing application/json
 app.use(express.json());
 
-
 // Public routes
 app.get("/", async (req, res) => {
   res.send(`Welcome to the API!

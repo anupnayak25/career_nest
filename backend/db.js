@@ -2,7 +2,7 @@
 require('dotenv').config();
 const mysql = require('mysql2');
 
-//const pool = mysql.createPool({
+//const connection = mysql.createconnection({
  // host: 'localhost',
  // user: 'root',
  // password: '',
@@ -15,10 +15,10 @@ const mysql = require('mysql2');
 //});
 
 
- let pool;
+ let connection;
 
  try {
-   pool = mysql.createPool({
+   connection = mysql.createconnection({
      host: process.env.DB_HOST,
      user: process.env.DB_USER,
      password: process.env.DB_PASSWORD,
@@ -30,10 +30,10 @@ const mysql = require('mysql2');
      keepAliveInitialDelay: 10000,
    });
 
-   console.log('✅ MySQL pool created successfully.');
+   console.log('✅ MySQL connection created successfully.');
  } catch (error) {
-   console.error('❌ Error creating MySQL pool:', error);
+   console.error('❌ Error creating MySQL connection:', error);
 //   process.exit(1); // optional: stop app if DB fails
  }
-module.exports = pool;
+module.exports = connection;
 

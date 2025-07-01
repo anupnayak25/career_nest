@@ -145,7 +145,7 @@ router.post(
         return res.status(403).json({ error: "OTP not verified" });
       }
       // Validate OTP from in-memory store
-const [existingUsers] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+const [existingUsers] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
 if (existingUsers.length > 0) {
   return res.status(409).json({ message: "User already exists" });
 }

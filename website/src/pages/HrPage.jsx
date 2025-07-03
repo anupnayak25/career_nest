@@ -89,7 +89,7 @@ const HRQuestionsManager = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex-1 cursor-pointer" 
                       
-                          onClick={() => navigate(`/answers/hr/dd60ebe0-bca8-48c4-a63c-34b596d58338`)}>
+                          onClick={() => navigate(`/answers/hr/${question.id}`)}>
                         <div className="flex items-center space-x-3 mb-2">
                           <h3 className="text-xl font-semibold text-gray-800">{question.title}</h3>
                             <span className={`px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full flex items-center ${question.display_result ? '' : ' hidden'}`}>
@@ -107,22 +107,18 @@ const HRQuestionsManager = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2 ml-4">
+                
                         <button
-                          className="flex items-center px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          <Users className="w-4 h-4 mr-1" />
-                          View Answers
-                        </button>
-                        <button
+                        disabled={question.display_result}
                           onClick={() => handlePublishToggle(question.id, question.display_result)}
-                          className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
+                          className={`flex items-center px-3 py-2 text-white rounded-lg transition-colors ${
                             question.display_result
-                              ? 'text-orange-600 hover:bg-orange-50'
-                              : 'text-green-600 hover:bg-green-50'
+                              ? 'bg-gray-600 hover:bg-gray-700'
+                              : 'bg-green-600 hover:bg-green-700'
                           }`}
                         >
                           <Eye className="w-4 h-4 mr-1" />
-                          {question.display_result ? 'Unpublish' : 'Publish'}
+                          {question.display_result ? 'published' : 'Publish'}
                         </button>
                        
                       </div>

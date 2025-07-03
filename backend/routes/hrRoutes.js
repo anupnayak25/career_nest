@@ -212,23 +212,32 @@ router.post('/answers', (req, res) => {
 
 
 
+// routes/hr.js
 router.get('/answers/:id', (req, res) => {
   const id = req.params.id;
-  connection.query("SELECT user_id FROM hr_answers where hr_question_id=? group by  user_id", [id, id, req.user.id], (err, results) => { //and (select user_id from hr_questions where id = ?)=?
-    if (err) return res.status(500).json({ error: err.message });
-    if (results.length == 0) return res.status(404).json({ message: "No answers yet" });
-    res.json(results);
-  });
+  connection.query(
+    "SELECT user_id FROM hr_answers WHERE hr_question_id = ? GROUP BY user_id",
+    [id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0) return res.status(404).json({ message: "No answers yet" });
+      res.json(results);
+    }
+  );
 });
 
 router.get('/answers/:id/:user_id', (req, res) => {
   const id = req.params.id;
   const user_id = req.params.user_id;
-  connection.query("SELECT * FROM hr_answers where hr_question_id=? and  user_id = ?", [id, user_id], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (results.length == 0) return res.status(404).json({ message: "No answers yet" });
-    res.json(results);
-  });
+  connection.query(
+    "SELECT * FROM hr_answers WHERE hr_question_id = ? AND user_id = ?",
+    [id, user_id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0) return res.status(404).json({ message: "No answers yet" });
+      res.json(results);
+    }
+  );
 });
 
 /*TODO*/

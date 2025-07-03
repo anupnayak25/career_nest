@@ -6,7 +6,7 @@ require('./logger');
 // require('./auto-fetcher');
  const connection = require('./db');
 
-const app = express();
+const app= express();
 const PORT = 5000;
 // Catch uncaught exceptions
 process.on('uncaughtException', (err) => {

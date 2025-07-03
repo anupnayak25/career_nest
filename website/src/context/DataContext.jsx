@@ -1,13 +1,13 @@
+// DataContext.jsx
 import React, { createContext, useContext, useState } from 'react';
 
-// Step 1: Create Context
 const DataContext = createContext();
 
 const DataProvider = ({ children }) => {
-  const [state, setState] = useState("Hello, World!");
+  const [attemptedData, setAttemptedData] = useState({}); // { type_id: { users: [], answersByUserId: {} } }
 
   return (
-    <DataContext.Provider value={{ state, setState }}>
+    <DataContext.Provider value={{ attemptedData, setAttemptedData }}>
       {children}
     </DataContext.Provider>
   );

@@ -1,6 +1,7 @@
 // Department options
 import { BookOpen, CheckCircle, Code, Eye, EyeOff, Lock, Mail, Trophy, User } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
   // Form state
@@ -22,9 +23,10 @@ const Signup = () => {
   const [userType, setUserType] = useState("");
   const [errors, setErrors] = useState({});
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const navigate=useNavigate();
 
   // API configuration
-  const API_URL =  import.meta.env.VITE_API_URL; // Replace with your actual API URL
+  const API_URL = import.meta.env.VITE_API_URL; // Replace with your actual API URL
 
   // Timer effect for OTP countdown
   useEffect(() => {
@@ -69,7 +71,7 @@ const Signup = () => {
 
       return { valid: true };
     } catch (e) {
-      return { valid: false, message: "Invalid email format",console: e.message};
+      return { valid: false, message: "Invalid email format", console: e.message };
     }
   };
 
@@ -112,7 +114,7 @@ const Signup = () => {
     }
 
     setIsLoading(true);
- console.log(formData.email);
+    console.log(formData.email);
     try {
       const response = await fetch(`${API_URL}/api/auth/otp`, {
         method: "POST",
@@ -252,14 +254,20 @@ const Signup = () => {
       });
 
       if (response.status === 201) {
+        sessionStorage.setItem("auth_token", response.auth_token);
+        sessionStorage.setItem("userType", response.type);
+        sessionStorage.setItem("userName", response.name);
+        sessionStorage.setItem("userEmail", response.email);
+        sessionStorage.setItem("userId", response.id);
+        sessionStorage.setItem("isLoggedIn", "true");
         showNotification("Account created! 🎉");
 
         // Redirect based on user type
         //  if (userType === "student") {
-            window.location.href = "/dashboard";
-      //    } else {
+       navigate("/dashboard");
+        //    } else {
         //    window.location.href = "/admin/dashboard";
-      ///   }
+        ///   }
       } else if (response.status === 409) {
         const errorData = await response.json();
         showNotification(errorData.message || "Email already exists. Please use a different email.");
@@ -309,56 +317,56 @@ const Signup = () => {
         <div className="bg-white rounded-2xl shadow-xl p-8 backdrop-blur-sm">
           <div className="space-y-6">
             {/* Name Fields */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2"> Name</label>
-                <input
-                  type="text"
-                  placeholder="John"
-                  value={formData.Name}
-                  onChange={(e) => handleInputChange("Name", e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  required
-                />
-                {errors.Name && <p className="text-red-500 text-sm mt-1">{errors.Name}</p>}
-              </div>
-              
-            {!isOtpVerified &&(
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-              <div className="relative">
-                <div className="flex gap-3">
-                  <div className="relative flex-1">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                    <input
-                      type="email"
-                      placeholder="john.doe@nmamit.in"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                      disabled={isOtpVerified}
-                      className={`w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                        isOtpVerified ? "bg-green-50 border-green-300" : ""
-                      }`}
-                      required
-                    />
-                    {isOtpVerified && (
-                      <CheckCircle
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500"
-                        size={20}
-                      />
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={getOtp}
-                    disabled={isLoading || secondsRemaining > 0 || isOtpVerified}
-                    className="bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
-                    {secondsRemaining > 0 ? `Resend in ${secondsRemaining}s` : "Get OTP"}
-                  </button>
-                </div>
-              </div>
-              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+              <label className="block text-sm font-medium text-gray-700 mb-2"> Name</label>
+              <input
+                type="text"
+                placeholder="John"
+                value={formData.Name}
+                onChange={(e) => handleInputChange("Name", e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                required
+              />
+              {errors.Name && <p className="text-red-500 text-sm mt-1">{errors.Name}</p>}
             </div>
-)}
+
+            {!isOtpVerified && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                <div className="relative">
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                      <input
+                        type="email"
+                        placeholder="john.doe@nmamit.in"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange("email", e.target.value)}
+                        disabled={isOtpVerified}
+                        className={`w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                          isOtpVerified ? "bg-green-50 border-green-300" : ""
+                        }`}
+                        required
+                      />
+                      {isOtpVerified && (
+                        <CheckCircle
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500"
+                          size={20}
+                        />
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={getOtp}
+                      disabled={isLoading || secondsRemaining > 0 || isOtpVerified}
+                      className="bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+                      {secondsRemaining > 0 ? `Resend in ${secondsRemaining}s` : "Get OTP"}
+                    </button>
+                  </div>
+                </div>
+                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+              </div>
+            )}
 
             {/* OTP Section - Show only if not verified */}
             {!isOtpVerified && formData.email && (
@@ -473,20 +481,19 @@ const Signup = () => {
                   <CheckCircle className="ml-2" size={20} />
                 </>
               )}
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
-              Already have an account?{" "}
-              <a href="/signin" className="text-blue-600 hover:text-blue-700 font-medium">
-                Sign in here
-              </a>
-            </p>
+            </button>
           </div>
         </div>
-      
+
+        <div className="mt-6 text-center">
+          <p className="text-gray-600">
+            Already have an account?{" "}
+            <a href="/signin" className="text-blue-600 hover:text-blue-700 font-medium">
+              Sign in here
+            </a>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

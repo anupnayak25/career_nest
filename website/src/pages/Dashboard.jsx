@@ -4,13 +4,12 @@ import Quiz from "./QuizPage";
 import Hr from "./HrPage";
 import Programing from "./ProgrammingPage";
 import Technical from "./TehnicalPage";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { Link, Outlet, useLocation } from "react-router-dom";
 
 function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const navigate = useNavigate();
+  
   const location = useLocation();
   const pathname = location.pathname;
 
@@ -25,22 +24,6 @@ function Dashboard() {
 
   const activeTab = pathToTab(pathname);
 
-  useEffect(() => {
-    const isLoggedIn = sessionStorage.getItem("isLoggedIn");
-
-    if (!isLoggedIn || isLoggedIn !== "true") {
-      console.warn("🔐 Not logged in, redirecting to login...");
-      navigate("/signin"); // or your login route
-      return;
-    }
-
-    //   console.log("🧠 User Session Data:");
-    //   for (let i = 0; i < sessionStorage.length; i++) {
-    //     const key = sessionStorage.key(i);
-    //     const value = sessionStorage.getItem(key);
-    //     console.log(`${key}: ${value}`);
-    //   }
-  }, [navigate]);
 
   const menuItems = [
     { id: "dashboard", icon: Home, label: "Dashboard", to: "/dashboard" },

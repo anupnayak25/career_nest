@@ -42,7 +42,7 @@ router.get('/:id', (req, res) => {
 
 router.get('/user/:id', (req, res) => {
   const id = req.params.id;
-  connection.query("SELECT * FROM hr_question_items WHERE user_id = ?", [id], (err, results) => {
+  connection.query("SELECT * FROM hr_questions WHERE user_id = ?", [id], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     if (results.length === 0) return res.status(404).send('HR Post not found');
     res.json(results);

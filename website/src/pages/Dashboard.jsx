@@ -1,29 +1,35 @@
 import React, { useState } from "react";
-import { BookOpen, Brain, Code, Cog, Home, Play, Calendar, Trophy, User, Bell, Search, Plus, Menu, X } from "lucide-react";
-import Quiz from "./QuizPage";
-import Hr from "./HrPage";
-import Programing from "./ProgrammingPage";
-import Technical from "./TehnicalPage";
+import {
+  BookOpen,
+  Brain,
+  Code,
+  Cog,
+  Home,
+  Play,
+  User,
+  Bell,
+  Search,
+  Menu,
+  X
+} from "lucide-react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 
 function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  
   const location = useLocation();
   const pathname = location.pathname;
 
-  // Map route to tab ID
+  // Match routes to tab IDs
   const pathToTab = (path) => {
     if (path.startsWith("/dashboard/quiz")) return "quiz";
     if (path.startsWith("/dashboard/hr")) return "hr";
     if (path.startsWith("/dashboard/programming")) return "programming";
     if (path.startsWith("/dashboard/technical")) return "technical";
+    if (path.startsWith("/dashboard/vedio")) return "vedio";
     return "dashboard";
   };
 
   const activeTab = pathToTab(pathname);
-
 
   const menuItems = [
     { id: "dashboard", icon: Home, label: "Dashboard", to: "/dashboard" },
@@ -31,6 +37,7 @@ function Dashboard() {
     { id: "hr", icon: User, label: "HR", to: "/dashboard/hr" },
     { id: "programming", icon: Code, label: "Programming", to: "/dashboard/programming" },
     { id: "technical", icon: Cog, label: "Technical", to: "/dashboard/technical" },
+    { id: "vedio", icon: Play, label: "Video Manager", to: "/dashboard/vedio" }, // ✅ New Menu Item
   ];
 
   const toggleSidebar = () => {
@@ -63,6 +70,8 @@ function Dashboard() {
             </button>
           </div>
         </div>
+
+        {/* Sidebar Navigation */}
         <nav className={`mt-6 ${sidebarOpen ? "px-4" : "px-2"}`}>
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -92,8 +101,12 @@ function Dashboard() {
         </nav>
       </div>
 
-      {/* Main Content with dynamic margin to account for sidebar width */}
-      <div className={`${sidebarOpen ? "ml-64" : "ml-16"} flex-1 flex flex-col transition-all duration-300 ease-in-out`}>
+      {/* Main Content */}
+      <div
+        className={`${
+          sidebarOpen ? "ml-64" : "ml-16"
+        } flex-1 flex flex-col transition-all duration-300 ease-in-out`}
+      >
         {/* Header */}
         <header className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -101,7 +114,9 @@ function Dashboard() {
               <h2 className="text-xl font-semibold text-gray-900 capitalize">
                 {activeTab === "dashboard" ? "Dashboard" : activeTab}
               </h2>
-              <p className="text-sm text-gray-600">Welcome back, Professor! Here's what's happening today.</p>
+              <p className="text-sm text-gray-600">
+                Welcome back, Professor! Here's what's happening today.
+              </p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
@@ -122,7 +137,7 @@ function Dashboard() {
           </div>
         </header>
 
-        {/* Scrollable Content */}
+        {/* Routed Content */}
         <main className="flex-1 p-6 overflow-y-auto h-[calc(100vh-5rem)]">
           <Outlet />
         </main>

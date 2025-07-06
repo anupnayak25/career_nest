@@ -70,3 +70,4 @@ export const deleteQuestion = async (type, questionId) => {
   if (!res.ok) throw new Error(await res.text());
   return await res.json();
 };
+

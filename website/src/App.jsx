@@ -54,6 +54,7 @@ function App() {
         {/* Auth */}
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<Signin />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
         <Route path="/video-player/:id" element={<VideoPlayer />} />
       </Routes>
     </>

@@ -71,3 +71,33 @@ export const deleteQuestion = async (type, questionId) => {
   return await res.json();
 };
 
+
+export const uploadVideoFile = async (formData) => {
+  const res = await fetch(`${apiUrl}/api/vedio/upload`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+};
+
+export const addVideo = async (videoData) => {
+  const res = await fetch(`${apiUrl}/api/vedio`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(videoData),
+  });
+
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+};
+
+export const getUserVideos = async () => {
+  const userId = sessionStorage.getItem("userId");
+  const res = await fetch(`${apiUrl}/api/vedio/user/${userId}`);
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+};

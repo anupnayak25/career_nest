@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 
 // Pages and Components
 import Dashboard from './pages/Dashboard';
+import VideoPlayer from './pages/VideoPlayer'; // ✅ Add this import
+
 import Signup from './pages/Signup';
 import Signin from './pages/Signin';
 import VideoPage from './pages/VideoPage';
@@ -52,6 +54,7 @@ function App() {
         {/* Auth */}
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<Signin />} />
+        <Route path="/video-player/:id" element={<VideoPlayer />} />
       </Routes>
     </>
   );

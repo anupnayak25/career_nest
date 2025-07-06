@@ -12,7 +12,7 @@ if (!fs.existsSync(videosDir)) {
   console.log(`[✔] Created 'videos' directory at ${videosDir}`);
 }
 
-// Multer configuration
+// Multer configuration for video upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, videosDir),
   filename: (req, file, cb) => {
@@ -48,11 +48,10 @@ router.post('/upload', (req, res) => {
   });
 });
 
-// 2. Save video metadata (no 'id' in insert)
+// 2. Save video metadata
 router.post('/', (req, res) => {
   const { user_id, url, category, title, description } = req.body;
 
-  // Basic validation
   if (!user_id || !url || !category || !title) {
     return res.status(400).json({ success: false, message: 'Missing required fields.' });
   }
@@ -91,6 +90,75 @@ router.get('/user/:userId', (req, res) => {
     }
 
     res.json({ success: true, data: results });
+  });
+});
+
+// 4. Delete video by id (DB + file)
+router.delete('/:videoId', (req, res) => {
+  const videoId = req.params.videoId;
+
+  const selectSql = 'SELECT url FROM videos WHERE id = ?';
+
+  db.query(selectSql, [videoId], (err, results) => {
+    if (err) {
+      console.error("DB SELECT ERROR:", err.message);
+      return res.status(500).json({ success: false, message: 'DB select error.', error: err.message });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: 'Video not found.' });
+    }
+
+    const videoUrl = results[0].url; // e.g. /videos/filename.mp4
+    const filename = path.basename(videoUrl);
+    const filepath = path.join(videosDir, filename);
+
+    fs.unlink(filepath, (fsErr) => {
+      if (fsErr) {
+        console.error("FILE DELETE ERROR:", fsErr.message);
+        // Proceed anyway to delete DB record
+      }
+
+      const deleteSql = 'DELETE FROM videos WHERE id = ?';
+      db.query(deleteSql, [videoId], (delErr) => {
+        if (delErr) {
+          console.error("DB DELETE ERROR:", delErr.message);
+          return res.status(500).json({ success: false, message: 'DB delete error.', error: delErr.message });
+        }
+
+        res.json({ success: true, message: 'Video deleted successfully.' });
+      });
+    });
+  });
+});
+
+// 5. Update video metadata by id (edit/modify)
+router.put('/:videoId', (req, res) => {
+  const videoId = req.params.videoId;
+  const { title, description, category } = req.body;
+
+  // Validate required fields
+  if (!title || !category) {
+    return res.status(400).json({ success: false, message: 'Title and category are required.' });
+  }
+
+  const updateSql = `
+    UPDATE videos
+    SET title = ?, description = ?, category = ?
+    WHERE id = ?
+  `;
+
+  db.query(updateSql, [title, description || null, category, videoId], (err, result) => {
+    if (err) {
+      console.error("DB UPDATE ERROR:", err.message);
+      return res.status(500).json({ success: false, message: 'DB update error.', error: err.message });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Video not found.' });
+    }
+
+    res.json({ success: true, message: 'Video updated successfully.' });
   });
 });
 

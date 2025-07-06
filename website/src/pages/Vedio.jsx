@@ -4,7 +4,9 @@ import { Plus, Calendar } from 'lucide-react';
 import {
   addVideo,
   getUserVideos,
-  uploadVideoFile
+  uploadVideoFile,
+  deleteVideo,
+  updateVideo, // Make sure this exists in ApiService.jsx
 } from '../services/ApiService';
 
 const Video = () => {
@@ -14,6 +16,10 @@ const Video = () => {
   const [category, setCategory] = useState('');
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [editingVideoId, setEditingVideoId] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editCategory, setEditCategory] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,11 +44,13 @@ const Video = () => {
     setFile(selected);
     if (selected) {
       setPreviewUrl(URL.createObjectURL(selected));
+    } else {
+      setPreviewUrl('');
     }
   };
 
   const handleAddVideo = async () => {
-    if (!file || !title || !description || !category) {
+    if (!file || !title.trim() || !description.trim() || !category.trim()) {
       alert('Please fill all fields and select a video.');
       return;
     }
@@ -65,22 +73,92 @@ const Video = () => {
 
       const videoData = {
         user_id: userId,
-        title,
-        description,
-        category,
-        url: uploadRes.filename
+        title: title.trim(),
+        description: description.trim(),
+        category: category.trim(),
+        url: uploadRes.filename,
       };
 
-      await addVideo(videoData);
-      setTitle('');
-      setDescription('');
-      setCategory('');
-      setFile(null);
-      setPreviewUrl('');
-      loadVideos();
+      const addRes = await addVideo(videoData);
+      if (addRes.success) {
+        setTitle('');
+        setDescription('');
+        setCategory('');
+        setFile(null);
+        setPreviewUrl('');
+        loadVideos();
+      } else {
+        alert('Failed to add video metadata: ' + addRes.message);
+      }
     } catch (err) {
       console.error('Upload error:', err.message);
       alert('Upload failed.');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this video?')) return;
+
+    try {
+      const res = await deleteVideo(id);
+      if (res.success) {
+        setVideos((prev) => prev.filter((v) => v.id !== id));
+      } else {
+        alert('Delete failed: ' + res.message);
+      }
+    } catch (err) {
+      console.error('Delete error:', err.message);
+      alert('Failed to delete video.');
+    }
+  };
+
+  // Editing handlers
+  const startEditing = (video) => {
+    setEditingVideoId(video.id);
+    setEditTitle(video.title);
+    setEditDescription(video.description || '');
+    setEditCategory(video.category);
+  };
+
+  const cancelEditing = () => {
+    setEditingVideoId(null);
+    setEditTitle('');
+    setEditDescription('');
+    setEditCategory('');
+  };
+
+  const saveEditing = async () => {
+    if (!editTitle.trim() || !editCategory.trim()) {
+      alert('Title and category are required.');
+      return;
+    }
+
+    try {
+      const res = await updateVideo(editingVideoId, {
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        category: editCategory.trim(),
+      });
+
+      if (res.success) {
+        setVideos((prev) =>
+          prev.map((v) =>
+            v.id === editingVideoId
+              ? {
+                  ...v,
+                  title: editTitle.trim(),
+                  description: editDescription.trim(),
+                  category: editCategory.trim(),
+                }
+              : v
+          )
+        );
+        cancelEditing();
+      } else {
+        alert('Update failed: ' + res.message);
+      }
+    } catch (err) {
+      alert('Update failed: ' + err.message);
     }
   };
 
@@ -138,29 +216,99 @@ const Video = () => {
           {videos.map((video) => (
             <div
               key={video.id}
-              onClick={() => navigate(`/video-player/${video.id}`)}
-              className="bg-white border border-gray-100 rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer overflow-hidden group"
+              onClick={() => {
+                if (editingVideoId !== video.id) {
+                  navigate(`/video-player/${video.id}`);
+                }
+              }}
+              className="bg-white border border-gray-100 rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer overflow-hidden group relative"
             >
               <div className="relative">
                 <video
                   controls
                   className="rounded-t-2xl w-full h-52 object-cover group-hover:opacity-90 transition"
                 >
-                  <source
-                    src={`${import.meta.env.VITE_API_URL}/videos/${video.url}`}
-                    type="video/mp4"
-                  />
+                  <source src={`${import.meta.env.VITE_API_URL}/videos/${video.url}`} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
               </div>
+
               <div className="p-4 space-y-2">
-                <h3 className="text-lg font-bold text-gray-800 truncate">{video.title}</h3>
-                <p className="text-sm text-gray-600 line-clamp-2">{video.description}</p>
-                <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                  <Calendar className="w-4 h-4" />
-                  {new Date(video.upload_datetime).toLocaleDateString()}
-                </div>
+                {editingVideoId === video.id ? (
+                  <>
+                    <input
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="border border-gray-300 rounded px-2 py-1 w-full"
+                    />
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      className="border border-gray-300 rounded px-2 py-1 w-full"
+                      rows={2}
+                    />
+                    <input
+                      value={editCategory}
+                      onChange={(e) => setEditCategory(e.target.value)}
+                      className="border border-gray-300 rounded px-2 py-1 w-full"
+                    />
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          saveEditing();
+                        }}
+                        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          cancelEditing();
+                        }}
+                        className="bg-gray-300 text-gray-800 px-3 py-1 rounded hover:bg-gray-400"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-bold text-gray-800 truncate">{video.title}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-2">{video.description}</p>
+                    <p className="text-xs italic text-gray-500">Category: {video.category}</p>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                      <Calendar className="w-4 h-4" />
+                      {new Date(video.upload_datetime).toLocaleDateString()}
+                    </div>
+
+                    {/* Edit button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startEditing(video);
+                      }}
+                      className="absolute top-3 left-3 bg-yellow-500 text-white rounded-full p-2 hover:bg-yellow-600 transition"
+                      title="Edit Video"
+                    >
+                      ✏️
+                    </button>
+                  </>
+                )}
               </div>
+
+              {/* Delete button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation(); // prevent navigating to player on delete click
+                  handleDelete(video.id);
+                }}
+                className="absolute top-3 right-3 bg-red-600 text-white rounded-full p-2 hover:bg-red-700 transition"
+                title="Delete Video"
+              >
+                🗑️
+              </button>
             </div>
           ))}
         </div>

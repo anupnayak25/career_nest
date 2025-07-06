@@ -17,6 +17,8 @@ const getHeaders = (json = true) => {
   return headers;
 };
 
+// --- Question APIs ---
+
 // 1. POST: Upload Questions
 export const uploadQuestions = async (type, data) => {
   const res = await fetch(buildUrl(type), {
@@ -82,7 +84,7 @@ export const deleteQuestion = async (type, questionId) => {
 
 // --- Video APIs ---
 
-// Upload video file (FormData, no Content-Type set)
+// Upload video file (FormData, no Content-Type header set explicitly)
 export const uploadVideoFile = async (formData) => {
   try {
     const token = getToken();
@@ -90,6 +92,7 @@ export const uploadVideoFile = async (formData) => {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
+        // Do NOT set Content-Type here — browser handles it for FormData
       },
       body: formData,
     });
@@ -110,10 +113,9 @@ export const uploadVideoFile = async (formData) => {
 };
 
 // Add video metadata (JSON)
-// Remove id if present to avoid duplicate PK error
 export const addVideo = async (videoData) => {
   const token = getToken();
-  if ('id' in videoData) delete videoData.id;
+  if ('id' in videoData) delete videoData.id; // Prevent duplicate primary key error
 
   try {
     const res = await fetch(`${apiUrl}/api/videos`, {
@@ -145,4 +147,39 @@ export const getUserVideos = async () => {
   });
   if (!res.ok) throw new Error(await res.text());
   return await res.json();
+};
+
+// Delete video by ID
+export const deleteVideo = async (videoId) => {
+  const token = getToken();
+  const res = await fetch(`${apiUrl}/api/videos/${videoId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+};
+
+// ** NEW: Update video metadata by ID **
+export const updateVideo = async (videoId, updateData) => {
+  const token = getToken();
+  try {
+    const res = await fetch(`${apiUrl}/api/videos/${videoId}`, {
+      method: 'PUT',
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    if (!res.ok) throw new Error(await res.text());
+    return await res.json();
+  } catch (err) {
+    console.error('Update video error:', err.message);
+    return { success: false, message: err.message };
+  }
 };

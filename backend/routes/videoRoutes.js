@@ -1,128 +1,96 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const router = express.Router();
-const db = require('../db'); // make sure your db.js is correct
+const db = require('../db'); // Your MySQL connection module
 
-// Set storage engine
+// Ensure 'videos' folder exists
+const videosDir = path.join(__dirname, '..', 'videos');
+if (!fs.existsSync(videosDir)) {
+  fs.mkdirSync(videosDir, { recursive: true });
+  console.log(`[✔] Created 'videos' directory at ${videosDir}`);
+}
+
+// Multer configuration
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'videos'); // folder where videos will be stored
-  },
+  destination: (req, file, cb) => cb(null, videosDir),
   filename: (req, file, cb) => {
-    const randomNumber = Math.floor(10000 + Math.random() * 90000); // Generate a 5-digit random number
-    const ext = path.extname(file.originalname); // get original file extension
-  cb(null, `${randomNumber}-${Date.now()}${ext}`);
-}}
-  
-);
+    const ext = path.extname(file.originalname);
+    const uniqueName = `video-${Date.now()}-${Math.floor(Math.random() * 1e9)}${ext}`;
+    cb(null, uniqueName);
+  }
+});
 
-// Init upload
 const upload = multer({
   storage,
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
+  limits: { fileSize: 150 * 1024 * 1024 }, // 150MB max
   fileFilter: (req, file, cb) => {
-    const allowedMimeTypes = [
-      'video/mp4',
-      'video/quicktime', // .mov
-      'video/x-msvideo', // .avi
-      'video/x-matroska', // .mkv
-      'application/octet-stream' // fallback
-    ];
-
-    const extname = /\.(mp4|mov|avi|mkv)$/i.test(path.extname(file.originalname));
-
-    if (extname && allowedMimeTypes.includes(file.mimetype)) {
-      return cb(null, true);
-    } else {
-      console.error(`[UPLOAD] Rejected file: ${file.originalname}, MIME: ${file.mimetype}`);
-      return cb(new Error('Error: Videos Only!'));
-    }
+    const allowed = ['video/mp4', 'video/webm', 'video/ogg', 'video/x-matroska'];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Only video files are allowed!'));
   }
 });
 
-// Route to upload video
-router.post('/upload', upload.single('video'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'No file uploaded' });
-  }
-  const videoUrl = `${req.file.filename}`;
-  res.status(200).json({ message: 'Video uploaded successfully', url: videoUrl });
+// 1. Upload video file only (no DB yet)
+router.post('/upload', (req, res) => {
+  upload.single('video')(req, res, err => {
+    if (err) return res.status(400).json({ success: false, message: err.message });
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
+
+    const fileUrl = `/videos/${req.file.filename}`;
+    res.status(200).json({
+      success: true,
+      message: 'Video uploaded successfully!',
+      filename: req.file.filename,
+      url: fileUrl
+    });
+  });
 });
 
+// 2. Save video metadata (no 'id' in insert)
 router.post('/', (req, res) => {
-  const { user_id, url, upload_datetime, category, title, description } = req.body;
-  const query = `INSERT INTO videos (user_id, url, upload_datetime, category, title, description) VALUES (?, ?, ?, ?, ?, ?)`;
-  
-  db.query(query, [user_id, url, upload_datetime, category, title, description], (err, result) => {
-    if (err) {
-      console.error("Error inserting video:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
-    res.status(201).json({ message: "Video created successfully", videoId: result.insertId });
-  });
-});
+  const { user_id, url, category, title, description } = req.body;
 
-// READ all videos
-router.get('/', (req, res) => {
-  const query = `SELECT * FROM videos`;
+  // Basic validation
+  if (!user_id || !url || !category || !title) {
+    return res.status(400).json({ success: false, message: 'Missing required fields.' });
+  }
 
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("Error fetching videos:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
-    res.json(results);
-  });
-});
+  const upload_datetime = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-// READ one video by ID
-router.get('/:id', (req, res) => {
-  const { id } = req.params;
-  const query = `SELECT * FROM videos WHERE id = ?`;
-
-  db.query(query, [id], (err, results) => {
-    if (err) {
-      console.error("Error fetching video:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
-    if (results.length === 0) return res.status(404).json({ message: "Video not found" });
-    res.json(results[0]);
-  });
-});
-
-// UPDATE a video by ID
-router.put('/:id', (req, res) => {
-  const { id } = req.params;
-  const { user_id, url, upload_datetime, category, title, description } = req.body;
-  const query = `
-    UPDATE videos 
-    SET user_id = ?, url = ?, upload_datetime = ?, category = ?, title = ?, description = ? 
-    WHERE id = ?
+  const sql = `
+    INSERT INTO videos (user_id, url, upload_datetime, category, title, description)
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
 
-  db.query(query, [user_id, url, upload_datetime, category, title, description, id], (err, result) => {
+  const values = [user_id, url, upload_datetime, category, title, description || null];
+
+  db.query(sql, values, (err, result) => {
     if (err) {
-      console.error("Error updating video:", err);
-      return res.status(500).json({ error: "Database error" });
+      console.error("DB INSERT ERROR:", err.message);
+      return res.status(500).json({ success: false, message: 'DB insert error.', error: err.message });
     }
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Video not found" });
-    res.json({ message: "Video updated successfully" });
+
+    res.status(201).json({
+      success: true,
+      message: 'Metadata saved.',
+      videoId: result.insertId
+    });
   });
 });
 
-// DELETE a video by ID
-router.delete('/:id', (req, res) => {
-  const { id } = req.params;
-  const query = `DELETE FROM videos WHERE id = ?`;
+// 3. Fetch videos by user
+router.get('/user/:userId', (req, res) => {
+  const sql = 'SELECT * FROM videos WHERE user_id = ? ORDER BY upload_datetime DESC';
 
-  db.query(query, [id], (err, result) => {
+  db.query(sql, [req.params.userId], (err, results) => {
     if (err) {
-      console.error("Error deleting video:", err);
-      return res.status(500).json({ error: "Database error" });
+      console.error("DB FETCH ERROR:", err.message);
+      return res.status(500).json({ success: false, message: 'DB fetch error.', error: err.message });
     }
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Video not found" });
-    res.json({ message: "Video deleted successfully" });
+
+    res.json({ success: true, data: results });
   });
 });
 

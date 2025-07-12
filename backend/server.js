@@ -35,7 +35,6 @@ if (!fs.existsSync(videosPath)) {
   fs.mkdirSync(videosPath, { recursive: true });
 }
 app.use("/videos", express.static(videosPath));
-
 // ======= Welcome Route =======
 const getTimeStamp = () => {
   const time = new Date();

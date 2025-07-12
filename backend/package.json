@@ -18,7 +18,8 @@
     "winston": "^3.17.0"
   },
   "scripts": {
-    "dev": "concurrently \"nodemon server.js\" \"node auto-fetcher.js\""
+    "dev": "concurrently \"nodemon server.js\" \"node auto-fetcher.js\"",
+    "server":"nodemon server.js"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

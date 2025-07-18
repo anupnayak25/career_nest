@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
    server: {
     host: true, // This exposes the server to the local network
-      allowedHosts: ['career-nest-1.onrender.com'],
+      allowedHosts:'all',
   },
   plugins: [react()],
 })

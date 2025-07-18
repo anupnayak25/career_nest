@@ -21,15 +21,6 @@ import Answers from './components/Answers';
 import Vedio from './pages/Vedio'; // 👈 Import new page
 
 function App() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const isLoggedIn = sessionStorage.getItem("isLoggedIn");
-    if (!isLoggedIn || isLoggedIn !== "true") {
-      console.warn("🔐 Not logged in, redirecting to login...");
-      navigate("/signin");
-    }
-  }, [navigate]);
 
   return (
     <>

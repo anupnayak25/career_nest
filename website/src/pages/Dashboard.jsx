@@ -10,11 +10,24 @@ import {
   Bell,
   Search,
   Menu,
-  X
+  X,
+  ArrowBigLeft,
+  ArrowLeftCircle,
+  LogOut
 } from "lucide-react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 function Dashboard() {
+  const navigate = useNavigate();
+  
+    useEffect(() => {
+      const isLoggedIn = sessionStorage.getItem("isLoggedIn");
+      if (!isLoggedIn || isLoggedIn !== "true" ) {
+        console.warn("🔐 Not logged in, redirecting to login...");
+        navigate("/signin");
+      }
+    }, [navigate]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const pathname = location.pathname;
@@ -66,13 +79,14 @@ function Dashboard() {
               onClick={toggleSidebar}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
             >
-              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+              {sidebarOpen ? <ArrowLeftCircle size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
-
         {/* Sidebar Navigation */}
-        <nav className={`mt-6 ${sidebarOpen ? "px-4" : "px-2"}`}>
+        <nav className={`mt-6 h-full ${sidebarOpen ? "px-4" : "px-2"}`}>
+          <div className="flex-col h-full justify-between">
+          <div>
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -98,7 +112,19 @@ function Dashboard() {
               </Link>
             );
           })}
+          </div>
+          <div className={`w-full flex items-center mb-2 rounded-lg transition-all duration-200 group relative  ${sidebarOpen ? "px-4 py-3 " : "px-2 py-3 justify-center " }text-gray-600 hover:bg-gray-50 hover:text-gray-900`}>
+          <LogOut size={20} className={sidebarOpen ? "mr-3" : ""} />
+                {sidebarOpen && <span>LogOut</span>}
+                {!sidebarOpen && (
+                  <div className="absolute left-full ml-2 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20">
+                    Logout
+                  </div>
+                )}
+        </div>
+        </div>
         </nav>
+        
       </div>
 
       {/* Main Content */}

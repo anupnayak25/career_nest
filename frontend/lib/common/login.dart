@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'signup.dart';
+import 'theme.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -249,15 +250,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.blue[50]!,
-              Colors.indigo[100]!,
-              Colors.purple[50]!,
-            ],
+            colors: AppColors.mainGradient,
           ),
         ),
         child: SafeArea(
@@ -269,7 +266,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   margin: const EdgeInsets.symmetric(horizontal: 24),
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.card,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
@@ -291,12 +288,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
+                                decoration: const BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [
-                                      Colors.blue[600]!,
-                                      Colors.purple[600]!
-                                    ],
+                                    colors: AppColors.mainGradient,
                                   ),
                                   shape: BoxShape.circle,
                                 ),
@@ -309,11 +303,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                               const SizedBox(height: 24),
                               const Text(
                                 "Welcome Back!",
-                                style: TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
+                                style: AppTextStyles.headline,
                               ),
                               const SizedBox(height: 8),
                               Text(
@@ -451,23 +441,21 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         // Login Button
                         Container(
                           width: double.infinity,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Colors.blue[600]!, Colors.purple[600]!],
+                              colors: AppColors.mainGradient,
                             ),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.all(Radius.circular(16)),
                           ),
                           child: ElevatedButton(
                             onPressed: isLoading ? null : _login,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              // This disables the splash highlight to make the gradient clean
-                              surfaceTintColor: Colors.transparent,
+                            style: AppButtonStyles.elevated.copyWith(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.transparent),
+                              shadowColor:
+                                  MaterialStateProperty.all(Colors.transparent),
+                              surfaceTintColor:
+                                  MaterialStateProperty.all(Colors.transparent),
                             ),
                             child: isLoading
                                 ? const SizedBox(
@@ -480,11 +468,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   )
                                 : const Text(
                                     "Sign In",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: AppTextStyles.button,
                                   ),
                           ),
                         ),

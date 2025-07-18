@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Trash2, Plus, Minus } from 'lucide-react'
+import excel from '../assets/excel.png'
 
 function CreateQuiz() {
   const navigate = useNavigate()

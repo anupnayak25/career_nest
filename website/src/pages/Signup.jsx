@@ -23,7 +23,7 @@ const Signup = () => {
   const [userType, setUserType] = useState("");
   const [errors, setErrors] = useState({});
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
   // API configuration
   const API_URL = import.meta.env.VITE_API_URL; // Replace with your actual API URL
@@ -254,20 +254,15 @@ const Signup = () => {
       });
 
       if (response.status === 201) {
-        sessionStorage.setItem("auth_token", response.auth_token);
-        sessionStorage.setItem("userType", response.type);
-        sessionStorage.setItem("userName", response.name);
-        sessionStorage.setItem("userEmail", response.email);
-        sessionStorage.setItem("userId", response.id);
+        const data = await response.json();
+        sessionStorage.setItem("auth_token", data.auth_token);
+        sessionStorage.setItem("userType", data.type);
+        sessionStorage.setItem("userName", data.name);
+        sessionStorage.setItem("userEmail", data.email);
+        sessionStorage.setItem("userId", data.id);
         sessionStorage.setItem("isLoggedIn", "true");
         showNotification("Account created! 🎉");
-
-        // Redirect based on user type
-        //  if (userType === "student") {
-       navigate("/dashboard");
-        //    } else {
-        //    window.location.href = "/admin/dashboard";
-        ///   }
+        navigate("/dashboard");
       } else if (response.status === 409) {
         const errorData = await response.json();
         showNotification(errorData.message || "Email already exists. Please use a different email.");

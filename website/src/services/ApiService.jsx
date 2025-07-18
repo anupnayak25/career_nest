@@ -3,23 +3,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 // --- Cached Auth State ---
 let authToken = sessionStorage.getItem("auth_token");
 let userId = sessionStorage.getItem("userId");
-
-export const setAuthToken = (token) => {
-  authToken = token;
-  if (token) sessionStorage.setItem("auth_token", token);
-  else sessionStorage.removeItem("auth_token");
-};
-
-export const setUserId = (id) => {
-  userId = id;
-  if (id) sessionStorage.setItem("userId", id);
-  else sessionStorage.removeItem("userId");
-};
-
-export const refreshAuthCache = () => {
-  authToken = sessionStorage.getItem("auth_token");
-  userId = sessionStorage.getItem("userId");
-};
+console.log(authToken);
 
 console.log("UserId:", userId);
 
@@ -38,6 +22,7 @@ const getHeaders = (json = true) => {
 
 // 1. POST: Upload Questions
 export const uploadQuestions = async (type, data) => {
+  console.log(data);
   const res = await fetch(buildUrl(type), {
     method: "POST",
     headers: getHeaders(),

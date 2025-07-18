@@ -14,7 +14,11 @@ function CreateQuestion() {
     due_date: "",
     total_marks: "",
     questionItems: [
-      { qno: 1, question: "", marks: "" }, // 👈 default one item
+      type === "programming"
+        ? { qno: 1, question: "", program_snippet: "", marks: "" }
+        : type === "quiz"
+        ? { qno: 1, question: "", options: ["", "", "", ""], correct_ans: "", marks: "" }
+        : { qno: 1, question: "", marks: "" },
     ],
   });
   const navigate = useNavigate();
@@ -27,30 +31,79 @@ function CreateQuestion() {
       description: "",
       due_date: "",
       total_marks: "",
-      questionItems: [{ qno: 1, question: "", marks: "" }],
+      questionItems: [
+        type === "programming"
+          ? { qno: 1, question: "", program_snippet: "", marks: "" }
+          : type === "quiz"
+          ? { qno: 1, question: "", options: ["", "", "", ""], correct_ans: "", marks: "" }
+          : { qno: 1, question: "", marks: "" },
+      ],
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
-    const payload = {
-      hrQuestion: {
+    let payload;
+    if (type === "hr") {
+      payload = {
+        hrQuestion: {
+          title: formData.title,
+          description: formData.description,
+          due_date: formData.due_date,
+          totalMarks: parseInt(formData.total_marks),
+        },
+        hrQuestionItems: formData.questionItems.map((item, index) => ({
+          qno: index + 1,
+          question: item.question,
+          marks: parseInt(item.marks),
+        })),
+      };
+    } else if (type === "programming") {
+      payload = {
+        title: formData.title,
+        description: formData.description,
+        upload_date: new Date().toISOString().slice(0, 10),
+        due_date: formData.due_date,
+        totalMarks: parseInt(formData.total_marks),
+        user_id: sessionStorage.getItem("userId"),
+        programQuestions: formData.questionItems.map((item, index) => ({
+          qno: index + 1,
+          question: item.question,
+          program_snippet: item.program_snippet,
+          marks: parseInt(item.marks),
+        })),
+      };
+    } else if (type === "quiz") {
+      payload = {
         title: formData.title,
         description: formData.description,
         due_date: formData.due_date,
-        total_marks: parseInt(formData.total_marks),
-      },
-      hrQuestionItems: formData.questionItems.map((item, index) => ({
-        qno: index + 1,
-        question: item.question,
-        marks: parseInt(item.marks),
-      })),
-    };
-
+        quizQuestions: formData.questionItems.map((item, index) => ({
+          qno: index + 1,
+          question: item.question,
+          options: item.options,
+          marks: parseInt(item.marks),
+          correct_ans: item.correct_ans,
+        })),
+      };
+    } else if (type === "technical") {
+      payload = {
+        title: formData.title,
+        description: formData.description,
+        upload_date: new Date().toISOString().slice(0, 10),
+        due_date: formData.due_date,
+        totalMarks: parseInt(formData.total_marks),
+        user_id: sessionStorage.getItem("userId"),
+        questions: formData.questionItems.map((item, index) => ({
+          qno: index + 1,
+          question: item.question,
+          marks: parseInt(item.marks),
+        })),
+      };
+    }
     try {
-      await uploadQuestions(type, payload); // 👈 type from URL
+      await uploadQuestions(type, payload);
       alert("Question created successfully!");
       resetForm();
       navigate(`/dashboard/${type}`);
@@ -64,7 +117,20 @@ function CreateQuestion() {
   const addQuestionItem = () => {
     setFormData({
       ...formData,
-      questionItems: [...formData.questionItems, { qno: formData.questionItems.length + 1, question: "", marks: "" }],
+      questionItems: [
+        ...formData.questionItems,
+        type === "programming"
+          ? { qno: formData.questionItems.length + 1, question: "", program_snippet: "", marks: "" }
+          : type === "quiz"
+          ? {
+              qno: formData.questionItems.length + 1,
+              question: "",
+              options: ["", "", "", ""],
+              correct_ans: "",
+              marks: "",
+            }
+          : { qno: formData.questionItems.length + 1, question: "", marks: "" },
+      ],
     });
   };
 
@@ -78,7 +144,11 @@ function CreateQuestion() {
 
   const updateQuestionItem = (index, field, value) => {
     const updated = [...formData.questionItems];
-    updated[index][field] = value;
+    if (type === "quiz" && field === "options") {
+      updated[index].options = value;
+    } else {
+      updated[index][field] = value;
+    }
     setFormData({ ...formData, questionItems: updated });
   };
 
@@ -122,7 +192,7 @@ function CreateQuestion() {
         setFormData((f) => ({ ...f, questionItems: items }));
         setExcelModalOpen(false);
         setExcelError("");
-      } catch (err) {
+      } catch {
         setExcelError("Failed to parse Excel file.");
       }
     };
@@ -234,7 +304,7 @@ function CreateQuestion() {
               type="button"
               onClick={openExcelFormat}
               className="text-sm px-3 py-1 flex text-green-100 bg-green-700 rounded hover:bg-green-800">
-              Select Excel Format <img class="h-4 m-1" src={excel} alt="excel" />
+              Select Excel Format <img className="h-4 m-1" src={excel} alt="excel" />
             </button>
           </div>
 
@@ -262,6 +332,51 @@ function CreateQuestion() {
                   required
                 />
               </div>
+
+              {type === "programming" && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">Starter Code (optional)</label>
+                  <textarea
+                    className="w-full px-3 py-2 border rounded-lg"
+                    rows="2"
+                    value={item.program_snippet}
+                    onChange={(e) => updateQuestionItem(index, "program_snippet", e.target.value)}
+                  />
+                </div>
+              )}
+
+              {type === "quiz" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Options</label>
+                    {[0, 1, 2, 3].map((optIdx) => (
+                      <input
+                        key={optIdx}
+                        type="text"
+                        className="w-full px-3 py-2 border rounded-lg mb-1"
+                        placeholder={`Option ${optIdx + 1}`}
+                        value={item.options[optIdx]}
+                        onChange={(e) => {
+                          const newOptions = [...item.options];
+                          newOptions[optIdx] = e.target.value;
+                          updateQuestionItem(index, "options", newOptions);
+                        }}
+                        required
+                      />
+                    ))}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Correct Answer (enter option text)</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border rounded-lg"
+                      value={item.correct_ans}
+                      onChange={(e) => updateQuestionItem(index, "correct_ans", e.target.value)}
+                      required
+                    />
+                  </div>
+                </>
+              )}
 
               <div>
                 <label className="block text-sm font-medium mb-1">Marks</label>

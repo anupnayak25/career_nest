@@ -1,27 +1,29 @@
 // src/pages/Technical.jsx
-import React from 'react';
-import { Cog, Plus } from 'lucide-react';
-import { useData } from '../context/DataContext'; // Ensure correct path
+import React from "react";
+import { Cog, Plus } from "lucide-react";
+import { useData } from "../context/DataContext"; // Ensure correct path
+import { useNavigate } from "react-router-dom";
 
 function Technical() {
   const { attemptedData, setAttemptedData } = useData();
+  const navigate = useNavigate();
 
-  const handleAddResource = () => {
-    const typeId = 'tech-1';
-    const newUserId = 'U00' + Math.floor(Math.random() * 100);
-    const newAnswers = ['A', 'B', 'C'];
+  // const handleAddResource = () => {
+  //   const typeId = "tech-1";
+  //   const newUserId = "U00" + Math.floor(Math.random() * 100);
+  //   const newAnswers = ["A", "B", "C"];
 
-    setAttemptedData((prev) => ({
-      ...prev,
-      [typeId]: {
-        users: [...(prev[typeId]?.users || []), newUserId],
-        answersByUserId: {
-          ...(prev[typeId]?.answersByUserId || {}),
-          [newUserId]: newAnswers,
-        },
-      },
-    }));
-  };
+  //   setAttemptedData((prev) => ({
+  //     ...prev,
+  //     [typeId]: {
+  //       users: [...(prev[typeId]?.users || []), newUserId],
+  //       answersByUserId: {
+  //         ...(prev[typeId]?.answersByUserId || {}),
+  //         [newUserId]: newAnswers,
+  //       },
+  //     },
+  //   }));
+  // };
 
   return (
     <div className="p-6">
@@ -31,11 +33,10 @@ function Technical() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Technical Resources</h2>
           <p className="text-gray-600 mb-6">Manage technical documentation and resources</p>
           <button
-            onClick={handleAddResource}
             className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
-          >
+            onClick={() => navigate("/dashboard/add-question/technical")}>
             <Plus className="inline mr-2" size={16} />
-            Add Resource
+            Add Question
           </button>
         </div>
 
@@ -52,9 +53,7 @@ function Technical() {
                   {data.users.map((userId, index) => (
                     <li key={index}>
                       <span className="font-medium text-gray-800">{userId}</span>:&nbsp;
-                      <span className="text-gray-600">
-                        {data.answersByUserId[userId].join(', ')}
-                      </span>
+                      <span className="text-gray-600">{data.answersByUserId[userId].join(", ")}</span>
                     </li>
                   ))}
                 </ul>

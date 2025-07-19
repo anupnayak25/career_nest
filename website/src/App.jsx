@@ -1,6 +1,6 @@
 import './App.css';
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { Navigate, Route, Routes} from 'react-router-dom';
+
 
 // Pages and Components
 import Dashboard from './pages/Dashboard';

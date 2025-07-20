@@ -49,7 +49,7 @@ router.post("/", (req, res) => {
   const { title, description, due_date, totalMarks } = hrQuestion;
 
   const queryInsertHR = `
-    INSERT INTO hr_questions (title, description, due_date, totalMarks, user_id)
+    INSERT INTO hr_questions (title, description, due_date, total_marks, user_id)
     VALUES (?, ?, ?, ?, ?)
   `;
 
@@ -93,7 +93,7 @@ router.put("/:id", (req, res) => {
   const { title, description, due_date, totalMarks } = hrQuestion;
 
   const queryUpdatetHR = `
-    UPDATE hr_questions set title = ?, description = ?, upload_date = ?, due_date = ?, totalMarks = ? where user_id = ? and id=?`;
+    UPDATE hr_questions set title = ?, description = ?, upload_date = ?, due_date = ?, total_marks = ? where user_id = ? and id=?`;
 
   connection.query(
     queryUpdatetHR,

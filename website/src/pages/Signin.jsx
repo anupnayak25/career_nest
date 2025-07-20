@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { BookOpen, Mail, Lock, Eye, EyeOff, ArrowRight, Code, Trophy } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useToast } from "../ui/Toast";
 
 const Signin = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const Signin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   // Email validation function (converted from Flutter)
   const isValidEmail = (email) => {
@@ -38,81 +40,80 @@ const Signin = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-const handleLogin = async () => {
-  if (!validateForm()) return;
+  const handleLogin = async () => {
+    if (!validateForm()) return;
 
-  setIsLoading(true);
-  setErrors({});
+    setIsLoading(true);
+    setErrors({});
 
-  const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL;
 
-  try {
-    const response = await fetch(`${apiUrl}/api/auth/signin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        email: formData.email.trim(),
-        password: formData.password,
-      }),
-    });
-
-    // Try to read response body (may fail for 4xx/5xx)
-    let responseData = {};
     try {
-      responseData = await response.json();
-    } catch (jsonErr) {
-      console.warn("Failed to parse response JSON", jsonErr);
-    }
+      const response = await fetch(`${apiUrl}/api/auth/signin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          email: formData.email.trim(),
+          password: formData.password,
+        }),
+      });
 
-    if (response.status === 200) {
-      console.log("Login success:", responseData);
-
-      sessionStorage.setItem("auth_token", responseData.auth_token);
-      sessionStorage.setItem("userType", responseData.type);
-      sessionStorage.setItem("userName", responseData.name);
-      sessionStorage.setItem("userEmail", responseData.email);
-      sessionStorage.setItem("userId", responseData.id);
-      sessionStorage.setItem("isLoggedIn", "true");
-
-      alert("Welcome back! Login successful 🎉");
-
-      setTimeout(() => {
-    //    if (responseData.type === "student") {
-          navigate("/dashboard");
-    //    } else {
-    //      navigate("/admin-dashboard");
-    //    }
-      }, 1500);
-    } else {
-      setIsLoading(false);
-      // Handle known status codes
-      switch (response.status) {
-        case 400:
-          alert("Invalid email or password.");
-          break;
-        case 401:
-          alert("Authentication failed.");
-          break;
-        case 404:
-          alert("Account not found.");
-          break;
-        case 429:
-          alert("Too many login attempts. Try again later.");
-          break;
-        default:
-          alert("Unexpected error occurred. Please try again.");
+      // Try to read response body (may fail for 4xx/5xx)
+      let responseData = {};
+      try {
+        responseData = await response.json();
+      } catch (jsonErr) {
+        console.warn("Failed to parse response JSON", jsonErr);
       }
-      console.warn("Login failed:", response.status, responseData);
-    }
-  } catch (error) {
-    setIsLoading(false);
-    console.error("Network or server error:", error);
-    alert("Unable to connect to the server. Please try again.");
-  }
-};
 
+      if (response.status === 200) {
+        console.log("Login success:", responseData);
+
+        sessionStorage.setItem("auth_token", responseData.auth_token);
+        sessionStorage.setItem("userType", responseData.type);
+        sessionStorage.setItem("userName", responseData.name);
+        sessionStorage.setItem("userEmail", responseData.email);
+        sessionStorage.setItem("userId", responseData.id);
+        sessionStorage.setItem("isLoggedIn", "true");
+
+        showToast("Welcome back! Login successful 🎉", "success");
+
+        setTimeout(() => {
+          //    if (responseData.type === "student") {
+          navigate("/dashboard");
+          //    } else {
+          //      navigate("/admin-dashboard");
+          //    }
+        }, 1500);
+      } else {
+        setIsLoading(false);
+        // Handle known status codes
+        switch (response.status) {
+          case 400:
+            showToast("Invalid email or password.", "error");
+            break;
+          case 401:
+            showToast("Authentication failed.", "error");
+            break;
+          case 404:
+            showToast("Account not found.", "error");
+            break;
+          case 429:
+            showToast("Too many login attempts. Try again later.", "warning");
+            break;
+          default:
+            showToast("Unexpected error occurred. Please try again.", "error");
+        }
+        console.warn("Login failed:", response.status, responseData);
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error("Network or server error:", error);
+      showToast("Unable to connect to the server. Please try again.", "error");
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -202,7 +203,7 @@ const handleLogin = async () => {
             </div>
 
             <button
-            onClick={handleLogin}
+              onClick={handleLogin}
               disabled={isLoading}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
               {isLoading ? (

@@ -1,5 +1,5 @@
 // src/context/DataContext.jsx
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState } from "react";
 
 // Create Context
 const DataContext = createContext();
@@ -7,9 +7,10 @@ const DataContext = createContext();
 // Provider
 export const DataProvider = ({ children }) => {
   const [attemptedData, setAttemptedData] = useState({});
+  const [pageTitle, setPageTitle] = useState("");
 
   return (
-    <DataContext.Provider value={{ attemptedData, setAttemptedData }}>
+    <DataContext.Provider value={{ attemptedData, setAttemptedData, pageTitle, setPageTitle }}>
       {children}
     </DataContext.Provider>
   );

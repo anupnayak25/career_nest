@@ -8,6 +8,7 @@ import '../student/dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
+import 'theme.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -522,7 +523,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -534,7 +535,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                   margin: const EdgeInsets.symmetric(horizontal: 24),
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.card,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
@@ -553,18 +554,15 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                         // Header
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
-                          spacing: 16,
                           children: [
                             Container(
                               padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [
-                                    Colors.blue[600]!,
-                                    Colors.purple[600]!
-                                  ],
+                                  colors: AppColors.mainGradient,
                                 ),
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(16)),
                               ),
                               child: const Icon(
                                 Icons.person_add_rounded,
@@ -572,14 +570,10 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                 size: 32,
                               ),
                             ),
-                            // const SizedBox(height: 24),
+                            const SizedBox(width: 16),
                             const Text(
                               "Create Account",
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
-                              ),
+                              style: AppTextStyles.headline,
                             ),
                           ],
                         ),
@@ -795,7 +789,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                           onPressed: isLoading ? null : _submit,
                           isLoading: isLoading,
                           width: double.infinity,
-                          colors: [Colors.blue[700]!, Colors.purple[600]!],
+                          colors: AppColors.mainGradient,
                         ),
                         const SizedBox(height: 24),
 
@@ -821,11 +815,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                 },
                                 child: Text(
                                   "Sign In",
-                                  style: TextStyle(
-                                    color: Colors.blue[700],
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
+                                  style: AppTextStyles.button
+                                      .copyWith(color: AppColors.primary),
                                 ),
                               )
                             ],

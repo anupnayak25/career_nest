@@ -1,26 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Calendar } from "lucide-react";
 import {
   addVideo,
   getUserVideos,
   uploadVideoFile,
   deleteVideo,
   updateVideo, // Make sure this exists in ApiService.jsx
-} from '../services/ApiService';
+} from "../services/ApiService";
+import { useToast } from "../ui/Toast";
+import Alert from "../ui/AlertDailog";
 
 const Video = () => {
   const [videos, setVideos] = useState([]);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
   const [file, setFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState('');
+  const [previewUrl, setPreviewUrl] = useState("");
   const [editingVideoId, setEditingVideoId] = useState(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editCategory, setEditCategory] = useState('');
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editCategory, setEditCategory] = useState("");
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [videoToDelete, setVideoToDelete] = useState(null);
 
   useEffect(() => {
     loadVideos();
@@ -32,10 +37,10 @@ const Video = () => {
       if (res.success && res.data) {
         setVideos(res.data);
       } else {
-        console.error('Failed to fetch videos:', res.message);
+        console.error("Failed to fetch videos:", res.message);
       }
     } catch (err) {
-      console.error('Error loading videos:', err);
+      console.error("Error loading videos:", err);
     }
   };
 
@@ -45,29 +50,29 @@ const Video = () => {
     if (selected) {
       setPreviewUrl(URL.createObjectURL(selected));
     } else {
-      setPreviewUrl('');
+      setPreviewUrl("");
     }
   };
 
   const handleAddVideo = async () => {
     if (!file || !title.trim() || !description.trim() || !category.trim()) {
-      alert('Please fill all fields and select a video.');
+      showToast("Please fill all fields and select a video.", "warning");
       return;
     }
 
-    const token = sessionStorage.getItem('auth_token');
-    const userId = sessionStorage.getItem('userId');
+    const token = sessionStorage.getItem("auth_token");
+    const userId = sessionStorage.getItem("userId");
     if (!token || !userId) {
-      alert('You are not logged in. Please log in again.');
+      showToast("You are not logged in. Please log in again.", "error");
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append('video', file);
+      formData.append("video", file);
       const uploadRes = await uploadVideoFile(formData);
       if (!uploadRes.success) {
-        alert('Upload failed.');
+        showToast("Upload failed.", "error");
         return;
       }
 
@@ -81,34 +86,44 @@ const Video = () => {
 
       const addRes = await addVideo(videoData);
       if (addRes.success) {
-        setTitle('');
-        setDescription('');
-        setCategory('');
+        setTitle("");
+        setDescription("");
+        setCategory("");
         setFile(null);
-        setPreviewUrl('');
+        setPreviewUrl("");
         loadVideos();
+        showToast("Video uploaded successfully!", "success");
       } else {
-        alert('Failed to add video metadata: ' + addRes.message);
+        showToast("Failed to add video metadata: " + addRes.message, "error");
       }
     } catch (err) {
-      console.error('Upload error:', err.message);
-      alert('Upload failed.');
+      console.error("Upload error:", err.message);
+      showToast("Upload failed.", "error");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this video?')) return;
+    setVideoToDelete(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!videoToDelete) return;
 
     try {
-      const res = await deleteVideo(id);
+      const res = await deleteVideo(videoToDelete);
       if (res.success) {
-        setVideos((prev) => prev.filter((v) => v.id !== id));
+        setVideos((prev) => prev.filter((v) => v.id !== videoToDelete));
+        showToast("Video deleted successfully!", "success");
       } else {
-        alert('Delete failed: ' + res.message);
+        showToast("Delete failed: " + res.message, "error");
       }
     } catch (err) {
-      console.error('Delete error:', err.message);
-      alert('Failed to delete video.');
+      console.error("Delete error:", err.message);
+      showToast("Failed to delete video.", "error");
+    } finally {
+      setShowDeleteConfirm(false);
+      setVideoToDelete(null);
     }
   };
 
@@ -116,20 +131,20 @@ const Video = () => {
   const startEditing = (video) => {
     setEditingVideoId(video.id);
     setEditTitle(video.title);
-    setEditDescription(video.description || '');
+    setEditDescription(video.description || "");
     setEditCategory(video.category);
   };
 
   const cancelEditing = () => {
     setEditingVideoId(null);
-    setEditTitle('');
-    setEditDescription('');
-    setEditCategory('');
+    setEditTitle("");
+    setEditDescription("");
+    setEditCategory("");
   };
 
   const saveEditing = async () => {
     if (!editTitle.trim() || !editCategory.trim()) {
-      alert('Title and category are required.');
+      showToast("Title and category are required.", "warning");
       return;
     }
 
@@ -154,11 +169,12 @@ const Video = () => {
           )
         );
         cancelEditing();
+        showToast("Video updated successfully!", "success");
       } else {
-        alert('Update failed: ' + res.message);
+        showToast("Update failed: " + res.message, "error");
       }
     } catch (err) {
-      alert('Update failed: ' + err.message);
+      showToast("Update failed: " + err.message, "error");
     }
   };
 
@@ -194,8 +210,7 @@ const Video = () => {
         />
         <button
           onClick={handleAddVideo}
-          className="bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:scale-105 hover:from-blue-700 transition-all flex items-center justify-center"
-        >
+          className="bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:scale-105 hover:from-blue-700 transition-all flex items-center justify-center">
           <Plus className="mr-2" size={18} /> Upload
         </button>
       </div>
@@ -221,13 +236,9 @@ const Video = () => {
                   navigate(`/video-player/${video.id}`);
                 }
               }}
-              className="bg-white border border-gray-100 rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer overflow-hidden group relative"
-            >
+              className="bg-white border border-gray-100 rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer overflow-hidden group relative">
               <div className="relative">
-                <video
-                  controls
-                  className="rounded-t-2xl w-full h-52 object-cover group-hover:opacity-90 transition"
-                >
+                <video controls className="rounded-t-2xl w-full h-52 object-cover group-hover:opacity-90 transition">
                   <source src={`${import.meta.env.VITE_API_URL}/videos/${video.url}`} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
@@ -258,8 +269,7 @@ const Video = () => {
                           e.stopPropagation();
                           saveEditing();
                         }}
-                        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-                      >
+                        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
                         Save
                       </button>
                       <button
@@ -267,8 +277,7 @@ const Video = () => {
                           e.stopPropagation();
                           cancelEditing();
                         }}
-                        className="bg-gray-300 text-gray-800 px-3 py-1 rounded hover:bg-gray-400"
-                      >
+                        className="bg-gray-300 text-gray-800 px-3 py-1 rounded hover:bg-gray-400">
                         Cancel
                       </button>
                     </div>
@@ -290,8 +299,7 @@ const Video = () => {
                         startEditing(video);
                       }}
                       className="absolute top-3 left-3 bg-yellow-500 text-white rounded-full p-2 hover:bg-yellow-600 transition"
-                      title="Edit Video"
-                    >
+                      title="Edit Video">
                       ✏️
                     </button>
                   </>
@@ -305,14 +313,28 @@ const Video = () => {
                   handleDelete(video.id);
                 }}
                 className="absolute top-3 right-3 bg-red-600 text-white rounded-full p-2 hover:bg-red-700 transition"
-                title="Delete Video"
-              >
+                title="Delete Video">
                 🗑️
               </button>
             </div>
           ))}
         </div>
       )}
+
+      {/* Alert Dialog for Delete Confirmation */}
+      <Alert
+        isVisible={showDeleteConfirm}
+        text="Are you sure you want to delete this video?"
+        type="warning"
+        onResult={(confirmed) => {
+          if (confirmed) {
+            confirmDelete();
+          } else {
+            setShowDeleteConfirm(false);
+            setVideoToDelete(null);
+          }
+        }}
+      />
     </div>
   );
 };

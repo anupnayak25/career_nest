@@ -2,6 +2,7 @@
 import { BookOpen, CheckCircle, Code, Eye, EyeOff, Lock, Mail, Trophy, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../ui/Toast";
 
 const Signup = () => {
   // Form state
@@ -23,7 +24,8 @@ const Signup = () => {
   const [userType, setUserType] = useState("");
   const [errors, setErrors] = useState({});
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const navigate=useNavigate();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
 
   // API configuration
   const API_URL = import.meta.env.VITE_API_URL; // Replace with your actual API URL
@@ -41,9 +43,14 @@ const Signup = () => {
 
   // Show notification
   const showNotification = (message) => {
-    // You can integrate with your preferred notification system
-    // For now, using simple alert - replace with your notification component
-    alert(message);
+    // Use toast for notifications
+    if (message.includes("success") || message.includes("🎉") || message.includes("✅")) {
+      showToast(message, "success");
+    } else if (message.includes("error") || message.includes("failed")) {
+      showToast(message, "error");
+    } else {
+      showToast(message, "info");
+    }
   };
 
   // Email validation
@@ -254,20 +261,15 @@ const Signup = () => {
       });
 
       if (response.status === 201) {
-        sessionStorage.setItem("auth_token", response.auth_token);
-        sessionStorage.setItem("userType", response.type);
-        sessionStorage.setItem("userName", response.name);
-        sessionStorage.setItem("userEmail", response.email);
-        sessionStorage.setItem("userId", response.id);
+        const data = await response.json();
+        sessionStorage.setItem("auth_token", data.auth_token);
+        sessionStorage.setItem("userType", data.type);
+        sessionStorage.setItem("userName", data.name);
+        sessionStorage.setItem("userEmail", data.email);
+        sessionStorage.setItem("userId", data.id);
         sessionStorage.setItem("isLoggedIn", "true");
         showNotification("Account created! 🎉");
-
-        // Redirect based on user type
-        //  if (userType === "student") {
-       navigate("/dashboard");
-        //    } else {
-        //    window.location.href = "/admin/dashboard";
-        ///   }
+        navigate("/dashboard");
       } else if (response.status === 409) {
         const errorData = await response.json();
         showNotification(errorData.message || "Email already exists. Please use a different email.");

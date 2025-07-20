@@ -1,19 +1,20 @@
 const apiUrl = import.meta.env.VITE_API_URL;
 
-const getToken = () => sessionStorage.getItem('auth_token');
-const getUserId = () => sessionStorage.getItem('userId');
+// --- Cached Auth State ---
+let authToken = sessionStorage.getItem("auth_token");
+let userId = sessionStorage.getItem("userId");
+console.log(authToken);
 
-console.log('UserId:', getUserId());
+console.log("UserId:", userId);
 
 // Helper to construct endpoint with type (quiz/hr/technical)
-const buildUrl = (type, endpoint = '') => `${apiUrl}/api/${type}${endpoint}`;
+const buildUrl = (type, endpoint = "") => `${apiUrl}/api/${type}${endpoint}/`;
 
 // Common headers with token, optionally content-type
 const getHeaders = (json = true) => {
   const headers = {};
-  if (json) headers['Content-Type'] = 'application/json';
-  const token = getToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (json) headers["Content-Type"] = "application/json";
+  if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
   return headers;
 };
 
@@ -21,8 +22,9 @@ const getHeaders = (json = true) => {
 
 // 1. POST: Upload Questions
 export const uploadQuestions = async (type, data) => {
+  console.log(data);
   const res = await fetch(buildUrl(type), {
-    method: 'POST',
+    method: "POST",
     headers: getHeaders(),
     body: JSON.stringify(data),
   });
@@ -32,8 +34,7 @@ export const uploadQuestions = async (type, data) => {
 
 // 2. GET: Get Questions by User ID
 export const getUserQuestions = async (type) => {
-  const userId = getUserId();
-  if (!userId) throw new Error('User ID not found in sessionStorage');
+  if (!userId) throw new Error("User ID not found in sessionStorage");
   const res = await fetch(buildUrl(type, `/user/${userId}`), {
     headers: getHeaders(false),
   });
@@ -44,7 +45,7 @@ export const getUserQuestions = async (type) => {
 // 3. PUT: Publish Result
 export const publishResult = async (type, id, display_result) => {
   const res = await fetch(buildUrl(type, `/publish/${id}`), {
-    method: 'PUT',
+    method: "PUT",
     headers: getHeaders(),
     body: JSON.stringify({ display_result }),
   });
@@ -63,8 +64,7 @@ export const getSubmittedUsers = async (type, id) => {
 
 // 5. GET: Get Answers by Specific User
 export const getUserAnswers = async (type, questionId) => {
-  const userId = getUserId();
-  if (!userId) throw new Error('User ID not found in sessionStorage');
+  if (!userId) throw new Error("User ID not found in sessionStorage");
   const res = await fetch(buildUrl(type, `/answers/${questionId}/${userId}`), {
     headers: getHeaders(false),
   });
@@ -75,7 +75,7 @@ export const getUserAnswers = async (type, questionId) => {
 // 6. DELETE: Delete Question
 export const deleteQuestion = async (type, questionId) => {
   const res = await fetch(buildUrl(type, `/${questionId}`), {
-    method: 'DELETE',
+    method: "DELETE",
     headers: getHeaders(false),
   });
   if (!res.ok) throw new Error(await res.text());
@@ -87,9 +87,9 @@ export const deleteQuestion = async (type, questionId) => {
 // Upload video file (FormData, no Content-Type header set explicitly)
 export const uploadVideoFile = async (formData) => {
   try {
-    const token = getToken();
+    const token = authToken;
     const response = await fetch(`${apiUrl}/api/videos/upload`, {
-      method: 'POST',
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         // Do NOT set Content-Type here — browser handles it for FormData
@@ -102,7 +102,7 @@ export const uploadVideoFile = async (formData) => {
     const json = JSON.parse(rawText);
 
     if (!response.ok || !json.success) {
-      throw new Error(json.message || 'Upload failed');
+      throw new Error(json.message || "Upload failed");
     }
 
     return json;
@@ -114,17 +114,17 @@ export const uploadVideoFile = async (formData) => {
 
 // Add video metadata (JSON)
 export const addVideo = async (videoData) => {
-  const token = getToken();
-  if ('id' in videoData) delete videoData.id; // Prevent duplicate primary key error
+  const token = authToken;
+  if ("id" in videoData) delete videoData.id; // Prevent duplicate primary key error
 
   try {
     const res = await fetch(`${apiUrl}/api/videos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(videoData)
+      body: JSON.stringify(videoData),
     });
 
     if (!res.ok) throw new Error(await res.text());
@@ -137,13 +137,12 @@ export const addVideo = async (videoData) => {
 
 // Get videos for the logged-in user
 export const getUserVideos = async () => {
-  const userId = getUserId();
-  if (!userId) throw new Error('User ID not found in sessionStorage');
-  const token = getToken();
+  if (!userId) throw new Error("User ID not found in sessionStorage");
+  if (!authToken) throw new Error("Auth token not found in sessionStorage");
   const res = await fetch(`${apiUrl}/api/videos/user/${userId}`, {
     headers: {
-      Authorization: `Bearer ${token}`
-    }
+      Authorization: `Bearer ${authToken}`,
+    },
   });
   if (!res.ok) throw new Error(await res.text());
   return await res.json();
@@ -151,12 +150,12 @@ export const getUserVideos = async () => {
 
 // Delete video by ID
 export const deleteVideo = async (videoId) => {
-  const token = getToken();
+  if (!authToken) throw new Error("Auth token not found in sessionStorage");
   const res = await fetch(`${apiUrl}/api/videos/${videoId}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: {
-      Authorization: `Bearer ${token}`
-    }
+      Authorization: `Bearer ${authToken}`,
+    },
   });
 
   if (!res.ok) throw new Error(await res.text());
@@ -165,13 +164,13 @@ export const deleteVideo = async (videoId) => {
 
 // ** NEW: Update video metadata by ID **
 export const updateVideo = async (videoId, updateData) => {
-  const token = getToken();
+  if (!authToken) throw new Error("Auth token not found in sessionStorage");
   try {
     const res = await fetch(`${apiUrl}/api/videos/${videoId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${authToken}`,
       },
       body: JSON.stringify(updateData),
     });
@@ -179,7 +178,7 @@ export const updateVideo = async (videoId, updateData) => {
     if (!res.ok) throw new Error(await res.text());
     return await res.json();
   } catch (err) {
-    console.error('Update video error:', err.message);
+    console.error("Update video error:", err.message);
     return { success: false, message: err.message };
   }
 };

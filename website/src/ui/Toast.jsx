@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { CheckCircle, AlertCircle, XCircle, Info, X } from 'lucide-react';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { CheckCircle, AlertCircle, XCircle, Info, X } from "lucide-react";
 
 const ToastContext = createContext();
 
@@ -8,67 +8,63 @@ export const useToast = () => useContext(ToastContext);
 const toastTypes = {
   success: {
     icon: CheckCircle,
-    bgColor: 'bg-green-500',
-    textColor: 'text-white',
-    borderColor: 'border-green-600'
+    bgColor: "bg-green-500",
+    textColor: "text-white",
+    borderColor: "border-green-600",
   },
   error: {
     icon: XCircle,
-    bgColor: 'bg-red-500',
-    textColor: 'text-white',
-    borderColor: 'border-red-600'
+    bgColor: "bg-red-500",
+    textColor: "text-white",
+    borderColor: "border-red-600",
   },
   warning: {
     icon: AlertCircle,
-    bgColor: 'bg-yellow-500',
-    textColor: 'text-white',
-    borderColor: 'border-yellow-600'
+    bgColor: "bg-yellow-500",
+    textColor: "text-white",
+    borderColor: "border-yellow-600",
   },
   info: {
     icon: Info,
-    bgColor: 'bg-blue-500',
-    textColor: 'text-white',
-    borderColor: 'border-blue-600'
-  }
+    bgColor: "bg-blue-500",
+    textColor: "text-white",
+    borderColor: "border-blue-600",
+  },
 };
 
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
   const [nextId, setNextId] = useState(1);
 
-  const showToast = (message, type = 'info', duration = 5000) => {
+  const showToast = (message, type = "info", duration = 5000) => {
     const newToast = {
       id: nextId,
       message,
       type,
       duration,
       timeRemaining: duration,
-      isPaused: false
+      isPaused: false,
     };
-    setToasts(prev => [...prev, newToast]);
-    setNextId(prev => prev + 1);
+    setToasts((prev) => [...prev, newToast]);
+    setNextId((prev) => prev + 1);
   };
 
   const removeToast = (id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
   const pauseToast = (id) => {
-    setToasts(prev =>
-      prev.map(t => (t.id === id ? { ...t, isPaused: true } : t))
-    );
+    setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, isPaused: true } : t)));
   };
 
   const resumeToast = (id) => {
-    setToasts(prev =>
-      prev.map(t => (t.id === id ? { ...t, isPaused: false } : t))
-    );
+    setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, isPaused: false } : t)));
   };
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setToasts(prev =>
-        prev.map(t => {
+      setToasts((prev) =>
+        prev.map((t) => {
           if (!t.isPaused && t.timeRemaining > 0) {
             const newTimeRemaining = t.timeRemaining - 100;
             if (newTimeRemaining <= 0) {
@@ -94,8 +90,7 @@ export const ToastProvider = ({ children }) => {
       <div
         className={`relative flex items-start p-4 mb-3 rounded-lg shadow-lg border-l-4 ${config.bgColor} ${config.textColor} ${config.borderColor} transform transition-all duration-300 hover:scale-105`}
         onMouseEnter={() => pauseToast(toast.id)}
-        onMouseLeave={() => resumeToast(toast.id)}
-      >
+        onMouseLeave={() => resumeToast(toast.id)}>
         <div className="flex-shrink-0 mr-3">
           <Icon size={20} />
         </div>
@@ -104,8 +99,7 @@ export const ToastProvider = ({ children }) => {
         </div>
         <button
           onClick={() => removeToast(toast.id)}
-          className="flex-shrink-0 ml-3 opacity-70 hover:opacity-100 transition-opacity"
-        >
+          className="flex-shrink-0 ml-3 opacity-70 hover:opacity-100 transition-opacity">
           <X size={16} />
         </button>
         <div className="absolute bottom-0 left-0 h-1 bg-black bg-opacity-20 w-full">
@@ -122,7 +116,7 @@ export const ToastProvider = ({ children }) => {
     <ToastContext.Provider value={{ showToast }}>
       {children}
       <div className="fixed top-4 right-4 z-50 w-full max-w-sm">
-        {toasts.map(toast => (
+        {toasts.map((toast) => (
           <Toast key={toast.id} toast={toast} />
         ))}
       </div>

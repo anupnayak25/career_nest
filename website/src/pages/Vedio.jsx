@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Calendar, Upload, X, Search, Filter, Grid, List, Play, Edit, Trash2, Eye, BarChart3 } from "lucide-react";
+import { Plus, Calendar, Upload, X, Search, Play, Edit, Trash2, Eye } from "lucide-react";
 import {
   addVideo,
   getUserVideos,
   uploadVideoFile,
-  uploadMultipleVideoFiles,
-  addMultipleVideos,
   deleteVideo,
   updateVideo,
 } from "../services/ApiService";
@@ -18,30 +16,38 @@ const Video = () => {
   const [filteredVideos, setFilteredVideos] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [file, setFile] = useState(null);
+  const [placement, setPlacement] = useState(""); // Changed from category to placement
   const [files, setFiles] = useState([]);
-  const [previewUrl, setPreviewUrl] = useState("");
-  const [previewUrls, setPreviewUrls] = useState([]);
-  const [isMultipleMode, setIsMultipleMode] = useState(false);
   const [editingVideoId, setEditingVideoId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  const [editCategory, setEditCategory] = useState("");
+  const [editPlacement, setEditPlacement] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [videoToDelete, setVideoToDelete] = useState(null);
   
-  // New UI state
+  // Modal and UI state
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [viewMode, setViewMode] = useState("grid");
+  const [selectedPlacement, setSelectedPlacement] = useState("all");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [sortBy, setSortBy] = useState("newest");
-  const [showStats, setShowStats] = useState(false);
 
   const navigate = useNavigate();
   const { showToast } = useToast();
+
+  // Available placement/event options
+  const placementOptions = [
+    "Campus Placement",
+    "Off-Campus Drive", 
+    "Virtual Event",
+    "Coding Competition",
+    "Technical Workshop",
+    "Career Fair",
+    "Industry Talk",
+    "Mock Interview"
+  ];
 
   useEffect(() => {
     const token = sessionStorage.getItem("auth_token");
@@ -68,7 +74,7 @@ const Video = () => {
     }
   };
 
-  // Filter and sort videos
+  // Filter videos
   useEffect(() => {
     let filtered = [...videos];
 
@@ -79,154 +85,35 @@ const Video = () => {
       );
     }
 
-    if (selectedCategory && selectedCategory !== "all") {
-      filtered = filtered.filter(video => video.category === selectedCategory);
+    if (selectedPlacement && selectedPlacement !== "all") {
+      filtered = filtered.filter(video => video.category === selectedPlacement);
     }
 
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "oldest":
-          return new Date(a.publish_date) - new Date(b.publish_date);
-        case "title":
-          return a.title.localeCompare(b.title);
-        case "newest":
-        default:
-          return new Date(b.publish_date) - new Date(a.publish_date);
-      }
-    });
+    // Sort by newest first
+    filtered.sort((a, b) => new Date(b.publish_date) - new Date(a.publish_date));
 
     setFilteredVideos(filtered);
-  }, [videos, searchTerm, selectedCategory, sortBy]);
+  }, [videos, searchTerm, selectedPlacement]);
 
-  const getCategories = () => {
-    const categories = [...new Set(videos.map(video => video.category))];
-    return categories.filter(Boolean);
-  };
-
-  const getStats = () => {
-    const totalVideos = videos.length;
-    const categories = getCategories().length;
-    
-    return {
-      totalVideos,
-      categories,
-      filtered: filteredVideos.length
-    };
+  const getPlacements = () => {
+    const placements = [...new Set(videos.map(video => video.category))];
+    return placements.filter(Boolean);
   };
 
   const handleFileChange = (e) => {
-    if (isMultipleMode) {
-      const selectedFiles = Array.from(e.target.files);
-      setFiles(selectedFiles);
-      
-      const urls = selectedFiles.map(file => URL.createObjectURL(file));
-      setPreviewUrls(urls);
-    } else {
-      const selected = e.target.files[0];
-      setFile(selected);
-      setPreviewUrl(selected ? URL.createObjectURL(selected) : "");
-    }
+    const selectedFiles = Array.from(e.target.files);
+    setFiles(selectedFiles);
   };
 
-  const removeFile = (index) => {
-    if (isMultipleMode) {
-      const newFiles = files.filter((_, i) => i !== index);
-      const newUrls = previewUrls.filter((_, i) => i !== index);
-      
-      URL.revokeObjectURL(previewUrls[index]);
-      
-      setFiles(newFiles);
-      setPreviewUrls(newUrls);
-    }
+  const clearFiles = () => {
+    setFiles([]);
+    setTitle("");
+    setDescription("");
+    setPlacement("");
   };
 
-  const clearAllFiles = () => {
-    if (isMultipleMode) {
-      previewUrls.forEach(url => URL.revokeObjectURL(url));
-      setFiles([]);
-      setPreviewUrls([]);
-    } else {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setFile(null);
-      setPreviewUrl("");
-    }
-  };
-
-  const handleAddVideo = async () => {
-    if (!file || !title.trim() || !description.trim() || !category.trim()) {
-      showToast("Please fill all fields and select a video.", "warning");
-      return;
-    }
-
-    const token = sessionStorage.getItem("auth_token");
-    const userId = sessionStorage.getItem("userId");
-
-    if (!token || !userId) {
-      showToast("Session expired. Please log in again.", "error");
-      navigate("/signin");
-      return;
-    }
-
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    try {
-      setUploadProgress(20);
-      showToast("📤 Uploading video file...", "info");
-      
-      const formData = new FormData();
-      formData.append("video", file);
-      const uploadRes = await uploadVideoFile(formData);
-
-      if (!uploadRes.success) {
-        showToast("Upload failed: " + uploadRes.message, "error");
-        return;
-      }
-
-      setUploadProgress(70);
-      showToast("💾 Saving video metadata...", "info");
-
-      const videoData = {
-        user_id: userId,
-        title: title.trim(),
-        description: description.trim(),
-        category: category.trim(),
-        url: uploadRes.filename,
-      };
-
-      const addRes = await addVideo(videoData);
-      setUploadProgress(100);
-      
-      if (addRes.success) {
-        setTitle("");
-        setDescription("");
-        setCategory("");
-        setFile(null);
-        setPreviewUrl("");
-        loadVideos();
-        showToast("🎉 Video uploaded successfully!", "success");
-      } else {
-        showToast("Failed to add video metadata: " + addRes.message, "error");
-      }
-    } catch (err) {
-      console.error("handleAddVideo error:", err);
-      
-      if (err.message.includes("HTML instead of JSON") || err.message.includes("auth")) {
-        showToast("Authentication failed. Please log in again.", "error");
-        navigate("/signin");
-      } else if (err.message.includes("<!DOCTYPE")) {
-        showToast("Server error: Received HTML page instead of JSON response. Check server logs.", "error");
-      } else {
-        showToast("Upload failed: " + err.message, "error");
-      }
-    } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
-    }
-  };
-
-  const handleAddMultipleVideos = async () => {
-    if (!files.length || !title.trim() || !description.trim() || !category.trim()) {
+  const handleUpload = async () => {
+    if (!files.length || !title.trim() || !description.trim() || !placement) {
       showToast("Please fill all fields and select videos.", "warning");
       return;
     }
@@ -245,51 +132,56 @@ const Video = () => {
 
     try {
       setUploadProgress(20);
-      showToast(`📤 Uploading ${files.length} videos...`, "info");
+      showToast(`📤 Uploading ${files.length} video(s)...`, "info");
       
-      const formData = new FormData();
-      files.forEach((file) => {
-        formData.append("videos", file);
-      });
-
-      const uploadRes = await uploadMultipleVideoFiles(formData);
-
-      if (!uploadRes.success) {
-        showToast("Upload failed: " + uploadRes.message, "error");
-        return;
+      // Upload files one by one for better progress tracking
+      const uploadedFiles = [];
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append("video", files[i]);
+        
+        const uploadRes = await uploadVideoFile(formData);
+        if (!uploadRes.success) {
+          throw new Error(`Upload failed for file ${i + 1}: ${uploadRes.message}`);
+        }
+        
+        uploadedFiles.push(uploadRes.filename);
+        setUploadProgress(20 + (i + 1) * (50 / files.length));
       }
 
-      setUploadProgress(70);
-      showToast("💾 Saving videos metadata...", "info");
+      setUploadProgress(80);
+      showToast("💾 Saving video metadata...", "info");
 
-      const videosData = uploadRes.files.map((file, index) => ({
-        title: `${title.trim()} ${files.length > 1 ? `(${index + 1})` : ''}`,
-        description: description.trim(),
-        category: category.trim(),
-        url: file.filename,
-      }));
+      // Save metadata for each video
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        const videoData = {
+          user_id: userId,
+          title: files.length > 1 ? `${title.trim()} (${i + 1})` : title.trim(),
+          description: description.trim(),
+          category: placement,
+          url: uploadedFiles[i],
+        };
 
-      const addRes = await addMultipleVideos(videosData);
+        const addRes = await addVideo(videoData);
+        if (!addRes.success) {
+          throw new Error(`Failed to save metadata for video ${i + 1}: ${addRes.message}`);
+        }
+      }
+
       setUploadProgress(100);
+      clearFiles();
+      setShowUploadModal(false);
+      loadVideos();
+      showToast(`🎉 ${files.length} video(s) uploaded successfully!`, "success");
       
-      if (addRes.success) {
-        setTitle("");
-        setDescription("");
-        setCategory("");
-        clearAllFiles();
-        loadVideos();
-        showToast(`🎉 ${uploadRes.count} videos uploaded successfully!`, "success");
-      } else {
-        showToast("Failed to add videos metadata: " + addRes.message, "error");
-      }
     } catch (err) {
-      console.error("handleAddMultipleVideos error:", err);
+      console.error("Upload error:", err);
       
       if (err.message.includes("HTML instead of JSON") || err.message.includes("auth")) {
         showToast("Authentication failed. Please log in again.", "error");
         navigate("/signin");
       } else if (err.message.includes("<!DOCTYPE")) {
-        showToast("Server error: Received HTML page instead of JSON response. Check server logs.", "error");
+        showToast("Server error: Received HTML page instead of JSON response.", "error");
       } else {
         showToast("Upload failed: " + err.message, "error");
       }
@@ -327,19 +219,19 @@ const Video = () => {
     setEditingVideoId(video.id);
     setEditTitle(video.title);
     setEditDescription(video.description || "");
-    setEditCategory(video.category);
+    setEditPlacement(video.category);
   };
 
   const cancelEditing = () => {
     setEditingVideoId(null);
     setEditTitle("");
     setEditDescription("");
-    setEditCategory("");
+    setEditPlacement("");
   };
 
   const saveEditing = async () => {
-    if (!editTitle.trim() || !editCategory.trim()) {
-      showToast("Title and category are required.", "warning");
+    if (!editTitle.trim() || !editPlacement.trim()) {
+      showToast("Title and placement are required.", "warning");
       return;
     }
 
@@ -347,7 +239,7 @@ const Video = () => {
       const res = await updateVideo(editingVideoId, {
         title: editTitle.trim(),
         description: editDescription.trim(),
-        category: editCategory.trim(),
+        category: editPlacement.trim(),
       });
 
       if (res.success) {
@@ -358,7 +250,7 @@ const Video = () => {
                   ...v,
                   title: editTitle.trim(),
                   description: editDescription.trim(),
-                  category: editCategory.trim(),
+                  category: editPlacement.trim(),
                 }
               : v
           )
@@ -373,7 +265,15 @@ const Video = () => {
     }
   };
 
-  const stats = getStats();
+  const openVideoModal = (video) => {
+    setSelectedVideo(video);
+    setShowVideoModal(true);
+  };
+
+  const closeVideoModal = () => {
+    setSelectedVideo(null);
+    setShowVideoModal(false);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -385,232 +285,20 @@ const Video = () => {
               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                 🎬 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Video Manager</span>
               </h1>
-              <p className="text-gray-600 mt-1">Upload, organize, and manage your video content</p>
+              <p className="text-gray-600 mt-1">Upload, organize, and manage placement & event videos</p>
             </div>
             <button
-              onClick={() => setShowStats(!showStats)}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-all"
+              onClick={() => setShowUploadModal(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg"
             >
-              <BarChart3 size={20} />
-              Stats
+              <Upload size={20} />
+              Upload Videos
             </button>
           </div>
-
-          {/* Stats Panel */}
-          {showStats && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl">
-                <div className="text-2xl font-bold">{stats.totalVideos}</div>
-                <div className="text-blue-100">Total Videos</div>
-              </div>
-              <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-xl">
-                <div className="text-2xl font-bold">{stats.categories}</div>
-                <div className="text-green-100">Categories</div>
-              </div>
-              <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-xl">
-                <div className="text-2xl font-bold">{stats.filtered}</div>
-                <div className="text-purple-100">Filtered Results</div>
-              </div>
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-xl">
-                <div className="text-2xl font-bold">{isUploading ? `${uploadProgress}%` : '✓'}</div>
-                <div className="text-orange-100">{isUploading ? 'Uploading' : 'Ready'}</div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Upload Mode Toggle */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <div className="flex items-center justify-center mb-6">
-            <div className="flex bg-gray-100 rounded-xl p-1">
-              <button
-                onClick={() => {
-                  setIsMultipleMode(false);
-                  clearAllFiles();
-                }}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                  !isMultipleMode
-                    ? 'bg-white text-blue-600 shadow-md'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <Plus className="inline mr-2" size={16} />
-                Single Upload
-              </button>
-              <button
-                onClick={() => {
-                  setIsMultipleMode(true);
-                  clearAllFiles();
-                }}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                  isMultipleMode
-                    ? 'bg-white text-blue-600 shadow-md'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <Upload className="inline mr-2" size={16} />
-                Multiple Upload
-              </button>
-            </div>
-          </div>
-
-          {/* Upload Form */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Title</label>
-                <input 
-                  value={title} 
-                  onChange={(e) => setTitle(e.target.value)} 
-                  placeholder={isMultipleMode ? "Base title (numbers will be added)" : "Enter video title"} 
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
-                  disabled={isUploading}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Description</label>
-                <input 
-                  value={description} 
-                  onChange={(e) => setDescription(e.target.value)} 
-                  placeholder="Enter description" 
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
-                  disabled={isUploading}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Category</label>
-                <input 
-                  value={category} 
-                  onChange={(e) => setCategory(e.target.value)} 
-                  placeholder="Enter category" 
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
-                  disabled={isUploading}
-                />
-              </div>
-            </div>
-            
-            <div className="flex gap-4 items-end">
-              <div className="flex-1 space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  {isMultipleMode ? "Select Videos" : "Select Video"}
-                </label>
-                <input 
-                  type="file" 
-                  accept="video/*" 
-                  multiple={isMultipleMode}
-                  onChange={handleFileChange} 
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:rounded-md transition-all" 
-                  disabled={isUploading}
-                />
-              </div>
-              
-              {isMultipleMode ? (
-                <button 
-                  onClick={handleAddMultipleVideos} 
-                  disabled={!files.length || isUploading}
-                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 whitespace-nowrap"
-                >
-                  {isUploading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload size={18} />
-                      Upload All ({files.length})
-                    </>
-                  )}
-                </button>
-              ) : (
-                <button 
-                  onClick={handleAddVideo} 
-                  disabled={!file || isUploading}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 whitespace-nowrap"
-                >
-                  {isUploading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Plus size={18} />
-                      Upload
-                    </>
-                  )}
-                </button>
-              )}
-              
-              {((isMultipleMode && files.length > 0) || (!isMultipleMode && file)) && (
-                <button 
-                  onClick={clearAllFiles} 
-                  disabled={isUploading}
-                  className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  title="Clear files"
-                >
-                  <X size={18} />
-                </button>
-              )}
-            </div>
-
-            {/* Upload Progress */}
-            {isUploading && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-blue-700">Upload Progress</span>
-                  <span className="text-sm text-blue-600">{uploadProgress}%</span>
-                </div>
-                <div className="w-full bg-blue-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                    style={{ width: `${uploadProgress}%` }}
-                  ></div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Preview Section */}
-        {!isMultipleMode && previewUrl && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Preview</h3>
-            <video src={previewUrl} controls className="rounded-xl shadow-md w-full max-w-2xl mx-auto" />
-          </div>
-        )}
-
-        {/* Multiple Files Preview */}
-        {isMultipleMode && files.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Selected Videos ({files.length})</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {files.map((file, index) => (
-                <div key={index} className="relative bg-gray-50 rounded-xl overflow-hidden group">
-                  <video 
-                    src={previewUrls[index]} 
-                    controls={false}
-                    className="w-full h-32 object-cover"
-                  />
-                  <div className="p-3">
-                    <p className="text-sm font-medium truncate text-gray-800">{file.name}</p>
-                    <p className="text-xs text-gray-500">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
-                  </div>
-                  <button
-                    onClick={() => removeFile(index)}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all"
-                    title="Remove file"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Search and Filter */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
@@ -627,53 +315,24 @@ const Video = () => {
               </div>
               
               <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                value={selectedPlacement}
+                onChange={(e) => setSelectedPlacement(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="all">All Categories</option>
-                {getCategories().map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                <option value="all">All Placements/Events</option>
+                {getPlacements().map(placement => (
+                  <option key={placement} value={placement}>{placement}</option>
                 ))}
-              </select>
-
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="title">Title A-Z</option>
               </select>
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`p-2 rounded-lg transition-all ${
-                  viewMode === "grid" 
-                    ? "bg-blue-100 text-blue-600" 
-                    : "text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                <Grid size={20} />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-2 rounded-lg transition-all ${
-                  viewMode === "list" 
-                    ? "bg-blue-100 text-blue-600" 
-                    : "text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                <List size={20} />
-              </button>
+            <div className="text-sm text-gray-600">
+              {filteredVideos.length} video(s) found
             </div>
           </div>
         </div>
 
-        {/* Videos Grid/List */}
+        {/* Videos Grid */}
         {filteredVideos.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
             <div className="text-6xl mb-4">🎬</div>
@@ -685,169 +344,308 @@ const Video = () => {
             </p>
           </div>
         ) : (
-          <div className={`${
-            viewMode === "grid" 
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
-              : "space-y-4"
-          }`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredVideos.map((video) => (
               <div
                 key={video.id}
-                className={`bg-white rounded-2xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 ${
-                  viewMode === "list" ? "flex items-center" : ""
-                }`}
+                className="bg-white rounded-2xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300"
               >
-                {viewMode === "grid" ? (
-                  <>
-                    <div className="relative">
-                      <video 
-                        controls={false}
-                        className="w-full h-48 object-cover cursor-pointer"
-                        onClick={() => editingVideoId !== video.id && navigate(`/video-player/${video.id}`)}
-                      >
-                        <source src={`${import.meta.env.VITE_API_URL}/videos/${video.url}`} type="video/mp4" />
-                      </video>
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                        <Play className="text-white opacity-0 group-hover:opacity-100 transition-all duration-300" size={32} />
-                      </div>
-                      
-                      {/* Action Buttons */}
-                      <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startEditing(video);
-                          }}
-                          className="bg-yellow-500 text-white p-2 rounded-full hover:bg-yellow-600 transition-all"
-                          title="Edit Video"
-                        >
-                          <Edit size={14} />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(video.id);
-                          }}
-                          className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all"
-                          title="Delete Video"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
+                <div className="relative">
+                  <video 
+                    controls={false}
+                    className="w-full h-48 object-cover cursor-pointer"
+                    onClick={() => openVideoModal(video)}
+                  >
+                    <source src={`${import.meta.env.VITE_API_URL}/videos/${video.url}`} type="video/mp4" />
+                  </video>
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                    <Play className="text-white opacity-0 group-hover:opacity-100 transition-all duration-300" size={32} />
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startEditing(video);
+                      }}
+                      className="bg-yellow-500 text-white p-2 rounded-full hover:bg-yellow-600 transition-all"
+                      title="Edit Video"
+                    >
+                      <Edit size={14} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(video.id);
+                      }}
+                      className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all"
+                      title="Delete Video"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
 
-                    <div className="p-4 space-y-3">
-                      {editingVideoId === video.id ? (
-                        <div className="space-y-3">
-                          <input 
-                            value={editTitle} 
-                            onChange={(e) => setEditTitle(e.target.value)} 
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                            placeholder="Title"
-                          />
-                          <textarea 
-                            value={editDescription} 
-                            onChange={(e) => setEditDescription(e.target.value)} 
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                            rows={2}
-                            placeholder="Description"
-                          />
-                          <input 
-                            value={editCategory} 
-                            onChange={(e) => setEditCategory(e.target.value)} 
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                            placeholder="Category"
-                          />
-                          <div className="flex gap-2">
-                            <button 
-                              onClick={(e) => { 
-                                e.stopPropagation(); 
-                                saveEditing(); 
-                              }} 
-                              className="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-all"
-                            >
-                              Save
-                            </button>
-                            <button 
-                              onClick={(e) => { 
-                                e.stopPropagation(); 
-                                cancelEditing(); 
-                              }} 
-                              className="flex-1 bg-gray-300 text-gray-800 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-400 transition-all"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <h3 className="font-semibold text-gray-900 line-clamp-2">{video.title}</h3>
-                          <p className="text-sm text-gray-600 line-clamp-2">{video.description}</p>
-                          <div className="flex items-center justify-between text-xs text-gray-500">
-                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{video.category}</span>
-                            <div className="flex items-center gap-1">
-                              <Calendar size={12} />
-                              {new Date(video.publish_date).toLocaleDateString()}
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  /* List View */
-                  <>
-                    <div className="flex-shrink-0">
-                      <video 
-                        controls={false}
-                        className="w-32 h-20 object-cover cursor-pointer rounded-l-2xl"
-                        onClick={() => editingVideoId !== video.id && navigate(`/video-player/${video.id}`)}
+                <div className="p-4 space-y-3">
+                  {editingVideoId === video.id ? (
+                    <div className="space-y-3">
+                      <input 
+                        value={editTitle} 
+                        onChange={(e) => setEditTitle(e.target.value)} 
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        placeholder="Title"
+                      />
+                      <textarea 
+                        value={editDescription} 
+                        onChange={(e) => setEditDescription(e.target.value)} 
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        rows={2}
+                        placeholder="Description"
+                      />
+                      <select 
+                        value={editPlacement} 
+                        onChange={(e) => setEditPlacement(e.target.value)} 
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <source src={`${import.meta.env.VITE_API_URL}/videos/${video.url}`} type="video/mp4" />
-                      </video>
-                    </div>
-                    <div className="flex-1 p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{video.title}</h3>
-                          <p className="text-sm text-gray-600 mt-1">{video.description}</p>
-                          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{video.category}</span>
-                            <div className="flex items-center gap-1">
-                              <Calendar size={12} />
-                              {new Date(video.publish_date).toLocaleDateString()}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2 ml-4">
-                          <button
-                            onClick={() => navigate(`/video-player/${video.id}`)}
-                            className="bg-blue-100 text-blue-600 p-2 rounded-lg hover:bg-blue-200 transition-all"
-                            title="Play Video"
-                          >
-                            <Play size={16} />
-                          </button>
-                          <button
-                            onClick={() => startEditing(video)}
-                            className="bg-yellow-100 text-yellow-600 p-2 rounded-lg hover:bg-yellow-200 transition-all"
-                            title="Edit Video"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(video.id)}
-                            className="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition-all"
-                            title="Delete Video"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
+                        <option value="">Select Placement/Event</option>
+                        {placementOptions.map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            saveEditing(); 
+                          }} 
+                          className="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-all"
+                        >
+                          Save
+                        </button>
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            cancelEditing(); 
+                          }} 
+                          className="flex-1 bg-gray-300 text-gray-800 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-400 transition-all"
+                        >
+                          Cancel
+                        </button>
                       </div>
                     </div>
-                  </>
-                )}
+                  ) : (
+                    <>
+                      <h3 className="font-semibold text-gray-900 line-clamp-2">{video.title}</h3>
+                      <p className="text-sm text-gray-600 line-clamp-2">{video.description}</p>
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{video.category}</span>
+                        <div className="flex items-center gap-1">
+                          <Calendar size={12} />
+                          {new Date(video.publish_date).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Upload Modal */}
+        {showUploadModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Upload Videos</h2>
+                  <button
+                    onClick={() => {
+                      setShowUploadModal(false);
+                      clearFiles();
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-all"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Title</label>
+                    <input 
+                      value={title} 
+                      onChange={(e) => setTitle(e.target.value)} 
+                      placeholder="Enter video title" 
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                      disabled={isUploading}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Description</label>
+                    <textarea 
+                      value={description} 
+                      onChange={(e) => setDescription(e.target.value)} 
+                      placeholder="Enter description" 
+                      rows={3}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                      disabled={isUploading}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Placement/Event Type</label>
+                    <select 
+                      value={placement} 
+                      onChange={(e) => setPlacement(e.target.value)} 
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                      disabled={isUploading}
+                    >
+                      <option value="">Select Placement/Event</option>
+                      {placementOptions.map(option => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Select Videos</label>
+                    <input 
+                      type="file" 
+                      accept="video/*" 
+                      multiple
+                      onChange={handleFileChange} 
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:rounded-md transition-all" 
+                      disabled={isUploading}
+                    />
+                  </div>
+
+                  {/* Files Preview */}
+                  {files.length > 0 && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Selected Videos ({files.length})</label>
+                      <div className="max-h-32 overflow-y-auto space-y-2">
+                        {files.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                            <div>
+                              <p className="text-sm font-medium text-gray-800">{file.name}</p>
+                              <p className="text-xs text-gray-500">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const newFiles = files.filter((_, i) => i !== index);
+                                setFiles(newFiles);
+                              }}
+                              className="text-red-500 hover:text-red-700 transition-all"
+                              disabled={isUploading}
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload Progress */}
+                  {isUploading && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-blue-700">Upload Progress</span>
+                        <span className="text-sm text-blue-600">{uploadProgress}%</span>
+                      </div>
+                      <div className="w-full bg-blue-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-4">
+                    <button 
+                      onClick={handleUpload} 
+                      disabled={!files.length || !title.trim() || !description.trim() || !placement || isUploading}
+                      className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                    >
+                      {isUploading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={18} />
+                          Upload {files.length > 0 ? `${files.length} Video(s)` : 'Videos'}
+                        </>
+                      )}
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setShowUploadModal(false);
+                        clearFiles();
+                      }}
+                      disabled={isUploading}
+                      className="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Video Modal */}
+        {showVideoModal && selectedVideo && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-gray-900">{selectedVideo.title}</h2>
+                  <button
+                    onClick={closeVideoModal}
+                    className="text-gray-400 hover:text-gray-600 transition-all"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <video 
+                    controls
+                    className="w-full rounded-xl shadow-lg"
+                    autoPlay
+                  >
+                    <source src={`${import.meta.env.VITE_API_URL}/videos/${selectedVideo.url}`} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">Description</h3>
+                        <p className="text-gray-600">{selectedVideo.description || 'No description provided'}</p>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">Placement/Event</h3>
+                        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">{selectedVideo.category}</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Calendar size={16} className="mr-2" />
+                        Published on {new Date(selectedVideo.publish_date).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

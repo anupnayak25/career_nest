@@ -4,22 +4,24 @@ const connection = require("../db"); // make sure your db.js is correct
 
 // Create a new technical set
 router.post("/", (req, res) => {
-  const { title, description, upload_date, due_date, totalMarks, user_id, questions } = req.body;
-  const insertSetQuery = `INSERT INTO technical_questions (title, description, upload_date, due_date, totalMarks, user_id) VALUES (?, ?, ?, ?, ?, ?)`;
+  const { title, description, publish_date, due_date, user_id, questions } = req.body;
+  // Auto-calculate total_marks
+  const totalMarks = questions.reduce((sum, q) => sum + (parseInt(q.marks) || 0), 0);
+  const insertSetQuery = `INSERT INTO technical_questions (title, description, publish_date, due_date, total_marks, user_id) VALUES (?, ?, ?, ?, ?, ?)`;
 
-  connection.query(insertSetQuery, [title, description, upload_date, due_date, totalMarks, user_id], (err, result) => {
+  connection.query(insertSetQuery, [title, description, publish_date, due_date, totalMarks, user_id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
-    const technicalQuestionId = result.insertId;
+    const technicalId = result.insertId;
 
     // Insert related questions
-    const insertQuestionsQuery = `INSERT INTO technical_question_items (technical_question_id, qno, question, marks) VALUES ?`;
-    const values = questions.map((q) => [technicalQuestionId, q.qno, q.question, q.marks]);
+    const insertQuestionsQuery = `INSERT INTO technical_question_items (technical_id, qno, question, marks) VALUES ?`;
+    const values = questions.map((q) => [technicalId, q.qno, q.question, q.marks]);
 
     connection.query(insertQuestionsQuery, [values], (err2) => {
       if (err2) return res.status(500).json({ error: err2.message });
       res
         .status(201)
-        .json({ id: technicalQuestionId, title, description, upload_date, due_date, totalMarks, user_id, questions });
+        .json({ id: technicalId, title, description, publish_date, due_date, totalMarks, user_id, questions });
     });
   });
 });
@@ -70,15 +72,26 @@ router.get("/:id", (req, res) => {
   });
 });
 
-// Update a technical set (only main info)
+// Update a technical set (main info and questions)
 router.put("/:id", (req, res) => {
   const id = req.params.id;
-  const { title, description, upload_date, due_date, totalMarks, user_id } = req.body;
-  const updateQuery = `UPDATE technical_questions SET title=?, description=?, upload_date=?, due_date=?, totalMarks=?, user_id=? WHERE id=?`;
+  const { title, description, publish_date, due_date, user_id, questions } = req.body;
+  // Auto-calculate total_marks
+  const totalMarks = questions.reduce((sum, q) => sum + (parseInt(q.marks) || 0), 0);
+  const updateQuery = `UPDATE technical_questions SET title=?, description=?, publish_date=?, due_date=?, total_marks=?, user_id=? WHERE id=?`;
 
-  connection.query(updateQuery, [title, description, upload_date, due_date, totalMarks, user_id, id], (err) => {
+  connection.query(updateQuery, [title, description, publish_date, due_date, totalMarks, user_id, id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ id, title, description, upload_date, due_date, totalMarks, user_id });
+    // Remove old questions and insert new ones
+    connection.query("DELETE FROM technical_question_items WHERE technical_id = ?", [id], (err2) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      const insertQuestionsQuery = `INSERT INTO technical_question_items (technical_id, qno, question, marks) VALUES ?`;
+      const values = questions.map((q) => [id, q.qno, q.question, q.marks]);
+      connection.query(insertQuestionsQuery, [values], (err3) => {
+        if (err3) return res.status(500).json({ error: err3.message });
+        res.json({ id, title, description, publish_date, due_date, totalMarks, user_id, questions });
+      });
+    });
   });
 });
 

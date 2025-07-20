@@ -40,7 +40,7 @@ router.post("/", (req, res) => {
   const { title, description, upload_date, due_date, totalMarks, user_id, programQuestions } = req.body;
 
   // Insert the program set first
-  const query = `INSERT INTO program_sets (title, description, upload_date, due_date, totalMarks, user_id)
+  const query = `INSERT INTO program_sets (title, description, publish_date, due_date, total_marks, user_id)
                  VALUES (?, ?, ?, ?, ?, ?)`;
 
   connection.query(query, [title, description, upload_date, due_date, totalMarks, user_id], (err, result) => {
@@ -98,7 +98,7 @@ router.post("/", (req, res) => {
 router.put("/:id", (req, res) => {
   const id = req.params.id;
   const { title, description, upload_date, due_date, totalMarks, user_id } = req.body;
-  const query = `UPDATE program_sets SET title=?, description=?, upload_date=?, due_date=?, totalMarks=?, user_id=? WHERE id=?`;
+  const query = `UPDATE program_sets SET title=?, description=?, publish_date=?, due_date=?, total_marks=?, user_id=? WHERE id=?`;
   connection.query(query, [title, description, upload_date, due_date, totalMarks, user_id, id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });

@@ -5,6 +5,11 @@ let authToken = sessionStorage.getItem("auth_token");
 let userId = sessionStorage.getItem("userId");
 console.log(authToken);
 
+export const refresh = () => {
+  authToken = sessionStorage.getItem("auth_token");
+  userId = sessionStorage.getItem("userId");
+};
+
 console.log("UserId:", userId);
 
 // Helper to construct endpoint with type (quiz/hr/technical)
@@ -22,6 +27,7 @@ const getHeaders = (json = true) => {
 
 // 1. POST: Upload Questions
 export const uploadQuestions = async (type, data) => {
+  refresh();
   console.log(data);
   const res = await fetch(buildUrl(type), {
     method: "POST",
@@ -34,6 +40,7 @@ export const uploadQuestions = async (type, data) => {
 
 // 2. GET: Get Questions by User ID
 export const getUserQuestions = async (type) => {
+  refresh();
   if (!userId) throw new Error("User ID not found in sessionStorage");
   const res = await fetch(buildUrl(type, `/user/${userId}`), {
     headers: getHeaders(false),
@@ -44,6 +51,7 @@ export const getUserQuestions = async (type) => {
 
 // 3. PUT: Publish Result
 export const publishResult = async (type, id, display_result) => {
+  refresh();
   const res = await fetch(buildUrl(type, `/publish/${id}`), {
     method: "PUT",
     headers: getHeaders(),
@@ -55,6 +63,7 @@ export const publishResult = async (type, id, display_result) => {
 
 // 4. GET: Get Submitted Users List for a Question
 export const getSubmittedUsers = async (type, id) => {
+  refresh();
   const res = await fetch(buildUrl(type, `/answers/${id}`), {
     headers: getHeaders(false),
   });
@@ -64,6 +73,7 @@ export const getSubmittedUsers = async (type, id) => {
 
 // 5. GET: Get Answers by Specific User
 export const getUserAnswers = async (type, questionId) => {
+  refresh();
   if (!userId) throw new Error("User ID not found in sessionStorage");
   const res = await fetch(buildUrl(type, `/answers/${questionId}/${userId}`), {
     headers: getHeaders(false),
@@ -74,6 +84,7 @@ export const getUserAnswers = async (type, questionId) => {
 
 // 6. PUT: Update marks for a specific user's answers
 export const updateUserMarks = async (type, questionId, userId, updates) => {
+  refresh();
   const res = await fetch(buildUrl(type, `/answers/${questionId}/${userId}/marks`), {
     method: "PUT",
     headers: getHeaders(),
@@ -85,6 +96,7 @@ export const updateUserMarks = async (type, questionId, userId, updates) => {
 
 // 6. DELETE: Delete Question
 export const deleteQuestion = async (type, questionId) => {
+  refresh();
   const res = await fetch(buildUrl(type, `/${questionId}`), {
     method: "DELETE",
     headers: getHeaders(false),
@@ -97,6 +109,7 @@ export const deleteQuestion = async (type, questionId) => {
 
 // Upload video file (FormData, no Content-Type header set explicitly)
 export const uploadVideoFile = async (formData) => {
+  refresh();
   try {
     const token = authToken;
     const response = await fetch(`${apiUrl}/api/videos/upload`, {
@@ -125,6 +138,7 @@ export const uploadVideoFile = async (formData) => {
 
 // Add video metadata (JSON)
 export const addVideo = async (videoData) => {
+  refresh();
   const token = authToken;
   if ("id" in videoData) delete videoData.id; // Prevent duplicate primary key error
 
@@ -148,6 +162,7 @@ export const addVideo = async (videoData) => {
 
 // Get videos for the logged-in user
 export const getUserVideos = async () => {
+  refresh();
   if (!userId) throw new Error("User ID not found in sessionStorage");
   if (!authToken) throw new Error("Auth token not found in sessionStorage");
   const res = await fetch(`${apiUrl}/api/videos/user/${userId}`, {
@@ -161,6 +176,7 @@ export const getUserVideos = async () => {
 
 // Delete video by ID
 export const deleteVideo = async (videoId) => {
+  refresh();
   if (!authToken) throw new Error("Auth token not found in sessionStorage");
   const res = await fetch(`${apiUrl}/api/videos/${videoId}`, {
     method: "DELETE",
@@ -175,6 +191,7 @@ export const deleteVideo = async (videoId) => {
 
 // ** NEW: Update video metadata by ID **
 export const updateVideo = async (videoId, updateData) => {
+  refresh();
   if (!authToken) throw new Error("Auth token not found in sessionStorage");
   try {
     const res = await fetch(`${apiUrl}/api/videos/${videoId}`, {

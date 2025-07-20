@@ -3,6 +3,7 @@ import { BookOpen, CheckCircle, Code, Eye, EyeOff, Lock, Mail, Trophy, User } fr
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../ui/Toast";
+import { refresh } from "../services/ApiService";
 
 const Signup = () => {
   // Form state
@@ -269,6 +270,7 @@ const Signup = () => {
         sessionStorage.setItem("userId", data.id);
         sessionStorage.setItem("isLoggedIn", "true");
         showNotification("Account created! 🎉");
+        refresh();
         navigate("/dashboard");
       } else if (response.status === 409) {
         const errorData = await response.json();

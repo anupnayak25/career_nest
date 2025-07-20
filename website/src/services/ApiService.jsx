@@ -1,28 +1,24 @@
 const apiUrl = import.meta.env.VITE_API_URL;
 
-// --- Cached Auth State ---
-let authToken = sessionStorage.getItem("auth_token");
-let userId = sessionStorage.getItem("userId");
-console.log(authToken);
+// --- Auth Helpers ---
+const getAuthToken = () => sessionStorage.getItem("auth_token");
+const getUserId = () => sessionStorage.getItem("userId");
 
-console.log("UserId:", userId);
+// --- Helper Functions ---
+const buildUrl = (type, endpoint = "") =>
+  `${apiUrl}/api/${type}${endpoint ? endpoint : ""}`;
 
-// Helper to construct endpoint with type (quiz/hr/technical)
-const buildUrl = (type, endpoint = "") => `${apiUrl}/api/${type}${endpoint}/`;
-
-// Common headers with token, optionally content-type
 const getHeaders = (json = true) => {
+  const token = getAuthToken();
   const headers = {};
   if (json) headers["Content-Type"] = "application/json";
-  if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
   return headers;
 };
 
 // --- Question APIs ---
 
-// 1. POST: Upload Questions
 export const uploadQuestions = async (type, data) => {
-  console.log(data);
   const res = await fetch(buildUrl(type), {
     method: "POST",
     headers: getHeaders(),
@@ -32,17 +28,18 @@ export const uploadQuestions = async (type, data) => {
   return await res.json();
 };
 
-// 2. GET: Get Questions by User ID
 export const getUserQuestions = async (type) => {
+  const userId = getUserId();
   if (!userId) throw new Error("User ID not found in sessionStorage");
+
   const res = await fetch(buildUrl(type, `/user/${userId}`), {
     headers: getHeaders(false),
   });
+
   if (!res.ok) throw new Error(await res.text());
   return await res.json();
 };
 
-// 3. PUT: Publish Result
 export const publishResult = async (type, id, display_result) => {
   const res = await fetch(buildUrl(type, `/publish/${id}`), {
     method: "PUT",
@@ -53,7 +50,6 @@ export const publishResult = async (type, id, display_result) => {
   return await res.json();
 };
 
-// 4. GET: Get Submitted Users List for a Question
 export const getSubmittedUsers = async (type, id) => {
   const res = await fetch(buildUrl(type, `/answers/${id}`), {
     headers: getHeaders(false),
@@ -62,9 +58,10 @@ export const getSubmittedUsers = async (type, id) => {
   return await res.json();
 };
 
-// 5. GET: Get Answers by Specific User
 export const getUserAnswers = async (type, questionId) => {
+  const userId = getUserId();
   if (!userId) throw new Error("User ID not found in sessionStorage");
+
   const res = await fetch(buildUrl(type, `/answers/${questionId}/${userId}`), {
     headers: getHeaders(false),
   });
@@ -72,7 +69,6 @@ export const getUserAnswers = async (type, questionId) => {
   return await res.json();
 };
 
-// 6. PUT: Update marks for a specific user's answers
 export const updateUserMarks = async (type, questionId, userId, updates) => {
   const res = await fetch(buildUrl(type, `/answers/${questionId}/${userId}/marks`), {
     method: "PUT",
@@ -83,7 +79,6 @@ export const updateUserMarks = async (type, questionId, userId, updates) => {
   return await res.json();
 };
 
-// 6. DELETE: Delete Question
 export const deleteQuestion = async (type, questionId) => {
   const res = await fetch(buildUrl(type, `/${questionId}`), {
     method: "DELETE",
@@ -95,77 +90,235 @@ export const deleteQuestion = async (type, questionId) => {
 
 // --- Video APIs ---
 
-// Upload video file (FormData, no Content-Type header set explicitly)
 export const uploadVideoFile = async (formData) => {
   try {
-    const token = authToken;
+    const token = getAuthToken();
+    if (!token) throw new Error("Auth token missing");
+
     const response = await fetch(`${apiUrl}/api/videos/upload`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        // Do NOT set Content-Type here — browser handles it for FormData
+        // Do NOT set Content-Type for FormData
       },
       body: formData,
     });
 
-    const rawText = await response.text();
-    console.log("UPLOAD RAW RESPONSE:", rawText);
-    const json = JSON.parse(rawText);
+    // First, check if the response is ok
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("UPLOAD RESPONSE NOT OK:", response.status, errorText);
+      
+      // Try to parse as JSON, fallback to text if it fails
+      let errorMessage;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || `Upload failed with status ${response.status}`;
+      } catch {
+        errorMessage = errorText.includes('<!DOCTYPE') 
+          ? "Server returned HTML instead of JSON. Check your authentication token." 
+          : errorText || `Upload failed with status ${response.status}`;
+      }
+      
+      throw new Error(errorMessage);
+    }
 
-    if (!response.ok || !json.success) {
+    const text = await response.text();
+    console.log("UPLOAD RAW RESPONSE:", text);
+    
+    if (!text) {
+      throw new Error("Empty response from server");
+    }
+
+    // Check if response is HTML (which indicates an error page)
+    if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+      throw new Error("Server returned HTML page instead of JSON. Please check your authentication.");
+    }
+
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (parseError) {
+      console.error("JSON PARSE ERROR:", parseError);
+      throw new Error("Invalid JSON response from server: " + text.substring(0, 100));
+    }
+
+    if (!json.success) {
       throw new Error(json.message || "Upload failed");
     }
 
     return json;
   } catch (err) {
     console.error("Video upload error:", err.message);
-    return { success: false, message: err.message };
+    throw err; // Re-throw to be handled by caller
   }
 };
 
-// Add video metadata (JSON)
-export const addVideo = async (videoData) => {
-  const token = authToken;
-  if ("id" in videoData) delete videoData.id; // Prevent duplicate primary key error
-
+// Upload multiple video files
+export const uploadMultipleVideoFiles = async (formData) => {
   try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Auth token missing");
+
+    const response = await fetch(`${apiUrl}/api/videos/upload-multiple`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // Do NOT set Content-Type for FormData
+      },
+      body: formData,
+    });
+
+    // First, check if the response is ok
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("MULTIPLE UPLOAD RESPONSE NOT OK:", response.status, errorText);
+      
+      // Try to parse as JSON, fallback to text if it fails
+      let errorMessage;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || `Upload failed with status ${response.status}`;
+      } catch {
+        errorMessage = errorText.includes('<!DOCTYPE') 
+          ? "Server returned HTML instead of JSON. Check your authentication token." 
+          : errorText || `Upload failed with status ${response.status}`;
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const text = await response.text();
+    console.log("MULTIPLE UPLOAD RAW RESPONSE:", text);
+    
+    if (!text) {
+      throw new Error("Empty response from server");
+    }
+
+    // Check if response is HTML (which indicates an error page)
+    if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+      throw new Error("Server returned HTML page instead of JSON. Please check your authentication.");
+    }
+
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (parseError) {
+      console.error("JSON PARSE ERROR:", parseError);
+      throw new Error("Invalid JSON response from server: " + text.substring(0, 100));
+    }
+
+    if (!json.success) {
+      throw new Error(json.message || "Upload failed");
+    }
+
+    return json;
+  } catch (err) {
+    console.error("Multiple video upload error:", err.message);
+    throw err; // Re-throw to be handled by caller
+  }
+};
+
+export const addVideo = async (videoData) => {
+  try {
+    const token = getAuthToken();
+    const userId = getUserId();
+    if (!token || !userId) throw new Error("Auth token or user ID missing");
+
+    const { title, description, url, category } = videoData;
+
+    if (!title || !description || !url || !category) {
+      throw new Error("Missing required video fields.");
+    }
+
+    const body = JSON.stringify({
+      title,
+      description,
+      url,
+      category,
+      user_id: userId,
+    });
+
     const res = await fetch(`${apiUrl}/api/videos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(videoData),
+      body,
     });
 
-    if (!res.ok) throw new Error(await res.text());
-    return await res.json();
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Failed to add video metadata");
+    }
+
+    return data;
   } catch (err) {
     console.error("Add video error:", err.message);
     return { success: false, message: err.message };
   }
 };
 
-// Get videos for the logged-in user
+// Add multiple videos metadata (batch)
+export const addMultipleVideos = async (videosData) => {
+  try {
+    const token = getAuthToken();
+    const userId = getUserId();
+    if (!token || !userId) throw new Error("Auth token or user ID missing");
+
+    // Add user_id to each video
+    const videosWithUserId = videosData.map(video => ({
+      ...video,
+      user_id: userId
+    }));
+
+    const res = await fetch(`${apiUrl}/api/videos/batch`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ videos: videosWithUserId }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Failed to add multiple videos metadata");
+    }
+
+    return data;
+  } catch (err) {
+    console.error("Add multiple videos error:", err.message);
+    return { success: false, message: err.message };
+  }
+};
+
 export const getUserVideos = async () => {
-  if (!userId) throw new Error("User ID not found in sessionStorage");
-  if (!authToken) throw new Error("Auth token not found in sessionStorage");
+  const token = getAuthToken();
+  const userId = getUserId();
+  if (!token || !userId) throw new Error("User credentials not found in sessionStorage");
+
   const res = await fetch(`${apiUrl}/api/videos/user/${userId}`, {
     headers: {
-      Authorization: `Bearer ${authToken}`,
+      Authorization: `Bearer ${token}`,
     },
   });
+
   if (!res.ok) throw new Error(await res.text());
   return await res.json();
 };
 
-// Delete video by ID
 export const deleteVideo = async (videoId) => {
-  if (!authToken) throw new Error("Auth token not found in sessionStorage");
+  const token = getAuthToken();
+  if (!token) throw new Error("Auth token not found in sessionStorage");
+
   const res = await fetch(`${apiUrl}/api/videos/${videoId}`, {
     method: "DELETE",
     headers: {
-      Authorization: `Bearer ${authToken}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -173,21 +326,27 @@ export const deleteVideo = async (videoId) => {
   return await res.json();
 };
 
-// ** NEW: Update video metadata by ID **
 export const updateVideo = async (videoId, updateData) => {
-  if (!authToken) throw new Error("Auth token not found in sessionStorage");
+  const token = getAuthToken();
+  if (!token) throw new Error("Auth token not found in sessionStorage");
+
   try {
     const res = await fetch(`${apiUrl}/api/videos/${videoId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${authToken}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(updateData),
     });
 
-    if (!res.ok) throw new Error(await res.text());
-    return await res.json();
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Failed to update video");
+    }
+
+    return data;
   } catch (err) {
     console.error("Update video error:", err.message);
     return { success: false, message: err.message };

@@ -1,0 +1,1 @@
+/media/Data/Project/career-nest/career_nest/frontend/build/app/intermediates/cxx/Debug/103f4w2k/obj/x86_64

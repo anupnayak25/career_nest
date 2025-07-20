@@ -62,7 +62,7 @@ router.get("/:id", (req, res) => {
 
   connection.query(setQuery, [id], (err, setResults) => {
     if (err) return res.status(500).json({ error: err.message });
-    if (setResults.length === 0) return res.status(404).send("Technical set not found");
+    if (setResults.length === 0) return res.status(404).json({ message: "Technical set not found" });
 
     connection.query(questionsQuery, [id], (err2, questionsResults) => {
       if (err2) return res.status(500).json({ error: err2.message });
@@ -99,7 +99,7 @@ router.put("/:id", (req, res) => {
 router.delete("/:id", (req, res) => {
   const id = req.params.id;
   // Delete questions first, then the set
-  connection.query("DELETE FROM technical_question_items WHERE technical_question_id = ?", [id], (err) => {
+  connection.query("DELETE FROM technical_question_items WHERE technical_id = ?", [id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
 
     connection.query("DELETE FROM technical_questions WHERE id = ?", [id], (err2) => {
@@ -206,6 +206,15 @@ router.put("/answers/:technical_id/:user_id/marks", (req, res) => {
     .catch((error) => {
       res.status(500).json({ error: error.message });
     });
+});
+
+// Get all posts by the logged-in user
+router.get("/myposts", (req, res) => {
+  const userId = req.user.id;
+  connection.query("SELECT * FROM technical_questions WHERE user_id = ?", [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
 });
 
 module.exports = router;

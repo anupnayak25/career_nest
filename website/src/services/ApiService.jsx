@@ -1,24 +1,32 @@
 const apiUrl = import.meta.env.VITE_API_URL;
 
-// --- Auth Helpers ---
-const getAuthToken = () => sessionStorage.getItem("auth_token");
-const getUserId = () => sessionStorage.getItem("userId");
+// --- Cached Auth State ---
+let authToken = sessionStorage.getItem("auth_token");
+let userId = sessionStorage.getItem("userId");
+console.log(authToken);
+
+export const refresh = () => {
+  authToken = sessionStorage.getItem("auth_token");
+  userId = sessionStorage.getItem("userId");
+};
+
+console.log("UserId:", userId);
 
 // --- Helper Functions ---
 const buildUrl = (type, endpoint = "") =>
   `${apiUrl}/api/${type}${endpoint ? endpoint : ""}`;
 
 const getHeaders = (json = true) => {
-  const token = getAuthToken();
   const headers = {};
   if (json) headers["Content-Type"] = "application/json";
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+   headers["Authorization"] = `Bearer ${authToken}`;
   return headers;
 };
 
 // --- Question APIs ---
 
 export const uploadQuestions = async (type, data) => {
+  refresh();
   const res = await fetch(buildUrl(type), {
     method: "POST",
     headers: getHeaders(),
@@ -29,7 +37,7 @@ export const uploadQuestions = async (type, data) => {
 };
 
 export const getUserQuestions = async (type) => {
-  const userId = getUserId();
+  refresh();
   if (!userId) throw new Error("User ID not found in sessionStorage");
 
   const res = await fetch(buildUrl(type, `/user/${userId}`), {
@@ -41,6 +49,7 @@ export const getUserQuestions = async (type) => {
 };
 
 export const publishResult = async (type, id, display_result) => {
+  refresh();
   const res = await fetch(buildUrl(type, `/publish/${id}`), {
     method: "PUT",
     headers: getHeaders(),
@@ -51,6 +60,7 @@ export const publishResult = async (type, id, display_result) => {
 };
 
 export const getSubmittedUsers = async (type, id) => {
+  refresh();
   const res = await fetch(buildUrl(type, `/answers/${id}`), {
     headers: getHeaders(false),
   });
@@ -59,7 +69,7 @@ export const getSubmittedUsers = async (type, id) => {
 };
 
 export const getUserAnswers = async (type, questionId) => {
-  const userId = getUserId();
+  refresh();
   if (!userId) throw new Error("User ID not found in sessionStorage");
 
   const res = await fetch(buildUrl(type, `/answers/${questionId}/${userId}`), {
@@ -70,6 +80,7 @@ export const getUserAnswers = async (type, questionId) => {
 };
 
 export const updateUserMarks = async (type, questionId, userId, updates) => {
+  refresh();
   const res = await fetch(buildUrl(type, `/answers/${questionId}/${userId}/marks`), {
     method: "PUT",
     headers: getHeaders(),
@@ -80,6 +91,7 @@ export const updateUserMarks = async (type, questionId, userId, updates) => {
 };
 
 export const deleteQuestion = async (type, questionId) => {
+  refresh();
   const res = await fetch(buildUrl(type, `/${questionId}`), {
     method: "DELETE",
     headers: getHeaders(false),
@@ -91,14 +103,14 @@ export const deleteQuestion = async (type, questionId) => {
 // --- Video APIs ---
 
 export const uploadVideoFile = async (formData) => {
+  refresh();
   try {
-    const token = getAuthToken();
-    if (!token) throw new Error("Auth token missing");
+    refresh();
 
     const response = await fetch(`${apiUrl}/api/videos/upload`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${authToken}`,
         // Do NOT set Content-Type for FormData
       },
       body: formData,
@@ -157,13 +169,11 @@ export const uploadVideoFile = async (formData) => {
 // Upload multiple video files
 export const uploadMultipleVideoFiles = async (formData) => {
   try {
-    const token = getAuthToken();
-    if (!token) throw new Error("Auth token missing");
 
     const response = await fetch(`${apiUrl}/api/videos/upload-multiple`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${authToken}`,
         // Do NOT set Content-Type for FormData
       },
       body: formData,
@@ -220,12 +230,9 @@ export const uploadMultipleVideoFiles = async (formData) => {
 };
 
 export const addVideo = async (videoData) => {
-  try {
-    const token = getAuthToken();
-    const userId = getUserId();
-    if (!token || !userId) throw new Error("Auth token or user ID missing");
-
-    const { title, description, url, category } = videoData;
+  refresh();
+  const token = authToken;
+  const { title, description, url, category } = videoData;
 
     if (!title || !description || !url || !category) {
       throw new Error("Missing required video fields.");
@@ -238,7 +245,9 @@ export const addVideo = async (videoData) => {
       category,
       user_id: userId,
     });
-
+  if ("id" in videoData) delete videoData.id; // Prevent duplicate primary key error
+ 
+  try {
     const res = await fetch(`${apiUrl}/api/videos`, {
       method: "POST",
       headers: {
@@ -264,10 +273,6 @@ export const addVideo = async (videoData) => {
 // Add multiple videos metadata (batch)
 export const addMultipleVideos = async (videosData) => {
   try {
-    const token = getAuthToken();
-    const userId = getUserId();
-    if (!token || !userId) throw new Error("Auth token or user ID missing");
-
     // Add user_id to each video
     const videosWithUserId = videosData.map(video => ({
       ...video,
@@ -278,7 +283,7 @@ export const addMultipleVideos = async (videosData) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${authToken}`,
       },
       body: JSON.stringify({ videos: videosWithUserId }),
     });
@@ -297,13 +302,12 @@ export const addMultipleVideos = async (videosData) => {
 };
 
 export const getUserVideos = async () => {
-  const token = getAuthToken();
-  const userId = getUserId();
-  if (!token || !userId) throw new Error("User credentials not found in sessionStorage");
-
+  refresh();
+  if (!userId) throw new Error("User ID not found in sessionStorage");
+  if (!authToken) throw new Error("Auth token not found in sessionStorage");
   const res = await fetch(`${apiUrl}/api/videos/user/${userId}`, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${authToken}`,
     },
   });
 
@@ -312,13 +316,12 @@ export const getUserVideos = async () => {
 };
 
 export const deleteVideo = async (videoId) => {
-  const token = getAuthToken();
-  if (!token) throw new Error("Auth token not found in sessionStorage");
-
+  refresh();
+  if (!authToken) throw new Error("Auth token not found in sessionStorage");
   const res = await fetch(`${apiUrl}/api/videos/${videoId}`, {
     method: "DELETE",
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${authToken}`,
     },
   });
 
@@ -327,15 +330,14 @@ export const deleteVideo = async (videoId) => {
 };
 
 export const updateVideo = async (videoId, updateData) => {
-  const token = getAuthToken();
-  if (!token) throw new Error("Auth token not found in sessionStorage");
-
+  refresh();
+  if (!authToken) throw new Error("Auth token not found in sessionStorage");
   try {
     const res = await fetch(`${apiUrl}/api/videos/${videoId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${authToken}`,
       },
       body: JSON.stringify(updateData),
     });

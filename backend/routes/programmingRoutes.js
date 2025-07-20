@@ -31,7 +31,16 @@ router.get("/:id", (req, res) => {
   const id = req.params.id;
   connection.query("SELECT * FROM program_questions WHERE program_set_id = ?", [id], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
-    if (results.length === 0) return res.status(404).send("Post not found");
+    if (results.length === 0) return res.status(404).json({ message: "Post not found" });
+    res.json(results);
+  });
+});
+
+router.get("/user/:id", (req, res) => {
+  const id = req.params.id;
+  connection.query("SELECT * FROM program_sets WHERE user_id = ?", [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).send("Program set not found");
     res.json(results);
   });
 });
@@ -233,5 +242,6 @@ router.put("/answers/:program_set_id/:user_id/marks", (req, res) => {
       res.status(500).json({ error: error.message });
     });
 });
+
 
 module.exports = router;

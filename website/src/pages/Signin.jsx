@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { BookOpen, Mail, Lock, Eye, EyeOff, ArrowRight, Code, Trophy } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "../ui/Toast";
+import { refresh } from "../services/ApiService";
 
 const Signin = () => {
   const [formData, setFormData] = useState({
@@ -79,7 +80,7 @@ const Signin = () => {
         sessionStorage.setItem("isLoggedIn", "true");
 
         showToast("Welcome back! Login successful 🎉", "success");
-
+        refresh();
         setTimeout(() => {
           //    if (responseData.type === "student") {
           navigate("/dashboard");

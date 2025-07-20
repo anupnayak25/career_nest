@@ -239,26 +239,26 @@ router.put("/publish/:id", (req, res) => {
   });
 });
 
-router.get("/attempted/:id", (req, res) => {
-  const userId = req.params.id;
+// router.get("/attempted/:id", (req, res) => {
+//   const userId = req.params.id;
 
-  if (!userId) {
-    return res.status(400).json({ error: "user_id is required" });
-  }
+//   if (!userId) {
+//     return res.status(400).json({ error: "user_id is required" });
+//   }
 
-  const query = `
-    SELECT DISTINCT hr_question_id 
-    FROM hr_answers 
-    WHERE user_id = ?
-  `;
+//   const query = `
+//     SELECT DISTINCT hr_question_id 
+//     FROM hr_answers 
+//     WHERE user_id = ?
+//   `;
 
-  connection.query(query, [userId], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+//   connection.query(query, [userId], (err, results) => {
+//     if (err) return res.status(500).json({ error: err.message });
 
-    const attemptedIds = results.map((row) => row.hr_question_id);
-    res.json({ attempted: attemptedIds });
-  });
-});
+//     const attemptedIds = results.map((row) => row.hr_question_id);
+//     res.json({ attempted: attemptedIds });
+//   });
+// });
 
 // Update marks for a specific user's answers
 router.put("/answers/:hr_question_id/:user_id/marks", (req, res) => {

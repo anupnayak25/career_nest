@@ -208,14 +208,14 @@ router.delete("/:id", (req, res) => {
   });
 });
 
-router.get("/myposts", (req, res) => {
+router.get("/user/:id", (req, res) => {
   connection.query("SELECT * FROM quizzes WHERE user_id = ?", [req.user.id], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
   });
 });
 
-router.get("/myposts/:id", (req, res) => {
+router.get("/mypost/:id", (req, res) => {
   const id = req.params.id;
   connection.query("SELECT * FROM quizzes WHERE id = ?", [id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });

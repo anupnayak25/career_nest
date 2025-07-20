@@ -7,7 +7,7 @@ const router = express.Router();
 const connection = require('../db'); // MySQL connection
 
 // Ensure 'videos' folder exists
-const videosDir = path.join(__dirname, '..', 'videos');
+const videosDir = path.join(__dirname, "..", "videos");
 if (!fs.existsSync(videosDir)) {
   fs.mkdirSync(videosDir, { recursive: true });
   console.log(`[✔] Created 'videos' directory at ${videosDir}`);
@@ -20,17 +20,17 @@ const storage = multer.diskStorage({
     const ext = path.extname(file.originalname);
     const uniqueName = `video-${Date.now()}-${Math.floor(Math.random() * 1e9)}${ext}`;
     cb(null, uniqueName);
-  }
+  },
 });
 
 const upload = multer({
   storage,
   limits: { fileSize: 150 * 1024 * 1024 }, // 150MB max
   fileFilter: (req, file, cb) => {
-    const allowed = ['video/mp4', 'video/webm', 'video/ogg', 'video/x-matroska'];
+    const allowed = ["video/mp4", "video/webm", "video/ogg", "video/x-matroska"];
     if (allowed.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('Only video files are allowed!'));
-  }
+    else cb(new Error("Only video files are allowed!"));
+  },
 });
 
 // @route   POST /api/videos/upload
@@ -58,9 +58,9 @@ router.post('/upload', (req, res) => {
     
     res.status(200).json({
       success: true,
-      message: 'Video uploaded successfully!',
+      message: "Video uploaded successfully!",
       filename: req.file.filename,
-      url: fileUrl
+      url: fileUrl,
     });
   });
 });

@@ -1,20 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { Plus ,Users, Eye, Calendar, FileText,  ChevronLeft, CheckCircle } from 'lucide-react';
-import {
-  getUserQuestions,
-  publishResult,
-} from '../services/ApiService';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Plus, FileText } from "lucide-react";
+import { getUserQuestions, publishResult, deleteQuestion } from "../services/ApiService";
+import { useNavigate } from "react-router-dom";
+import QuestionCard from "../components/QuestionCard";
+import Alert from "../ui/AlertDailog";
 
 const HRQuestionsManager = () => {
-  const [questions, setQuestions] = useState([]);// 'questions', 'people', 'answers'
-  const navigate=useNavigate();
+  const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState(null);
+  const [show, setShow] = useState();
+  const navigate = useNavigate();
 
-  // Load questions on component mount
   useEffect(() => {
     loadQuestions();
   }, []);
+
+  useEffect(() => {
+    setShow(questions.length === 0);
+  }, [questions]);
 
   const loadQuestions = async () => {
     setLoading(true);
@@ -22,26 +27,30 @@ const HRQuestionsManager = () => {
       const data = await getUserQuestions("hr");
       setQuestions(data);
     } catch (error) {
-      console.error('Error loading questions:', error);
+      console.error("Error loading questions:", error);
     } finally {
       setLoading(false);
     }
   };
 
-
-
-  const handlePublishToggle = async (id, currentStatus) => {
-    setLoading(true);
+  const handleDelete = async () => {
     try {
-      await publishResult(id, !currentStatus);
-      loadQuestions();
-    } catch (error) {
-      console.error('Error updating publish status:', error);
-    } finally {
-      setLoading(false);
+      await deleteQuestion("hr", selectedQuestion.id);
+      setQuestions((prev) => prev.filter((q) => q.id !== selectedQuestion.id));
+      setShowConfirm(false);
+    } catch {
+      console.error("Delete failed");
     }
   };
 
+  const handlePublish = async (question) => {
+    try {
+      await publishResult("hr", question.id, true);
+      setQuestions((prev) => prev.map((q) => (q.id === question.id ? { ...q, display_result: 1 } : q)));
+    } catch {
+      console.error("Failed to publish");
+    }
+  };
 
   if (loading) {
     return (
@@ -52,85 +61,66 @@ const HRQuestionsManager = () => {
   }
 
   return (
-    <div className=" mx-auto bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-lg">
-        {/* Header */}
-        <div className="border-b border-gray-200 p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              
-              <h1 className="text-2xl font-bold text-gray-800">
-               HR Questions Manager
-              </h1>
+    <div className="mx-auto bg-gray-50 min-h-screen">
+      <div className={`${!show ? "flex justify-between p-2 " : " p-8 text-center"} bg-white mb-6 rounded-xl shadow-lg`}>
+        {show && <FileText className="mx-auto text-gray-300 mb-4" size={64} />}
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">HR Questions Manager</h1>
+        {show && <p className="text-gray-400 mb-6">Create your first HR question to get started</p>}
+        <button
+          onClick={() => {
+            navigate("/dashboard/add-question/hr");
+          }}
+          className={
+            "flex items-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium" +
+            `${!show ? " px-1 py-2" : " px-6 py-3"}`
+          }>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Question
+        </button>
+      </div>
+      <div className="p-3">
+        <div className="space-y-4">
+          {questions.length === 0 ? (
+            <div className="text-center py-12">
+              <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No questions created yet</p>
+              <p className="text-gray-400">Create your first HR question to get started</p>
             </div>
-              <button
-                onClick={() => {navigate('/dashboard/add-question/hr');}}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Question
-              </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-3">
-          {/* Questions View */}
-            <div className="space-y-4">
-              {questions.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg">No questions created yet</p>
-                  <p className="text-gray-400">Create your first HR question to get started</p>
-                </div>
-              ) : (
-                questions.map((question) => (
-                  <div key={question.id} className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 cursor-pointer" 
-                      
-                          onClick={() => navigate(`/answers/hr/${question.id}`)}>
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-xl font-semibold text-gray-800">{question.title}</h3>
-                            <span className={`px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full flex items-center ${question.display_result ? '' : ' hidden'}`}>
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Published
-                            </span>
-                        </div>
-                        <p className="text-gray-600 mb-4">{question.description}</p>
-                        <div className="flex items-center space-x-6 text-sm text-gray-500">
-                          <div className="flex items-center">
-                            <Calendar className="w-4 h-4 mr-1" />
-                            Due: {new Date(question.due_date).toLocaleDateString()}
-                          </div>
-                          <div>Total Marks: {question.totalMarks}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2 ml-4">
-                
-                        <button
-                        disabled={question.display_result}
-                          onClick={() => handlePublishToggle(question.id, question.display_result)}
-                          className={`flex items-center px-3 py-2 text-white rounded-lg transition-colors ${
-                            question.display_result
-                              ? 'bg-gray-600 hover:bg-gray-700'
-                              : 'bg-green-600 hover:bg-green-700'
-                          }`}
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          {question.display_result ? 'published' : 'Publish'}
-                        </button>
-                       
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-        
+          ) : (
+            questions.map((question) => (
+              <QuestionCard
+                id={question.id}
+                key={question.id}
+                title={question.title}
+                description={question.description}
+                dueDate={question.due_date}
+                totalMarks={question.totalMarks}
+                published={!!question.display_result}
+                type="hr"
+                onEdit={() => navigate(`/dashboard/hr/edit/${question.id}`)}
+                onDelete={() => {
+                  setSelectedQuestion(question);
+                  setShowConfirm(true);
+                }}
+                onPublish={() => handlePublish(question)}
+                disablePublish={!!question.display_result}
+              />
+            ))
+          )}
         </div>
       </div>
+      <Alert
+        isVisible={showConfirm}
+        text={`Are you sure you want to delete the question "${selectedQuestion?.title}"?`}
+        type="warning"
+        onResult={(confirmed) => {
+          if (confirmed) {
+            handleDelete();
+          } else {
+            setShowConfirm(false);
+          }
+        }}
+      />
     </div>
   );
 };

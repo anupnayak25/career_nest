@@ -1,6 +1,8 @@
 import { BookOpen, Plus, Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../ui/Toast";
+import Alert from "../ui/AlertDailog";
 
 function Quiz() {
   const navigate = useNavigate();
@@ -8,6 +10,7 @@ function Quiz() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const token = sessionStorage.getItem("auth_token");
+  const { showToast } = useToast();
   //console.log(token);
 
   useEffect(() => {
@@ -31,9 +34,10 @@ function Quiz() {
       });
       setQuizzes((prev) => prev.filter((q) => q.id !== selectedQuiz.id));
       setShowConfirm(false);
+      showToast("Quiz deleted successfully!", "success");
     } catch (err) {
       console.error("Delete failed", err);
-      alert("Failed to delete quiz.");
+      showToast("Failed to delete quiz.", "error");
     }
   };
 
@@ -77,29 +81,19 @@ function Quiz() {
         <p className="text-gray-500 text-center mt-8">No quizzes found.</p>
       )}
 
-      {/* Confirmation Modal */}
-      {showConfirm && selectedQuiz && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm text-center">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Confirm Delete</h2>
-            <p className="mb-6 text-gray-600">
-              Are you sure you want to delete the quiz "<strong>{selectedQuiz.title}</strong>"?
-            </p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={handleDelete}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold">
-                Delete
-              </button>
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-semibold">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Alert Dialog for Delete Confirmation */}
+      <Alert
+        isVisible={showConfirm}
+        text={`Are you sure you want to delete the quiz "${selectedQuiz?.title}"?`}
+        type="warning"
+        onResult={(confirmed) => {
+          if (confirmed) {
+            handleDelete();
+          } else {
+            setShowConfirm(false);
+          }
+        }}
+      />
     </div>
   );
 }

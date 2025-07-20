@@ -2,6 +2,7 @@
 import { BookOpen, CheckCircle, Code, Eye, EyeOff, Lock, Mail, Trophy, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../ui/Toast";
 
 const Signup = () => {
   // Form state
@@ -24,6 +25,7 @@ const Signup = () => {
   const [errors, setErrors] = useState({});
   const [termsAccepted, setTermsAccepted] = useState(false);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   // API configuration
   const API_URL = import.meta.env.VITE_API_URL; // Replace with your actual API URL
@@ -41,9 +43,14 @@ const Signup = () => {
 
   // Show notification
   const showNotification = (message) => {
-    // You can integrate with your preferred notification system
-    // For now, using simple alert - replace with your notification component
-    alert(message);
+    // Use toast for notifications
+    if (message.includes("success") || message.includes("🎉") || message.includes("✅")) {
+      showToast(message, "success");
+    } else if (message.includes("error") || message.includes("failed")) {
+      showToast(message, "error");
+    } else {
+      showToast(message, "info");
+    }
   };
 
   // Email validation

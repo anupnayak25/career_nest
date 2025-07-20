@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useData } from "../context/DataContext";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ function Dashboard() {
   };
 
   const activeTab = pathToTab(pathname);
+  const { pageTitle } = useData();
 
   const menuItems = [
     { id: "dashboard", icon: Home, label: "Dashboard", to: "/dashboard" },
@@ -136,7 +138,7 @@ function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 capitalize">
-                {activeTab === "dashboard" ? "Dashboard" : activeTab}
+                {pageTitle || (activeTab === "dashboard" ? "Dashboard" : activeTab)}
               </h2>
               <p className="text-sm text-gray-600">Welcome back, Professor! Here's what's happening today.</p>
             </div>

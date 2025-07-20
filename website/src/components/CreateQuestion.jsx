@@ -4,6 +4,8 @@ import { Trash2, X } from "lucide-react";
 import { uploadQuestions } from "../services/ApiService";
 import * as XLSX from "xlsx";
 import excel from "../assets/excel.png";
+import { useData } from "../context/DataContext";
+import { useToast } from "../ui/Toast";
 
 function CreateQuestion() {
   const { type } = useParams(); // 👈 get type from URL like /hr or /technical
@@ -24,6 +26,13 @@ function CreateQuestion() {
   const navigate = useNavigate();
   const [excelModalOpen, setExcelModalOpen] = useState(false);
   const [excelError, setExcelError] = useState("");
+  const { setPageTitle } = useData();
+  const { showToast } = useToast();
+
+  React.useEffect(() => {
+    setPageTitle(`Create New ${type.charAt(0).toUpperCase() + type.slice(1)} Attempt`);
+    return () => setPageTitle("");
+  }, [setPageTitle, type]);
 
   const resetForm = () => {
     setFormData({
@@ -104,11 +113,12 @@ function CreateQuestion() {
     }
     try {
       await uploadQuestions(type, payload);
-      alert("Question created successfully!");
+      showToast("Question created successfully!", "success");
       resetForm();
       navigate(`/dashboard/${type}`);
     } catch (error) {
       console.error("Error:", error.message);
+      showToast("Failed to create question!", "error");
     } finally {
       setLoading(false);
     }

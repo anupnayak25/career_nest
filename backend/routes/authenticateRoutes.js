@@ -158,8 +158,8 @@ router.post(
 
       // Insert user into database
       connection.query(
-        "INSERT INTO user (id, name, email_id, password, type) VALUES (?, ?, ?, ?, ?)",
-        [id, name, email, hashedPassword, userType],
+        "INSERT INTO user (name, email_id, password, type) VALUES (?, ?, ?, ?)",
+        [name, email, hashedPassword, userType],
         (err, results) => {
           if (err) {
             // Duplicate entry error (email already exists)

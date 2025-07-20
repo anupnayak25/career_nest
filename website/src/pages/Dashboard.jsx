@@ -18,9 +18,11 @@ import {
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useData } from "../context/DataContext";
+import Alert from "../ui/AlertDailog";
 
 function Dashboard() {
   const navigate = useNavigate();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     const isLoggedIn = sessionStorage.getItem("isLoggedIn");
@@ -57,6 +59,18 @@ function Dashboard() {
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleLogoutConfirm = (confirmed) => {
+    setShowLogoutConfirm(false);
+    if (confirmed) {
+      sessionStorage.clear();
+      navigate("/signin");
+    }
   };
 
   return (
@@ -110,10 +124,7 @@ function Dashboard() {
             })}
           </div>
           <button
-            onClick={() => {
-              sessionStorage.clear();
-              navigate("/signin");
-            }}
+            onClick={handleLogout}
             className={`w-full flex items-center mb-2 rounded-lg transition-all duration-200 group relative ${
               sidebarOpen ? "px-4 py-3" : "px-2 py-3 justify-center"
             } text-gray-600 hover:bg-gray-50 hover:text-gray-900`}
@@ -140,7 +151,9 @@ function Dashboard() {
               <h2 className="text-xl font-semibold text-gray-900 capitalize">
                 {pageTitle || (activeTab === "dashboard" ? "Dashboard" : activeTab)}
               </h2>
-              <p className="text-sm text-gray-600">Welcome back, Professor! Here's what's happening today.</p>
+              {activeTab === "dashboard" && (
+                <p className="text-sm text-gray-600">Welcome back, Professor! Here's what's happening today.</p>
+              )}
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
@@ -166,6 +179,14 @@ function Dashboard() {
           <Outlet />
         </main>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      <Alert
+        text="Are you sure you want to logout? You will be redirected to the login page."
+        onResult={handleLogoutConfirm}
+        isVisible={showLogoutConfirm}
+        type="warning"
+      />
     </div>
   );
 }

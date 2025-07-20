@@ -314,4 +314,32 @@ router.get('/attempted/:id', (req, res) => {
   });
 });
 
+// Update marks for a specific user's answers
+router.put('/answers/:quiz_id/:user_id/marks', (req, res) => {
+  const { quiz_id, user_id } = req.params;
+  const { updates } = req.body;
+
+  if (!updates || !Array.isArray(updates)) {
+    return res.status(400).json({ error: 'updates array is required' });
+  }
+
+  const updatePromises = updates.map(({ qno, marks_awarded }) => {
+    return new Promise((resolve, reject) => {
+      const query = `UPDATE quiz_answers SET marks_awarded = ? WHERE quiz_id = ? AND user_id = ? AND qno = ?`;
+      connection.query(query, [marks_awarded, quiz_id, user_id, qno], (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      });
+    });
+  });
+
+  Promise.all(updatePromises)
+    .then(() => {
+      res.json({ message: 'Marks updated successfully' });
+    })
+    .catch(error => {
+      res.status(500).json({ error: error.message });
+    });
+});
+
 module.exports = router;

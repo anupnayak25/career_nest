@@ -72,6 +72,17 @@ export const getUserAnswers = async (type, questionId) => {
   return await res.json();
 };
 
+// 6. PUT: Update marks for a specific user's answers
+export const updateUserMarks = async (type, questionId, userId, updates) => {
+  const res = await fetch(buildUrl(type, `/answers/${questionId}/${userId}/marks`), {
+    method: "PUT",
+    headers: getHeaders(),
+    body: JSON.stringify({ updates }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+};
+
 // 6. DELETE: Delete Question
 export const deleteQuestion = async (type, questionId) => {
   const res = await fetch(buildUrl(type, `/${questionId}`), {

@@ -1,7 +1,7 @@
-import React from 'react';
-import { AlertTriangle, CheckCircle, X } from 'lucide-react';
+import React from "react";
+import { AlertTriangle, CheckCircle, X } from "lucide-react";
 
-const Alert = ({ text, onResult, isVisible = false, type = 'warning' }) => {
+const Alert = ({ text, onResult, isVisible = false, type = "warning" }) => {
   if (!isVisible) return null;
 
   const handleYes = () => {
@@ -14,92 +14,99 @@ const Alert = ({ text, onResult, isVisible = false, type = 'warning' }) => {
 
   const getIcon = () => {
     switch (type) {
-      case 'success':
+      case "success":
         return <CheckCircle className="w-8 h-8 text-green-600 drop-shadow-lg" />;
-      case 'error':
+      case "error":
         return <X className="w-8 h-8 text-red-600 drop-shadow-lg" />;
       default:
-        return <AlertTriangle className="w-8 h-8 text-amber-600 drop-shadow-lg" />;
+        return <AlertTriangle className="w-8 h-8 text-blue-600 drop-shadow-lg" />;
     }
   };
 
-//   const getAccentColor = () => {
-//     switch (type) {
-//       case 'success':
-//         return 'border-green-200 bg-green-50';
-//       case 'error':
-//         return 'border-red-200 bg-red-50';
-//       default:
-//         return 'border-amber-200 bg-amber-50';
-//     }
-//   };
+  //   const getAccentColor = () => {
+  //     switch (type) {
+  //       case 'success':
+  //         return 'border-green-200 bg-green-50';
+  //       case 'error':
+  //         return 'border-red-200 bg-red-50';
+  //       default:
+  //         return 'border-amber-200 bg-amber-50';
+  //     }
+  //   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-500 scale-100 animate-slideUp border border-gray-100 overflow-hidden">
         {/* Animated gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 opacity-60"></div>
-        
+
         {/* Top accent bar with gradient */}
-        <div className={`h-1 w-full bg-gradient-to-r ${
-          type === 'success' ? 'from-green-400 to-emerald-500' :
-          type === 'error' ? 'from-red-400 to-rose-500' :
-          'from-amber-400 to-orange-500'
-        }`}></div>
-        
+        <div
+          className={`h-1 w-full bg-gradient-to-r ${
+            type === "success"
+              ? "from-green-400 to-emerald-500"
+              : type === "error"
+              ? "from-red-400 to-rose-500"
+              : "from-blue-500 to-purple-600"
+          }`}></div>
+
         <div className="relative z-10 p-8">
           {/* Icon with animated background */}
           <div className="flex justify-center mb-6">
-            <div className={`p-4 rounded-full shadow-lg transform transition-all duration-300 hover:scale-110 ${
-              type === 'success' ? 'bg-gradient-to-r from-green-100 to-emerald-100' :
-              type === 'error' ? 'bg-gradient-to-r from-red-100 to-rose-100' :
-              'bg-gradient-to-r from-amber-100 to-orange-100'
-            }`}>
+            <div
+              className={`p-4 rounded-full shadow-lg transform transition-all duration-300 hover:scale-110 ${
+                type === "success"
+                  ? "bg-gradient-to-r from-green-100 to-emerald-100"
+                  : type === "error"
+                  ? "bg-gradient-to-r from-red-100 to-rose-100"
+                  : "bg-gradient-to-r from-blue-100 to-purple-100"
+              }`}>
               {getIcon()}
             </div>
           </div>
-          
+
           {/* Title with gradient text */}
           <div className="text-center mb-4">
-            <h3 className={`text-2xl font-bold bg-gradient-to-r ${
-              type === 'success' ? 'from-green-600 to-emerald-600' :
-              type === 'error' ? 'from-red-600 to-rose-600' :
-              'from-amber-600 to-orange-600'
-            } bg-clip-text text-transparent mb-2`}>
+            <h3
+              className={`text-2xl font-bold bg-gradient-to-r ${
+                type === "success"
+                  ? "from-green-600 to-emerald-600"
+                  : type === "error"
+                  ? "from-red-600 to-rose-600"
+                  : "from-blue-600 to-purple-600"
+              } bg-clip-text text-transparent mb-2`}>
               Confirmation Required
             </h3>
             <div className="w-16 h-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent mx-auto"></div>
           </div>
-          
+
           {/* Message text */}
-          <div className="text-gray-700 text-center text-lg leading-relaxed mb-8 font-medium">
-            {text}
-          </div>
-          
+          <div className="text-gray-700 text-center text-lg leading-relaxed mb-8 font-medium">{text}</div>
+
           {/* Buttons with modern styling */}
           <div className="flex justify-center space-x-4">
             <button
               onClick={handleNo}
-              className="group relative px-8 py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-200 rounded-full hover:border-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-100 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5"
-            >
+              className="group relative px-8 py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-200 rounded-full hover:border-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-100 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5">
               <span className="relative z-10">No</span>
               <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-gray-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </button>
-            
+
             <button
               onClick={handleYes}
               className={`group relative px-8 py-3 text-sm font-semibold text-white rounded-full focus:outline-none focus:ring-4 transition-all duration-300 hover:shadow-xl transform hover:-translate-y-0.5 ${
-                type === 'success' ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:ring-green-200' :
-                type === 'error' ? 'bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 focus:ring-red-200' :
-                'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 focus:ring-amber-200'
-              }`}
-            >
+                type === "success"
+                  ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:ring-green-200"
+                  : type === "error"
+                  ? "bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 focus:ring-red-200"
+                  : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus:ring-blue-200"
+              }`}>
               <span className="relative z-10">Yes</span>
               <div className="absolute inset-0 bg-white rounded-full opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
             </button>
           </div>
         </div>
-        
+
         {/* Decorative elements */}
         <div className="absolute top-4 right-4 w-2 h-2 bg-gradient-to-br from-blue-300 to-purple-300 rounded-full opacity-60"></div>
         <div className="absolute bottom-4 left-4 w-3 h-3 bg-gradient-to-br from-pink-300 to-rose-300 rounded-full opacity-40"></div>

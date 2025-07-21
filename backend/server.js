@@ -24,10 +24,18 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 // ======= Middleware Setup =======
-const cors = require('cors');
+
+// Allow localhost and production domain
+const allowedOrigins = ['http://localhost:57722', 'https://careerernest.anupnayak.me'];
 
 app.use(cors({
-  origin: 'https://careerernest.anupnayak.me',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));

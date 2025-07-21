@@ -80,6 +80,34 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
 
               final assignments = assignmentSnapshot.data ?? [];
 
+              if (assignments.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.inbox, size: 64, color: Colors.blueGrey.shade200),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No assignments available',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueGrey.shade400,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Check back later or contact your instructor.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.blueGrey.shade300,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
               return ListView.builder(
                 padding: const EdgeInsets.all(12),
                 itemCount: assignments.length,

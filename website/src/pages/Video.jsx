@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Calendar, Upload, X, Search, Play, Edit, Trash2, Eye } from "lucide-react";
-import {
-  addVideo,
-  getUserVideos,
-  uploadVideoFile,
-  deleteVideo,
-  updateVideo,
-} from "../services/ApiService";
+import { addVideo, getUserVideos, uploadVideoFile, deleteVideo, updateVideo } from "../services/ApiService";
 import { useToast } from "../ui/Toast";
 import Alert from "../ui/AlertDailog";
 
@@ -24,7 +18,7 @@ const Video = () => {
   const [editPlacement, setEditPlacement] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [videoToDelete, setVideoToDelete] = useState(null);
-  
+
   // Modal and UI state
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -40,13 +34,13 @@ const Video = () => {
   // Available placement/event options
   const placementOptions = [
     "Campus Placement",
-    "Off-Campus Drive", 
+    "Off-Campus Drive",
     "Virtual Event",
     "Coding Competition",
     "Technical Workshop",
     "Career Fair",
     "Industry Talk",
-    "Mock Interview"
+    "Mock Interview",
   ];
 
   useEffect(() => {
@@ -79,14 +73,15 @@ const Video = () => {
     let filtered = [...videos];
 
     if (searchTerm) {
-      filtered = filtered.filter(video =>
-        video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        video.description.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (video) =>
+          video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          video.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     if (selectedPlacement && selectedPlacement !== "all") {
-      filtered = filtered.filter(video => video.category === selectedPlacement);
+      filtered = filtered.filter((video) => video.category === selectedPlacement);
     }
 
     // Sort by newest first
@@ -96,7 +91,7 @@ const Video = () => {
   }, [videos, searchTerm, selectedPlacement]);
 
   const getPlacements = () => {
-    const placements = [...new Set(videos.map(video => video.category))];
+    const placements = [...new Set(videos.map((video) => video.category))];
     return placements.filter(Boolean);
   };
 
@@ -133,18 +128,18 @@ const Video = () => {
     try {
       setUploadProgress(20);
       showToast(`📤 Uploading ${files.length} video(s)...`, "info");
-      
+
       // Upload files one by one for better progress tracking
       const uploadedFiles = [];
       for (let i = 0; i < files.length; i++) {
         const formData = new FormData();
         formData.append("video", files[i]);
-        
+
         const uploadRes = await uploadVideoFile(formData);
         if (!uploadRes.success) {
           throw new Error(`Upload failed for file ${i + 1}: ${uploadRes.message}`);
         }
-        
+
         uploadedFiles.push(uploadRes.filename);
         setUploadProgress(20 + (i + 1) * (50 / files.length));
       }
@@ -173,10 +168,9 @@ const Video = () => {
       setShowUploadModal(false);
       loadVideos();
       showToast(`🎉 ${files.length} video(s) uploaded successfully!`, "success");
-      
     } catch (err) {
       console.error("Upload error:", err);
-      
+
       if (err.message.includes("HTML instead of JSON") || err.message.includes("auth")) {
         showToast("Authentication failed. Please log in again.", "error");
         navigate("/signin");
@@ -283,14 +277,16 @@ const Video = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                🎬 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Video Manager</span>
+                🎬{" "}
+                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Video Manager
+                </span>
               </h1>
               <p className="text-gray-600 mt-1">Upload, organize, and manage placement & event videos</p>
             </div>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg"
-            >
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg">
               <Upload size={20} />
               Upload Videos
             </button>
@@ -313,22 +309,21 @@ const Video = () => {
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-              
+
               <select
                 value={selectedPlacement}
                 onChange={(e) => setSelectedPlacement(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 <option value="all">All Placements/Events</option>
-                {getPlacements().map(placement => (
-                  <option key={placement} value={placement}>{placement}</option>
+                {getPlacements().map((placement) => (
+                  <option key={placement} value={placement}>
+                    {placement}
+                  </option>
                 ))}
               </select>
             </div>
 
-            <div className="text-sm text-gray-600">
-              {filteredVideos.length} video(s) found
-            </div>
+            <div className="text-sm text-gray-600">{filteredVideos.length} video(s) found</div>
           </div>
         </div>
 
@@ -338,8 +333,8 @@ const Video = () => {
             <div className="text-6xl mb-4">🎬</div>
             <h3 className="text-xl font-semibold text-gray-800 mb-2">No videos found</h3>
             <p className="text-gray-600">
-              {videos.length === 0 
-                ? "Upload your first video to get started!" 
+              {videos.length === 0
+                ? "Upload your first video to get started!"
                 : "Try adjusting your search or filter criteria."}
             </p>
           </div>
@@ -348,20 +343,21 @@ const Video = () => {
             {filteredVideos.map((video) => (
               <div
                 key={video.id}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300"
-              >
+                className="bg-white rounded-2xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300">
                 <div className="relative">
-                  <video 
+                  <video
                     controls={false}
                     className="w-full h-48 object-cover cursor-pointer"
-                    onClick={() => openVideoModal(video)}
-                  >
+                    onClick={() => openVideoModal(video)}>
                     <source src={`${import.meta.env.VITE_API_URL}/videos/${video.url}`} type="video/mp4" />
                   </video>
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                    <Play className="text-white opacity-0 group-hover:opacity-100 transition-all duration-300" size={32} />
+                    <Play
+                      className="text-white opacity-0 group-hover:opacity-100 transition-all duration-300"
+                      size={32}
+                    />
                   </div>
-                  
+
                   {/* Action Buttons */}
                   <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
                     <button
@@ -370,8 +366,7 @@ const Video = () => {
                         startEditing(video);
                       }}
                       className="bg-yellow-500 text-white p-2 rounded-full hover:bg-yellow-600 transition-all"
-                      title="Edit Video"
-                    >
+                      title="Edit Video">
                       <Edit size={14} />
                     </button>
                     <button
@@ -380,8 +375,7 @@ const Video = () => {
                         handleDelete(video.id);
                       }}
                       className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all"
-                      title="Delete Video"
-                    >
+                      title="Delete Video">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -390,46 +384,45 @@ const Video = () => {
                 <div className="p-4 space-y-3">
                   {editingVideoId === video.id ? (
                     <div className="space-y-3">
-                      <input 
-                        value={editTitle} 
-                        onChange={(e) => setEditTitle(e.target.value)} 
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      <input
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Title"
                       />
-                      <textarea 
-                        value={editDescription} 
-                        onChange={(e) => setEditDescription(e.target.value)} 
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      <textarea
+                        value={editDescription}
+                        onChange={(e) => setEditDescription(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         rows={2}
                         placeholder="Description"
                       />
-                      <select 
-                        value={editPlacement} 
-                        onChange={(e) => setEditPlacement(e.target.value)} 
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
+                      <select
+                        value={editPlacement}
+                        onChange={(e) => setEditPlacement(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Select Placement/Event</option>
-                        {placementOptions.map(option => (
-                          <option key={option} value={option}>{option}</option>
+                        {placementOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
                         ))}
                       </select>
                       <div className="flex gap-2">
-                        <button 
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            saveEditing(); 
-                          }} 
-                          className="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-all"
-                        >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            saveEditing();
+                          }}
+                          className="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-all">
                           Save
                         </button>
-                        <button 
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            cancelEditing(); 
-                          }} 
-                          className="flex-1 bg-gray-300 text-gray-800 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-400 transition-all"
-                        >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            cancelEditing();
+                          }}
+                          className="flex-1 bg-gray-300 text-gray-800 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-400 transition-all">
                           Cancel
                         </button>
                       </div>
@@ -465,8 +458,7 @@ const Video = () => {
                       setShowUploadModal(false);
                       clearFiles();
                     }}
-                    className="text-gray-400 hover:text-gray-600 transition-all"
-                  >
+                    className="text-gray-400 hover:text-gray-600 transition-all">
                     <X size={24} />
                   </button>
                 </div>
@@ -474,50 +466,51 @@ const Video = () => {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">Title</label>
-                    <input 
-                      value={title} 
-                      onChange={(e) => setTitle(e.target.value)} 
-                      placeholder="Enter video title" 
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                    <input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Enter video title"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       disabled={isUploading}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">Description</label>
-                    <textarea 
-                      value={description} 
-                      onChange={(e) => setDescription(e.target.value)} 
-                      placeholder="Enter description" 
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Enter description"
                       rows={3}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       disabled={isUploading}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">Placement/Event Type</label>
-                    <select 
-                      value={placement} 
-                      onChange={(e) => setPlacement(e.target.value)} 
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
-                      disabled={isUploading}
-                    >
+                    <select
+                      value={placement}
+                      onChange={(e) => setPlacement(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      disabled={isUploading}>
                       <option value="">Select Placement/Event</option>
-                      {placementOptions.map(option => (
-                        <option key={option} value={option}>{option}</option>
+                      {placementOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
                       ))}
                     </select>
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">Select Videos</label>
-                    <input 
-                      type="file" 
-                      accept="video/*" 
+                    <input
+                      type="file"
+                      accept="video/*"
                       multiple
-                      onChange={handleFileChange} 
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:rounded-md transition-all" 
+                      onChange={handleFileChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:rounded-md transition-all"
                       disabled={isUploading}
                     />
                   </div>
@@ -539,8 +532,7 @@ const Video = () => {
                                 setFiles(newFiles);
                               }}
                               className="text-red-500 hover:text-red-700 transition-all"
-                              disabled={isUploading}
-                            >
+                              disabled={isUploading}>
                               <X size={16} />
                             </button>
                           </div>
@@ -557,20 +549,18 @@ const Video = () => {
                         <span className="text-sm text-blue-600">{uploadProgress}%</span>
                       </div>
                       <div className="w-full bg-blue-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                          style={{ width: `${uploadProgress}%` }}
-                        ></div>
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}></div>
                       </div>
                     </div>
                   )}
 
                   <div className="flex gap-3 pt-4">
-                    <button 
-                      onClick={handleUpload} 
+                    <button
+                      onClick={handleUpload}
                       disabled={!files.length || !title.trim() || !description.trim() || !placement || isUploading}
-                      className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-                    >
+                      className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
                       {isUploading ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
@@ -579,18 +569,17 @@ const Video = () => {
                       ) : (
                         <>
                           <Upload size={18} />
-                          Upload {files.length > 0 ? `${files.length} Video(s)` : 'Videos'}
+                          Upload {files.length > 0 ? `${files.length} Video(s)` : "Videos"}
                         </>
                       )}
                     </button>
-                    <button 
+                    <button
                       onClick={() => {
                         setShowUploadModal(false);
                         clearFiles();
                       }}
                       disabled={isUploading}
-                      className="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
+                      className="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                       Cancel
                     </button>
                   </div>
@@ -607,20 +596,13 @@ const Video = () => {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold text-gray-900">{selectedVideo.title}</h2>
-                  <button
-                    onClick={closeVideoModal}
-                    className="text-gray-400 hover:text-gray-600 transition-all"
-                  >
+                  <button onClick={closeVideoModal} className="text-gray-400 hover:text-gray-600 transition-all">
                     <X size={24} />
                   </button>
                 </div>
 
                 <div className="space-y-4">
-                  <video 
-                    controls
-                    className="w-full rounded-xl shadow-lg"
-                    autoPlay
-                  >
+                  <video controls className="w-full rounded-xl shadow-lg" autoPlay>
                     <source src={`${import.meta.env.VITE_API_URL}/videos/${selectedVideo.url}`} type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
@@ -629,11 +611,13 @@ const Video = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <h3 className="font-semibold text-gray-900 mb-1">Description</h3>
-                        <p className="text-gray-600">{selectedVideo.description || 'No description provided'}</p>
+                        <p className="text-gray-600">{selectedVideo.description || "No description provided"}</p>
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900 mb-1">Placement/Event</h3>
-                        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">{selectedVideo.category}</span>
+                        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+                          {selectedVideo.category}
+                        </span>
                       </div>
                     </div>
                     <div className="mt-4 pt-4 border-t border-gray-200">

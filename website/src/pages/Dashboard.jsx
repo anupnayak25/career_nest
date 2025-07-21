@@ -41,7 +41,7 @@ function Dashboard() {
     if (path.startsWith("/dashboard/hr")) return "hr";
     if (path.startsWith("/dashboard/programming")) return "programming";
     if (path.startsWith("/dashboard/technical")) return "technical";
-    if (path.startsWith("/dashboard/vedio")) return "vedio";
+    if (path.startsWith("/dashboard/video")) return "video";
     return "dashboard";
   };
 
@@ -54,7 +54,7 @@ function Dashboard() {
     { id: "hr", icon: User, label: "HR", to: "/dashboard/hr" },
     { id: "programming", icon: Code, label: "Programming", to: "/dashboard/programming" },
     { id: "technical", icon: Cog, label: "Technical", to: "/dashboard/technical" },
-    { id: "vedio", icon: Play, label: "Video Manager", to: "/dashboard/vedio" }, // ✅ New Menu Item
+    { id: "video", icon: Play, label: "Video Manager", to: "/dashboard/video" }, // ✅ Fixed typo
   ];
 
   const toggleSidebar = () => {

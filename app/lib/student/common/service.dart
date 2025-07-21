@@ -5,6 +5,77 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class AssignmentService {
+  static Future<List<T>> fetchList<T>(
+      String type, T Function(Map<String, dynamic>) fromJson) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final apiUrl = dotenv.get('API_URL');
+    final response = await http.get(
+      Uri.parse('$apiUrl/api/$type'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final List jsonData = json.decode(response.body);
+      return jsonData.map((item) => fromJson(item)).toList();
+    } else {
+      throw Exception('Failed to load $type list: ${response.body}');
+    }
+  }
+
+  static Future<bool> submitAnswers({
+    required String type,
+    required int assignmentId,
+    required List<Map<String, dynamic>> answers,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final apiUrl = dotenv.get('API_URL');
+    String userId = prefs.getString('userId') ?? '';
+    final url = Uri.parse('$apiUrl/api/$type/answers');
+    final body = jsonEncode({
+      '${type}_id': assignmentId,
+      'user_id': userId,
+      'answers': answers,
+    });
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    );
+    return response.statusCode == 201;
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchResults({
+    required String type,
+    required int id,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    String userId = prefs.getString('userId') ?? '';
+    final apiUrl = dotenv.get('API_URL');
+    final response = await http.get(
+      Uri.parse('$apiUrl/api/$type/answers/$id/$userId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final List data = json.decode(response.body);
+      return data.map((e) => e as Map<String, dynamic>).toList();
+    } else {
+      throw Exception('Failed to load $type answers: ${response.body}');
+    }
+  }
+}
+
 class ApiService {
   static Future<String?> uploadVideo(File videoFile) async {
     // print('[UPLOAD] Fetching auth token...');
@@ -92,8 +163,8 @@ class ApiService {
     }
   }
 
-
-  static Future<List<Map<String, dynamic>>> fetchResults({required int id,required String type}) async {
+  static Future<List<Map<String, dynamic>>> fetchResults(
+      {required int id, required String type}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     String userId = prefs.getString('userId') ?? '';
@@ -103,7 +174,6 @@ class ApiService {
     final apiUrl = dotenv.get('API_URL');
     print('$apiUrl/api/$type/answers/$id/$userId');
     final response = await http.get(
-      
       Uri.parse('$apiUrl/api/$type/answers/$id/$userId'),
       headers: {
         'Authorization': 'Bearer $token',
@@ -113,10 +183,10 @@ class ApiService {
     //log("Response status: ${response.statusCode} , Response body: ${response.body}");
     print(response.body);
     if (response.statusCode == 200) {
-    final List data = json.decode(response.body);
-    return data.map((e) => e as Map<String, dynamic>).toList();
-  } else {
-    throw Exception('Failed to load $type answers: ${response.body}');
-  }
+      final List data = json.decode(response.body);
+      return data.map((e) => e as Map<String, dynamic>).toList();
+    } else {
+      throw Exception('Failed to load $type answers: ${response.body}');
+    }
   }
 }

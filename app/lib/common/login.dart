@@ -124,6 +124,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       });
 
       final apiUrl = dotenv.get('API_URL');
+      print('API_URL: ' + apiUrl);
+      print('Login request body: email=' +
+          emailController.text.trim() +
+          ', password=' +
+          passwordController.text);
       try {
         final response = await http.post(
           Uri.parse('$apiUrl/api/auth/signin'),
@@ -135,6 +140,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             'password': passwordController.text,
           },
         );
+
+        print('Login response status: ' + response.statusCode.toString());
+        print('Login response body: ' + response.body);
 
         setState(() {
           isLoading = false;
@@ -148,7 +156,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           await prefs.setString('userType', responseData['type']);
           await prefs.setString('userName', responseData['name']);
           await prefs.setString('userEmail', responseData['email']);
-          await prefs.setString('userId', responseData['id']);
+          await prefs.setString('userId', responseData['id'].toString());
           await prefs.setBool('isLoggedIn', true);
 
           String userType = responseData['type'];
@@ -233,6 +241,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         setState(() {
           isLoading = false;
         });
+
+        print('Login error: ' + error.toString());
 
         _showErrorDialog(
           'Connection Failed',

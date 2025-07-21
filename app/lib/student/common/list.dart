@@ -191,15 +191,19 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                                         id: widget.getId(assignment),
                                       );
                                       int obtainedMarks = 0;
-                                      int totalMarks = 0;
+                                      num totalMarks = 0;
                                       for (final question in questions) {
                                         if (question is dynamic &&
                                             question.marks != null) {
-                                          totalMarks += question.marks;
+                                          totalMarks += question.marks is int
+                                              ? question.marks
+                                              : (question.marks as num).toInt();
                                         }
                                         final match = results.firstWhere(
                                           (ans) =>
-                                              ans['qno'] == (question.qno ?? 0),
+                                              ans['qno'] ==
+                                              (((question as dynamic).qno) ??
+                                                  0),
                                           orElse: () => {},
                                         );
                                         obtainedMarks += int.tryParse(
@@ -220,8 +224,13 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                                             results: results,
                                             questionResultBuilder:
                                                 widget.questionResultBuilder,
-                                            obtainedMarks: obtainedMarks,
-                                            totalMarks: totalMarks,
+                                            obtainedMarks: obtainedMarks is int
+                                                ? obtainedMarks
+                                                : (obtainedMarks as num)
+                                                    .toInt(),
+                                            totalMarks: totalMarks is int
+                                                ? totalMarks
+                                                : (totalMarks as num).toInt(),
                                             percentage: percentage,
                                           ),
                                         ),

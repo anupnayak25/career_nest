@@ -11,6 +11,7 @@ class AssignmentService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final apiUrl = dotenv.get('API_URL');
+    print('Fetching: ' + '$apiUrl/api/$type');
     final response = await http.get(
       Uri.parse('$apiUrl/api/$type'),
       headers: {
@@ -18,6 +19,8 @@ class AssignmentService {
         'Content-Type': 'application/json',
       },
     );
+    print(
+        'Response for $type: \nStatus: ${response.statusCode}\nBody: ${response.body}');
     if (response.statusCode == 200) {
       final List jsonData = json.decode(response.body);
       return jsonData.map((item) => fromJson(item)).toList();

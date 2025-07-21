@@ -24,7 +24,14 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 // ======= Middleware Setup =======
-app.use(cors());
+const cors = require('cors');
+
+app.use(cors({
+  origin: 'https://careerernest.anupnayak.me',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

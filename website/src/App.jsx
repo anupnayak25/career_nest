@@ -12,7 +12,6 @@ import Quiz from "./pages/QuizPage";
 import Hr from "./pages/HrPage";
 import Programming from "./pages/ProgrammingPage";
 import Tehnical from "./pages/TehnicalPage";
-import CreateQuiz from "./components/CreateQuiz";
 import EditQuiz from "./components/EditQuiz";
 import CreateQuestion from "./components/CreateQuestion";
 import ViewAttempted from "./pages/ViewAttempted";
@@ -30,7 +29,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<VideoPage />} />
             <Route path="quiz" element={<Quiz />} />
-            <Route path="quiz/create" element={<CreateQuiz />} />
+           {/* // <Route path="quiz/create" element={<CreateQuiz />} /> */}
             <Route path="quiz/edit/:id" element={<EditQuiz />} />
             <Route path="hr" element={<Hr />} />
             <Route path="programming" element={<Programming />} />

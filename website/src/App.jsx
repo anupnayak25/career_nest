@@ -35,6 +35,7 @@ function App() {
             <Route path="programming" element={<Programming />} />
             <Route path="technical" element={<Tehnical />} />
             <Route path="video" element={<Video />} /> {/* ✅ Fixed typo */}
+            <Route path="vedio" element={<Video />} /> {/* ✅ Backward compatibility */}
             <Route path="add-question/:type" element={<CreateQuestion />} />
           </Route>
 

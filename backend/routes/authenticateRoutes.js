@@ -116,16 +116,8 @@ router.post(
     // Validating API inputs
     body("email", "Invalid email").isEmail(),
     body("password")
-      .isLength({ min: 8 })
-      .withMessage("At least 8 characters required")
-      .matches(/[A-Z]/)
-      .withMessage("Must contain at least one uppercase letter")
-      .matches(/[a-z]/)
-      .withMessage("Must contain at least one lowercase letter")
-      .matches(/[0-9]/)
-      .withMessage("Must contain at least one number")
-      .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/)
-      .withMessage("Must contain at least one special character"),
+      .isLength({ min: 4 })
+      .withMessage("At least 4 characters required"),
   ],
   async (req, res) => {
     try {
@@ -190,7 +182,7 @@ router.post(
             auth_token: authToken,
             name,
             email,
-            userType,
+            type: userType,
             id,
           });
         }
@@ -224,7 +216,7 @@ router.post(
       const [results] = await connection.promise().query("SELECT * FROM user WHERE email_id = ?", [email]);
 
       if (results.length === 0) {
-        return res.status(400).json({ path: "email", message: "Account not found" });
+        return res.status(400).setHeader('Content-Type', 'application/json').json({ path: "email", message: "Account not found" });
       }
 
       const user = results[0];
@@ -232,7 +224,7 @@ router.post(
       const isMatch = await bcrypt.compare(password, user.password);
 
       if (!isMatch) {
-        return res.status(400).json({ path: "password", message: "Incorrect password" });
+        return res.status(400).setHeader('Content-Type', 'application/json').json({ path: "password", message: "Incorrect password" });
       }
 
       const payload = {
@@ -243,7 +235,7 @@ router.post(
 
       const authToken = jwt.sign(payload, JWT_SECRET);
 
-      return res.status(200).json({
+      return res.status(200).setHeader('Content-Type', 'application/json').json({
         auth_token: authToken,
         name: user.name,
         email: user.email_id,
@@ -252,7 +244,7 @@ router.post(
       });
     } catch (error) {
       console.error("Signin error:", error);
-      return res.status(500).json({ message: "Internal server error" });
+      return res.status(500).setHeader('Content-Type', 'application/json').json({ message: "Internal server error" });
     }
   }
 );

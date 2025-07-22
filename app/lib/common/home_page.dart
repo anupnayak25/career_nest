@@ -103,88 +103,309 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text('Home', style: theme.textTheme.titleLarge),
-        backgroundColor: theme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 2,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // Background Content (Tab Views)
+          Padding(
+            padding: const EdgeInsets.only(top: 120), // Same height as AppBar
+            child: TabBarView(
+              controller: _tabController,
               children: [
-                TabBar(
-                  controller: _tabController,
-                  labelColor: theme.primaryColor,
-                  unselectedLabelColor: theme.textTheme.bodyMedium?.color,
-                  indicatorColor: theme.primaryColor,
-                  tabs: const [
-                    Tab(text: 'Events'),
-                    Tab(text: 'Placements'),
-                  ],
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildVideoList(_eventVideos, theme),
-                      _buildVideoList(_placementVideos, theme),
-                    ],
-                  ),
-                ),
+                YouTubeVideoGrid(videos: _eventVideos, type: 'Events'),
+                YouTubeVideoGrid(videos: _placementVideos, type: 'Placements'),
               ],
             ),
+          ),
+
+          // Floating AppBar on top of content
+          SizedBox(
+            height: 120,
+            child: AnimatedCurvedAppBar(
+              title: "Career Nest",
+              tabController: _tabController,
+            ),
+          ),
+        ],
+      ),
     );
   }
+}
 
-  Widget _buildVideoList(List<Map<String, dynamic>> videos, ThemeData theme) {
+class YouTubeVideoGrid extends StatelessWidget {
+  final List<Map<String, dynamic>> videos;
+  final String type;
+
+  const YouTubeVideoGrid({
+    super.key,
+    required this.videos,
+    required this.type,
+  });
+
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
+  String _formatDuration(String? duration) {
+    // Mock duration - in real app, you'd get this from your API
+    return "12:34";
+  }
+
+  String _formatViewCount(int views) {
+    if (views >= 1000000) {
+      return '${(views / 1000000).toStringAsFixed(1)}M views';
+    } else if (views >= 1000) {
+      return '${(views / 1000).toStringAsFixed(1)}K views';
+    } else {
+      return '$views views';
+    }
+  }
+
+  String _formatUploadTime(String? uploadDateTime) {
+    if (uploadDateTime == null) return 'Date not available';
+
+    final uploadDate = DateTime.parse(uploadDateTime);
+    final now = DateTime.now();
+    final difference = now.difference(uploadDate);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''} ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     if (videos.isEmpty) {
       return Center(
-        child: Text(
-          'No videos available',
-          style: theme.textTheme.bodyMedium,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              type == 'Events' ? Icons.event_busy : Icons.work_off,
+              size: 80,
+              color: Colors.grey[600],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No $type videos yet',
+              style: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Check back later for new content',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
       );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: videos.length,
-      itemBuilder: (context, index) {
-        final video = videos[index];
-        return Card(
-          color: theme.cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 3,
-          margin: const EdgeInsets.only(bottom: 16),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(16),
-            title: Text(
-              video['title'] ?? '',
-              style: theme.textTheme.titleMedium,
-            ),
-            subtitle: Text(
-              video['description'] ?? '',
-              style: theme.textTheme.bodyMedium,
-            ),
-            trailing: Icon(
-              Icons.play_circle_fill,
-              color: theme.primaryColor,
-              size: 32,
-            ),
-            onTap: () async {
-              final url = video['url'];
-              if (url != null && await canLaunchUrl(Uri.parse(url))) {
-                await launchUrl(Uri.parse(url));
+
+    return Container(
+      color: Colors.white,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: videos.length,
+        itemBuilder: (context, index) {
+          final video = videos[index];
+          return GestureDetector(
+            onTap: () {
+              if (video['url'] != null) {
+                _launchURL(video['url']);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Video URL not available.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               }
             },
-          ),
-        );
-      },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Video Thumbnail
+                  Container(
+                    width: double.infinity,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.grey[900],
+                    ),
+                    child: Stack(
+                      children: [
+                        // Placeholder thumbnail
+                        Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.red.withOpacity(0.3),
+                                Colors.blue.withOpacity(0.3),
+                              ],
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.play_circle_outline,
+                            size: 60,
+                            color: Colors.black,
+                          ),
+                        ),
+                        // Duration badge
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              _formatDuration(video['duration']),
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Video Info
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Channel Avatar
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.red,
+                        child: Text(
+                          'CN',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Video Details
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              video['title'] ?? 'No Title',
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                height: 1.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Career Nest',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Text(
+                                  _formatViewCount(
+                                    (video['views'] as int?) ??
+                                        (100 + (index * 50)), // Mock view count
+                                  ),
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                Text(
+                                  ' • ',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                Text(
+                                  _formatUploadTime(video['uploaded_datetime']),
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (video['description'] != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                video['description'],
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 13,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      // More options
+                      IconButton(
+                        icon: Icon(
+                          Icons.more_vert,
+                          color: Colors.grey[400],
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          // Add more options functionality
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

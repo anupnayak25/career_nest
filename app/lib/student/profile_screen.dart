@@ -15,36 +15,37 @@ class AccountPage extends StatefulWidget {
 class _AccountPageState extends State<AccountPage> {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // Example list of account options.
+    final List<String> options = [
+      'Favourite',
+      'Edit Account',
+      'Settings and Privacy',
+      'Help',
+      'Logout'
+    ];
+
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text('Profile', style: theme.textTheme.titleLarge),
-        backgroundColor: theme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 2,
-      ),
+      appBar: AnimatedCurvedAppBar(title: "Profile"),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Card(
-          color: theme.cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Name: User', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 12),
-                Text('Email: user@example.com',
-                    style: theme.textTheme.bodyMedium),
-                // Add more profile fields as needed
-              ],
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Display user profile information at the top.
+            Center(
+              child: Column(
+                children: [
+                  const CircleAvatar(radius: 40, backgroundColor: Colors.blue),
+                  const SizedBox(height: 10),
+                  Text(widget.userName,
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold)),
+                ],
+              ),
             ),
-          ),
+            const SizedBox(height: 30),
+            // Build a list of account option cards.
+            ...options.map((option) => _buildAccountOption(context, option)),
+          ],
         ),
       ),
     );

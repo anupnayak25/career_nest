@@ -5,7 +5,7 @@ class ProgramingList {
   final String uploadDate;
   final String dueDate;
   final int totalMarks;
-   final bool displayResult;
+  final bool displayResult;
   final List<ProgrammingQuestion> questions;
 
   ProgramingList({
@@ -14,24 +14,25 @@ class ProgramingList {
     required this.description,
     required this.uploadDate,
     required this.dueDate,
-     required this.displayResult,
+    required this.displayResult,
     required this.questions,
     required this.totalMarks,
   });
 
   factory ProgramingList.fromJson(Map<String, dynamic> json) {
+    print('ProgramingList.fromJson received: ' + json.toString());
     return ProgramingList(
       id: json['id'],
       title: json['title'],
       description: json['description'],
-      uploadDate: json['upload_date'],
+      uploadDate: json['publish_date'], // changed from upload_date
       dueDate: json['due_date'],
       displayResult: json['display_result'] == 1,
       questions: (json['questions'] != null)
-        ? (json['questions'] as List)
-            .map((q) => ProgrammingQuestion.fromJson(q))
-            .toList()
-        : [],
+          ? (json['questions'] as List)
+              .map((q) => ProgrammingQuestion.fromJson(q))
+              .toList()
+          : [],
       totalMarks: json['total_marks'] ?? 0, // Default to 0 if not present
     );
   }
@@ -60,6 +61,7 @@ class ProgrammingQuestion {
   });
 
   factory ProgrammingQuestion.fromJson(Map<String, dynamic> json) {
+    print('ProgrammingQuestion.fromJson received: ' + json.toString());
     return ProgrammingQuestion(
       qno: json['qno'],
       question: json['question'],
@@ -75,6 +77,7 @@ class ProgrammingQuestion {
         'marks': marks,
       };
 }
+
 class ProgrammingResultSummary {
   final int obtainedMarks;
   final int totalMarks;
@@ -86,4 +89,3 @@ class ProgrammingResultSummary {
     required this.percentage,
   });
 }
-

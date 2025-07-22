@@ -1,6 +1,7 @@
 import 'dart:convert';
+
 class QuizList {
-   final int id;
+  final int id;
   final String title;
   final String description;
   final String uploadDate;
@@ -8,7 +9,7 @@ class QuizList {
   final String userId;
   final bool displayResult;
   final String status; // Now assigned in constructor
-  final int totalMarks; 
+  final int totalMarks;
   final List<QuizQuestion> questions;
 
   QuizList({
@@ -17,7 +18,7 @@ class QuizList {
     required this.description,
     required this.uploadDate,
     required this.dueDate,
-required this.userId,
+    required this.userId,
     required this.displayResult,
     this.status = "na",
     this.totalMarks = 0,
@@ -25,17 +26,19 @@ required this.userId,
   });
 
   factory QuizList.fromJson(Map<String, dynamic> json) {
+    print('QuizList.fromJson received: ' + json.toString());
     return QuizList(
-     id: json['id'] as int,
+      id: json['id'] as int,
       title: json['title'] as String,
       description: json['description'] as String,
-      uploadDate: json['upload_date'] as String,
+      uploadDate: json['publish_date'] as String, // changed from upload_date
       dueDate: json['due_date'] as String,
-      userId: json['user_id'] as String,
+      userId: json['user_id'].toString(), // ensure string
       displayResult: json['display_result'] == 1,
       questions: (json['questions'] as List<dynamic>?)
               ?.map((e) => QuizQuestion.fromJson(e))
-              .toList() ?? [],
+              .toList() ??
+          [],
     );
   }
 }
@@ -50,7 +53,7 @@ class QuizQuestion {
 
   QuizQuestion({
     required this.id,
-   required this.qno,
+    required this.qno,
     required this.question,
     required this.options,
     required this.answer,
@@ -58,20 +61,23 @@ class QuizQuestion {
   });
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
+    print('QuizQuestion.fromJson received: ' + json.toString());
     return QuizQuestion(
       id: json['id'],
-     qno: json['qno'] as int,
-    question: json['question'] as String,
-    options: json['options'] is String
-        ? List<String>.from(jsonDecode(json['options']))
-        : (json['options'] as List<dynamic>).map((e) => e.toString()).toList(),
-    answer: json['correct_ans'] as String,
-    marks: json['marks'] as int,
-  );
+      qno: json['qno'] as int,
+      question: json['question'] as String,
+      options: json['options'] is String
+          ? List<String>.from(jsonDecode(json['options']))
+          : (json['options'] as List<dynamic>)
+              .map((e) => e.toString())
+              .toList(),
+      answer: json['correct_answer'] as String, // changed from correct_ans
+      marks: json['marks'] as int,
+    );
   }
-  }
+}
 
-  class QuestionResult {
+class QuestionResult {
   final int qno;
   final String selectedAns;
   final bool isCorrect;

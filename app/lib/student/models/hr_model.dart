@@ -20,18 +20,20 @@ class HrModel {
   });
 
   factory HrModel.fromJson(Map<String, dynamic> json) {
+    print('HrModel.fromJson received: ' + json.toString());
     return HrModel(
-      id: json['id']?.toString() ?? '',  // fallback if not using Mongo _id
+      id: json['id']?.toString() ?? '', // fallback if not using Mongo _id
       title: json['title']?.toString() ?? 'No Title',
       description: json['description']?.toString() ?? 'No Description',
-      uploadDate: json['upload_date']?.toString() ?? '',
+      uploadDate:
+          json['publish_date']?.toString() ?? '', // changed from upload_date
       dueDate: json['due_date']?.toString() ?? '',
       displayResult: json['display_result'] == 1,
       questions: (json['questions'] as List<dynamic>?)
               ?.map((e) => Question.fromJson(e))
               .toList() ??
           [],
-      totalMarks: json['totalMarks'] ?? 0,
+      totalMarks: json['total_marks'] ?? 0, // changed from totalMarks
     );
   }
 }
@@ -48,6 +50,7 @@ class Question {
   });
 
   factory Question.fromJson(Map<String, dynamic> json) {
+    print('Question.fromJson received: ' + json.toString());
     return Question(
       qno: json['qno'] ?? 0,
       question: json['question']?.toString() ?? 'No question',
@@ -55,6 +58,7 @@ class Question {
     );
   }
 }
+
 class HrResultSummary {
   final int obtainedMarks;
   final int totalMarks;

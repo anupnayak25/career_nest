@@ -54,6 +54,14 @@ router.get("/", (req, res) => {
   });
 });
 
+router.get("/user/:id", (req, res) => {
+  const id = req.params.id;
+  connection.query("SELECT * FROM technical_questions WHERE user_id = ?", [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
 // Get a single technical set + its questions
 router.get("/:id", (req, res) => {
   const id = req.params.id;
@@ -209,12 +217,5 @@ router.put("/answers/:technical_id/:user_id/marks", (req, res) => {
 });
 
 // Get all posts by the logged-in user
-router.get("/myposts", (req, res) => {
-  const userId = req.user.id;
-  connection.query("SELECT * FROM technical_questions WHERE user_id = ?", [userId], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
-});
 
 module.exports = router;

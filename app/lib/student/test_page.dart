@@ -2,11 +2,12 @@ import 'dart:math';
 
 import 'package:career_nest/common/animated_appbar.dart';
 import 'package:flutter/material.dart';
-import './programing/programming_list.dart';
-import './quiz_pages/quiz_list.dart';
-import 'package:career_nest/student/hr/hr_list.dart';
-import 'package:career_nest/student/techinical/technical_list.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:career_nest/student/common/list.dart';
+import 'package:career_nest/student/models/quiz_model.dart';
+import 'package:career_nest/student/models/programming_model.dart';
+import 'package:career_nest/student/models/hr_model.dart';
+import 'package:career_nest/student/models/technical_model.dart';
 
 class TestsPage extends StatefulWidget {
   const TestsPage({super.key});
@@ -15,8 +16,7 @@ class TestsPage extends StatefulWidget {
   State<TestsPage> createState() => _TestsPageState();
 }
 
-class _TestsPageState extends State<TestsPage>
-    with TickerProviderStateMixin {
+class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late List<Animation<Offset>> _slideAnimations;
   late List<Animation<double>> _fadeAnimations;
@@ -28,7 +28,7 @@ class _TestsPageState extends State<TestsPage>
       completed: 7,
       icon: Icons.quiz,
       color: const Color(0xFFE1BEE7), // Light Purple
-      page: const QuizListPage(),
+      page: const QuizAssignmentListPage(),
     ),
     TestCategory(
       title: 'Programming',
@@ -36,7 +36,7 @@ class _TestsPageState extends State<TestsPage>
       completed: 3,
       icon: Icons.code,
       color: const Color(0xFFBBDEFB), // Light Blue
-      page: const ProgramingListPage(),
+      page: const ProgrammingAssignmentListPage(),
     ),
     TestCategory(
       title: 'HR Interview',
@@ -44,7 +44,7 @@ class _TestsPageState extends State<TestsPage>
       completed: 5,
       icon: Icons.people,
       color: const Color(0xFFFFF9C4), // Light Yellow
-      page: const HRListPage(),
+      page: const HrAssignmentListPage(),
     ),
     TestCategory(
       title: 'Technical',
@@ -52,54 +52,54 @@ class _TestsPageState extends State<TestsPage>
       completed: 12,
       icon: Icons.engineering,
       color: const Color(0xFFC8E6C9), // Light Green
-      page: const TechnicalListPage(),
+      page: const TechnicalAssignmentListPage(),
     ),
   ];
 
- @override
-void initState() {
-  super.initState();
-  _animationController = AnimationController(
-    duration: const Duration(milliseconds: 1200),
-    vsync: this,
-  );
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
 
-  _slideAnimations = List.generate(
-    _testCategories.length,
-    (index) => Tween<Offset>(
-      begin: const Offset(0, 1),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Interval(
-          index * 0.2,
-          min(1.0, 0.8 + (index * 0.1)), // ✅ cap at 1.0
-          curve: Curves.easeOutBack,
+    _slideAnimations = List.generate(
+      _testCategories.length,
+      (index) => Tween<Offset>(
+        begin: const Offset(0, 1),
+        end: Offset.zero,
+      ).animate(
+        CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(
+            index * 0.2,
+            min(1.0, 0.8 + (index * 0.1)), // ✅ cap at 1.0
+            curve: Curves.easeOutBack,
+          ),
         ),
       ),
-    ),
-  );
+    );
 
-  _fadeAnimations = List.generate(
-    _testCategories.length,
-    (index) => Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Interval(
-          index * 0.15,
-          min(1.0, 0.7 + (index * 0.1)), // ✅ cap at 1.0
-          curve: Curves.easeOut,
+    _fadeAnimations = List.generate(
+      _testCategories.length,
+      (index) => Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(
+        CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(
+            index * 0.15,
+            min(1.0, 0.7 + (index * 0.1)), // ✅ cap at 1.0
+            curve: Curves.easeOut,
+          ),
         ),
       ),
-    ),
-  );
+    );
 
-  _animationController.forward();
-}
+    _animationController.forward();
+  }
 
   @override
   void dispose() {
@@ -108,39 +108,39 @@ void initState() {
   }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFF5F5F5),
-    appBar: const AnimatedCurvedAppBar(title: 'Tests'),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 10),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _testCategories.length,
-              itemBuilder: (context, index) {
-                return SlideTransition(
-                  position: _slideAnimations[index],
-                  child: FadeTransition(
-                    opacity: _fadeAnimations[index],
-                    child: _buildAnimatedTestCard(
-                      context,
-                      _testCategories[index],
-                      index,
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      appBar: const AnimatedCurvedAppBar(title: 'Tests'),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _testCategories.length,
+                itemBuilder: (context, index) {
+                  return SlideTransition(
+                    position: _slideAnimations[index],
+                    child: FadeTransition(
+                      opacity: _fadeAnimations[index],
+                      child: _buildAnimatedTestCard(
+                        context,
+                        _testCategories[index],
+                        index,
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildAnimatedTestCard(
     BuildContext context,
@@ -251,27 +251,28 @@ Widget build(BuildContext context) {
   void _navigateToTest(BuildContext context, TestCategory category) async {
     // Add a small scale animation on tap
     await _showTapAnimation();
-    
+
     // bool granted = await checkPermissions();
     // if (granted) {
-      if (mounted) {
-        Navigator.push(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => category.page,
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return SlideTransition(
-                position: animation.drive(
-                  Tween(begin: const Offset(1.0, 0.0), end: Offset.zero)
-                      .chain(CurveTween(curve: Curves.easeInOut)),
-                ),
-                child: child,
-              );
-            },
-            transitionDuration: const Duration(milliseconds: 300),
-          ),
-        );
-      }
+    if (mounted) {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              category.page,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: animation.drive(
+                Tween(begin: const Offset(1.0, 0.0), end: Offset.zero)
+                    .chain(CurveTween(curve: Curves.easeInOut)),
+              ),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 300),
+        ),
+      );
+    }
     // } else {
     //   if (mounted) {
     //     ScaffoldMessenger.of(context).showSnackBar(
@@ -324,4 +325,148 @@ class TestCategory {
     required this.color,
     required this.page,
   });
+}
+
+class QuizAssignmentListPage extends StatelessWidget {
+  const QuizAssignmentListPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AssignmentListPage<QuizList, QuizQuestion>(
+      type: 'quiz',
+      fromJson: (json) => QuizList.fromJson(json),
+      getTitle: (q) => q.title,
+      getUploadDate: (q) => q.uploadDate,
+      getDueDate: (q) => q.dueDate,
+      getId: (q) => q.id,
+      getTotalMarks: (q) => q.totalMarks,
+      getQuestions: (q) => q.questions,
+      questionBuilder: (question, idx, answer, onChanged) {
+        return ListTile(
+          title: Text('Q${question.qno}: ${question.question}'),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ...question.options.map((opt) => RadioListTile<String>(
+                    title: Text(opt),
+                    value: opt,
+                    groupValue: answer,
+                    onChanged: onChanged,
+                  )),
+            ],
+          ),
+        );
+      },
+      questionResultBuilder: (question, result) {
+        return ListTile(
+          title: Text('Q${question.qno}: ${question.question}'),
+          subtitle: Text('Your answer: ${result['answer'] ?? '-'}'),
+        );
+      },
+      attemptButtonText: 'Attempt Quiz',
+    );
+  }
+}
+
+class ProgrammingAssignmentListPage extends StatelessWidget {
+  const ProgrammingAssignmentListPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AssignmentListPage<ProgramingList, ProgrammingQuestion>(
+      type: 'programming',
+      fromJson: (json) => ProgramingList.fromJson(json),
+      getTitle: (q) => q.title,
+      getUploadDate: (q) => q.uploadDate,
+      getDueDate: (q) => q.dueDate,
+      getId: (q) => q.id,
+      getTotalMarks: (q) => q.totalMarks,
+      getQuestions: (q) => q.questions,
+      questionBuilder: (question, idx, answer, onChanged) {
+        return ListTile(
+          title: Text('Q${question.qno}: ${question.question}'),
+          subtitle: TextField(
+            decoration: const InputDecoration(labelText: 'Your code'),
+            onChanged: onChanged,
+            maxLines: 4,
+          ),
+        );
+      },
+      questionResultBuilder: (question, result) {
+        return ListTile(
+          title: Text('Q${question.qno}: ${question.question}'),
+          subtitle: Text('Your code: ${result['answer'] ?? '-'}'),
+        );
+      },
+      attemptButtonText: 'Attempt Challenge',
+    );
+  }
+}
+
+class HrAssignmentListPage extends StatelessWidget {
+  const HrAssignmentListPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AssignmentListPage<HrModel, Question>(
+      type: 'hr',
+      fromJson: (json) => HrModel.fromJson(json),
+      getTitle: (q) => q.title,
+      getUploadDate: (q) => q.uploadDate,
+      getDueDate: (q) => q.dueDate,
+      getId: (q) => int.tryParse(q.id) ?? 0,
+      getTotalMarks: (q) => q.totalMarks,
+      getQuestions: (q) => q.questions,
+      questionBuilder: (question, idx, answer, onChanged) {
+        return ListTile(
+          title: Text('Q${question.qno}: ${question.question}'),
+          subtitle: TextField(
+            decoration: const InputDecoration(labelText: 'Your answer'),
+            onChanged: onChanged,
+          ),
+        );
+      },
+      questionResultBuilder: (question, result) {
+        return ListTile(
+          title: Text('Q${question.qno}: ${question.question}'),
+          subtitle: Text('Your answer: ${result['answer'] ?? '-'}'),
+        );
+      },
+      attemptButtonText: 'Attempt HR',
+    );
+  }
+}
+
+class TechnicalAssignmentListPage extends StatelessWidget {
+  const TechnicalAssignmentListPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AssignmentListPage<TechnicalItem, TechnicalQuestion>(
+      type: 'technical',
+      fromJson: (json) => TechnicalItem.fromJson(json),
+      getTitle: (q) => q.title,
+      getUploadDate: (q) => q.uploadDate,
+      getDueDate: (q) => q.dueDate,
+      getId: (q) => q.id,
+      getTotalMarks: (q) => 0, // Add totalMarks to model if needed
+      getQuestions: (q) => q.questions,
+      questionBuilder: (question, idx, answer, onChanged) {
+        return ListTile(
+          title: Text('Q${question.qno}: ${question.question}'),
+          subtitle: TextField(
+            decoration: const InputDecoration(labelText: 'Your answer'),
+            onChanged: onChanged,
+          ),
+        );
+      },
+      questionResultBuilder: (question, result) {
+        return ListTile(
+          title: Text('Q${question.qno}: ${question.question}'),
+          subtitle: Text('Your answer: ${result['answer'] ?? '-'}'),
+        );
+      },
+      attemptButtonText: 'Attempt Technical',
+    );
+  }
 }

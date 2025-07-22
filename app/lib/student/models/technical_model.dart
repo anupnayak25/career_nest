@@ -5,7 +5,8 @@ class TechnicalItem {
   final String uploadDate;
   final String dueDate;
   final List<TechnicalQuestion> questions;
-   final bool displayResult;
+  final bool displayResult;
+  final int totalMarks;
 
   TechnicalItem({
     required this.id,
@@ -14,20 +15,23 @@ class TechnicalItem {
     required this.uploadDate,
     required this.dueDate,
     required this.questions,
-     required this.displayResult,
+    required this.displayResult,
+    required this.totalMarks,
   });
 
   factory TechnicalItem.fromJson(Map<String, dynamic> json) {
+    print('TechnicalItem.fromJson received: ' + json.toString());
     return TechnicalItem(
       id: json['id'],
       title: json['title'],
       description: json['description'],
-      uploadDate: json['upload_date'],
+      uploadDate: json['publish_date'],
       dueDate: json['due_date'],
-       displayResult: json['display_result'] == 1,
+      displayResult: json['display_result'] == 1,
       questions: (json['questions'] as List)
           .map((q) => TechnicalQuestion.fromJson(q))
           .toList(),
+      totalMarks: json['total_marks'] ?? 0,
     );
   }
 
@@ -42,6 +46,7 @@ class TechnicalItem {
     };
   }
 }
+
 class TechnicalQuestion {
   final int qno;
   final String question;
@@ -54,6 +59,7 @@ class TechnicalQuestion {
   });
 
   factory TechnicalQuestion.fromJson(Map<String, dynamic> json) {
+    print('TechnicalQuestion.fromJson received: ' + json.toString());
     return TechnicalQuestion(
       qno: json['qno'],
       question: json['question'],
@@ -68,9 +74,9 @@ class TechnicalQuestion {
       'marks': marks,
     };
   }
- 
 }
- class TechnicalResultSummary {
+
+class TechnicalResultSummary {
   final int obtainedMarks;
   final int totalMarks;
   final double percentage;

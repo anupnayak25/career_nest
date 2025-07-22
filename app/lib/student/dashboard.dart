@@ -17,7 +17,7 @@ class _DashboardPageState extends State<DashboardPage>
     with TickerProviderStateMixin {
   // Index to track the currently selected tab in the bottom navigation bar
   int _selectedIndex = 0;
-  
+
   // Animation controller for smooth transitions
   late AnimationController _animationController;
 
@@ -74,7 +74,7 @@ class _DashboardPageState extends State<DashboardPage>
     if (_selectedIndex != index) {
       // Haptic feedback for better user experience
       HapticFeedback.lightImpact();
-      
+
       setState(() => _selectedIndex = index);
     }
   }
@@ -94,7 +94,7 @@ class _DashboardPageState extends State<DashboardPage>
             parent: animation,
             curve: Curves.easeOutCubic,
           ));
-          
+
           return SlideTransition(
             position: slideAnimation,
             child: FadeTransition(
@@ -147,13 +147,13 @@ class _DashboardPageState extends State<DashboardPage>
               int index = entry.key;
               NavigationItem item = entry.value;
               bool isSelected = _selectedIndex == index;
-              
+
               return BottomNavigationBarItem(
                 icon: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isSelected 
+                    color: isSelected
                         ? item.color.withOpacity(0.15)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
@@ -189,7 +189,7 @@ class _DashboardPageState extends State<DashboardPage>
         ),
       ),
       // Optional: Add a floating action button for quick actions
-      // floatingActionButton: _selectedIndex == 0 
+      // floatingActionButton: _selectedIndex == 0
       //     ? FloatingActionButton(
       //         onPressed: () {
       //           // Quick action - could navigate to create new test or notification

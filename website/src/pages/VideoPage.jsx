@@ -77,17 +77,17 @@ function VideoPage() {
   ];
     
   return (
-       <div className="space-y-6">
+       <div className="space-y-6 animate-fade-in">
 
       {/* Tab Navigation */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+      <div className="bg-white rounded-xl shadow-lg p-6 animate-slide-up">
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6 animate-fade-in">
           <button
             onClick={() => setDashboardTab('events')}
             className={`flex-1 py-2 px-4 rounded-md font-medium transition-all duration-200 ${
               dashboardTab === 'events'
-                ? 'bg-white text-blue-600 shadow-md'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white text-blue-600 shadow-md animate-fade-in'
+                : 'text-gray-600 hover:text-gray-900 animate-fade-in'
             }`}
           >
             <Calendar className="inline mr-2" size={16} />
@@ -97,8 +97,8 @@ function VideoPage() {
             onClick={() => setDashboardTab('placements')}
             className={`flex-1 py-2 px-4 rounded-md font-medium transition-all duration-200 ${
               dashboardTab === 'placements'
-                ? 'bg-white text-blue-600 shadow-md'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white text-blue-600 shadow-md animate-fade-in'
+                : 'text-gray-600 hover:text-gray-900 animate-fade-in'
             }`}
           >
             <Trophy className="inline mr-2" size={16} />
@@ -107,9 +107,11 @@ function VideoPage() {
         </div>
 
         {/* Video Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {(dashboardTab === 'events' ? eventsVideos : placementsVideos).map((video) => (
-            <VideoCard key={video.id} video={video} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
+          {(dashboardTab === 'events' ? eventsVideos : placementsVideos).map((video, idx) => (
+            <div key={video.id} className="transition-all duration-500 transform animate-slide-up" style={{animationDelay: `${idx * 60}ms`}}>
+              <VideoCard video={video} />
+            </div>
           ))}
         </div>
       </div>

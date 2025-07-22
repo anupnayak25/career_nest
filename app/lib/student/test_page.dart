@@ -8,6 +8,7 @@ import 'package:career_nest/student/models/quiz_model.dart';
 import 'package:career_nest/student/models/programming_model.dart';
 import 'package:career_nest/student/models/hr_model.dart';
 import 'package:career_nest/student/models/technical_model.dart';
+import 'package:career_nest/student/common/service.dart';
 
 class TestsPage extends StatefulWidget {
   const TestsPage({super.key});
@@ -17,88 +18,73 @@ class TestsPage extends StatefulWidget {
 }
 
 class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
+  late Future<List<TestCategory>> _categoriesFuture;
   late AnimationController _animationController;
   late List<Animation<Offset>> _slideAnimations;
   late List<Animation<double>> _fadeAnimations;
 
-  final List<TestCategory> _testCategories = [
-    TestCategory(
-      title: 'QUIZ',
-      subtitle: '15 Tests Available',
-      completed: 7,
-      icon: Icons.quiz,
-      color: const Color(0xFFE1BEE7), // Light Purple
-      page: const QuizAssignmentListPage(),
-    ),
-    TestCategory(
-      title: 'Programming',
-      subtitle: '12 Challenges',
-      completed: 3,
-      icon: Icons.code,
-      color: const Color(0xFFBBDEFB), // Light Blue
-      page: const ProgrammingAssignmentListPage(),
-    ),
-    TestCategory(
-      title: 'HR Interview',
-      subtitle: '8 Sessions',
-      completed: 5,
-      icon: Icons.people,
-      color: const Color(0xFFFFF9C4), // Light Yellow
-      page: const HrAssignmentListPage(),
-    ),
-    TestCategory(
-      title: 'Technical',
-      subtitle: '20 Topics',
-      completed: 12,
-      icon: Icons.engineering,
-      color: const Color(0xFFC8E6C9), // Light Green
-      page: const TechnicalAssignmentListPage(),
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
+    _categoriesFuture = _loadCategories();
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
+  }
 
-    _slideAnimations = List.generate(
-      _testCategories.length,
-      (index) => Tween<Offset>(
-        begin: const Offset(0, 1),
-        end: Offset.zero,
-      ).animate(
-        CurvedAnimation(
-          parent: _animationController,
-          curve: Interval(
-            index * 0.2,
-            min(1.0, 0.8 + (index * 0.1)), // ✅ cap at 1.0
-            curve: Curves.easeOutBack,
-          ),
-        ),
+  Future<List<TestCategory>> _loadCategories() async {
+    final quizAssignments = await AssignmentService.fetchList<QuizList>(
+        'quiz', (json) => QuizList.fromJson(json));
+    final quizAttempted = await AssignmentService.fetchAttempted('quiz');
+    final programmingAssignments =
+        await AssignmentService.fetchList<ProgramingList>(
+            'programming', (json) => ProgramingList.fromJson(json));
+    final programmingAttempted =
+        await AssignmentService.fetchAttempted('programming');
+    final hrAssignments = await AssignmentService.fetchList<HrModel>(
+        'hr', (json) => HrModel.fromJson(json));
+    final hrAttempted = await AssignmentService.fetchAttempted('hr');
+    final technicalAssignments =
+        await AssignmentService.fetchList<TechnicalItem>(
+            'technical', (json) => TechnicalItem.fromJson(json));
+    final technicalAttempted =
+        await AssignmentService.fetchAttempted('technical');
+
+    return [
+      TestCategory(
+        title: 'QUIZ',
+        subtitle: '${quizAssignments.length} Tests Available',
+        completed: quizAttempted.length,
+        icon: Icons.quiz,
+        color: const Color(0xFFE1BEE7),
+        page: const QuizAssignmentListPage(),
       ),
-    );
-
-    _fadeAnimations = List.generate(
-      _testCategories.length,
-      (index) => Tween<double>(
-        begin: 0.0,
-        end: 1.0,
-      ).animate(
-        CurvedAnimation(
-          parent: _animationController,
-          curve: Interval(
-            index * 0.15,
-            min(1.0, 0.7 + (index * 0.1)), // ✅ cap at 1.0
-            curve: Curves.easeOut,
-          ),
-        ),
+      TestCategory(
+        title: 'Programming',
+        subtitle: '${programmingAssignments.length} Challenges',
+        completed: programmingAttempted.length,
+        icon: Icons.code,
+        color: const Color(0xFFBBDEFB),
+        page: const ProgrammingAssignmentListPage(),
       ),
-    );
-
-    _animationController.forward();
+      TestCategory(
+        title: 'HR Interview',
+        subtitle: '${hrAssignments.length} Sessions',
+        completed: hrAttempted.length,
+        icon: Icons.people,
+        color: const Color(0xFFFFF9C4),
+        page: const HrAssignmentListPage(),
+      ),
+      TestCategory(
+        title: 'Technical',
+        subtitle: '${technicalAssignments.length} Topics',
+        completed: technicalAttempted.length,
+        icon: Icons.engineering,
+        color: const Color(0xFFC8E6C9),
+        page: const TechnicalAssignmentListPage(),
+      ),
+    ];
   }
 
   @override
@@ -112,32 +98,74 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: const AnimatedCurvedAppBar(title: 'Tests'),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _testCategories.length,
-                itemBuilder: (context, index) {
-                  return SlideTransition(
-                    position: _slideAnimations[index],
-                    child: FadeTransition(
-                      opacity: _fadeAnimations[index],
-                      child: _buildAnimatedTestCard(
-                        context,
-                        _testCategories[index],
-                        index,
-                      ),
-                    ),
-                  );
-                },
+      body: FutureBuilder<List<TestCategory>>(
+        future: _categoriesFuture,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final categories = snapshot.data!;
+          _slideAnimations = List.generate(
+            categories.length,
+            (index) => Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(
+                parent: _animationController,
+                curve: Interval(
+                  index * 0.2,
+                  min(1.0, 0.8 + (index * 0.1)),
+                  curve: Curves.easeOutBack,
+                ),
               ),
             ),
-          ],
-        ),
+          );
+          _fadeAnimations = List.generate(
+            categories.length,
+            (index) => Tween<double>(
+              begin: 0.0,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: _animationController,
+                curve: Interval(
+                  index * 0.15,
+                  min(1.0, 0.7 + (index * 0.1)),
+                  curve: Curves.easeOut,
+                ),
+              ),
+            ),
+          );
+          _animationController.forward();
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      return SlideTransition(
+                        position: _slideAnimations[index],
+                        child: FadeTransition(
+                          opacity: _fadeAnimations[index],
+                          child: _buildAnimatedTestCard(
+                            context,
+                            categories[index],
+                            index,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -147,6 +175,7 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
     TestCategory category,
     int index,
   ) {
+    final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Material(
@@ -162,7 +191,7 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
               color: category.color,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.3),
+                color: theme.cardColor.withOpacity(0.3),
                 width: 1,
               ),
             ),
@@ -173,7 +202,7 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: theme.cardColor.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -190,19 +219,12 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
                     children: [
                       Text(
                         category.title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                        style: theme.textTheme.titleLarge,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         category.subtitle,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black.withOpacity(0.6),
-                        ),
+                        style: theme.textTheme.bodyMedium,
                       ),
                     ],
                   ),
@@ -213,8 +235,7 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
                   children: [
                     Text(
                       '${category.completed} Completed',
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.black.withOpacity(0.7),
                         fontWeight: FontWeight.w500,
                       ),
@@ -223,7 +244,7 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.4),
+                        color: theme.cardColor.withOpacity(0.4),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(

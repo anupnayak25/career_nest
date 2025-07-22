@@ -26,7 +26,7 @@ class QuizList {
   });
 
   factory QuizList.fromJson(Map<String, dynamic> json) {
-    print('QuizList.fromJson received: ' + json.toString());
+    // print('QuizList.fromJson received: ' + json.toString());
     return QuizList(
       id: json['id'] as int,
       title: json['title'] as String,
@@ -61,7 +61,7 @@ class QuizQuestion {
   });
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
-    print('QuizQuestion.fromJson received: ' + json.toString());
+    // print('QuizQuestion.fromJson received: ' + json.toString());
     return QuizQuestion(
       id: json['id'],
       qno: json['qno'] as int,

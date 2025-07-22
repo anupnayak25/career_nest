@@ -81,8 +81,9 @@ class _DashboardPageState extends State<DashboardPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         transitionBuilder: (child, animation) {
@@ -110,7 +111,7 @@ class _DashboardPageState extends State<DashboardPage>
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.cardColor,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -136,13 +137,10 @@ class _DashboardPageState extends State<DashboardPage>
             elevation: 0,
             selectedFontSize: 12,
             unselectedFontSize: 11,
-            selectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.w500,
-            ),
+            selectedLabelStyle: theme.textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.5),
+            unselectedLabelStyle: theme.textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w500),
             items: _navItems.asMap().entries.map((entry) {
               int index = entry.key;
               NavigationItem item = entry.value;
@@ -154,7 +152,7 @@ class _DashboardPageState extends State<DashboardPage>
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? item.color.withOpacity(0.15)
+                        ? theme.primaryColor.withOpacity(0.15)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -163,7 +161,9 @@ class _DashboardPageState extends State<DashboardPage>
                     child: Icon(
                       isSelected ? item.activeIcon : item.icon,
                       key: ValueKey(isSelected),
-                      color: isSelected ? item.color : Colors.grey[600],
+                      color: isSelected
+                          ? theme.primaryColor
+                          : theme.textTheme.bodyMedium?.color,
                       size: isSelected ? 26 : 24,
                     ),
                   ),
@@ -172,19 +172,19 @@ class _DashboardPageState extends State<DashboardPage>
                 activeIcon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: item.color.withOpacity(0.15),
+                    color: theme.primaryColor.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     item.activeIcon,
-                    color: item.color,
+                    color: theme.primaryColor,
                     size: 26,
                   ),
                 ),
               );
             }).toList(),
-            selectedItemColor: _navItems[_selectedIndex].color,
-            unselectedItemColor: Colors.grey[600],
+            selectedItemColor: theme.primaryColor,
+            unselectedItemColor: theme.textTheme.bodyMedium?.color,
           ),
         ),
       ),

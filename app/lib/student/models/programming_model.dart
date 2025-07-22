@@ -20,7 +20,7 @@ class ProgramingList {
   });
 
   factory ProgramingList.fromJson(Map<String, dynamic> json) {
-    print('ProgramingList.fromJson received: ' + json.toString());
+    // print('ProgramingList.fromJson received: ' + json.toString());
     return ProgramingList(
       id: json['id'] as int,
       title: json['title'] ?? '',
@@ -60,7 +60,7 @@ class ProgrammingQuestion {
   });
 
   factory ProgrammingQuestion.fromJson(Map<String, dynamic> json) {
-    print('ProgrammingQuestion.fromJson received: ' + json.toString());
+    // print('ProgrammingQuestion.fromJson received: ' + json.toString());
     return ProgrammingQuestion(
       qno: json['qno'] ?? 0,
       question: json['question'] ?? '',

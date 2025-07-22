@@ -20,7 +20,7 @@ class TechnicalItem {
   });
 
   factory TechnicalItem.fromJson(Map<String, dynamic> json) {
-    print('TechnicalItem.fromJson received: ' + json.toString());
+    // print('TechnicalItem.fromJson received: ' + json.toString());
     return TechnicalItem(
       id: json['id'] as int,
       title: json['title'] ?? '',
@@ -60,7 +60,7 @@ class TechnicalQuestion {
   });
 
   factory TechnicalQuestion.fromJson(Map<String, dynamic> json) {
-    print('TechnicalQuestion.fromJson received: ' + json.toString());
+    // print('TechnicalQuestion.fromJson received: ' + json.toString());
     return TechnicalQuestion(
       qno: json['qno'] ?? 0,
       question: json['question'] ?? '',

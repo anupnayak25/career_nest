@@ -188,6 +188,7 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
   }
 
   Widget _buildQuestionCard(T question, int index) {
+    final isBlueType = widget.type == 'quiz' || widget.type == 'programming';
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Card(
@@ -195,7 +196,10 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        color: isVideoType ? Colors.white : Colors.blue[50],
+        color: isBlueType
+            ? Theme.of(context).primaryColor.withOpacity(0.12)
+            : Colors.white,
+        shadowColor: Theme.of(context).primaryColor.withOpacity(0.08),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: isVideoType
@@ -223,15 +227,15 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(6),
+                color: Theme.of(context).primaryColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 'Q${q.qno}',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).primaryColor,
                 ),
@@ -239,15 +243,15 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
             ),
             const Spacer(),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(6),
+                color: Colors.orange.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 '${q.marks} marks',
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w500,
                   color: Colors.orange,
                 ),
@@ -255,19 +259,18 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
             ),
           ],
         ),
-        const SizedBox(height: 12),
-
+        const SizedBox(height: 14),
         // Question text
         Text(
           q.question,
           style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
             height: 1.4,
+            color: Colors.black87,
           ),
         ),
         const SizedBox(height: 20),
-
         // Video recording section
         if (!hasVideo)
           _buildRecordButton(index)
@@ -283,30 +286,30 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
       height: 120,
       decoration: BoxDecoration(
         border: Border.all(
-          color: Colors.grey[300]!,
+          color: Theme.of(context).primaryColor.withOpacity(0.18),
           width: 2,
           style: BorderStyle.solid,
         ),
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(14),
+        color: Theme.of(context).primaryColor.withOpacity(0.06),
       ),
       child: InkWell(
         onTap: () => _recordVideo(index),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.videocam,
-              size: 32,
+              size: 34,
               color: Theme.of(context).primaryColor,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
-              'Tap to Record Video Answer',
+              'Click to Record Video Answer',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 color: Theme.of(context).primaryColor,
               ),
             ),
@@ -354,7 +357,6 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
             ],
           ),
           const SizedBox(height: 12),
-
           // Video URL (truncated)
           Container(
             padding: const EdgeInsets.all(12),
@@ -387,7 +389,6 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
             ),
           ),
           const SizedBox(height: 12),
-
           // Re-record button
           SizedBox(
             width: double.infinity,
@@ -399,6 +400,9 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 side: BorderSide(color: Theme.of(context).primaryColor),
                 foregroundColor: Theme.of(context).primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),

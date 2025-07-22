@@ -20,7 +20,7 @@ class HrModel {
   });
 
   factory HrModel.fromJson(Map<String, dynamic> json) {
-    print('HrModel.fromJson received: ' + json.toString());
+    // print('HrModel.fromJson received: ' + json.toString());
     return HrModel(
       id: json['id'].toString(),
       title: json['title'] ?? '',
@@ -49,7 +49,7 @@ class Question {
   });
 
   factory Question.fromJson(Map<String, dynamic> json) {
-    print('Question.fromJson received: ' + json.toString());
+    // print('Question.fromJson received: ' + json.toString());
     return Question(
       qno: json['qno'] ?? 0,
       question: json['question'] ?? '',

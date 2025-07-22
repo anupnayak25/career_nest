@@ -46,8 +46,7 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
     super.initState();
     assignmentsFuture =
         AssignmentService.fetchList<T>(widget.type, widget.fromJson);
-    attemptedFuture =
-        Future.value([]); // Replace with your attempted fetch logic if needed
+    attemptedFuture = AssignmentService.fetchAttempted(widget.type);
   }
 
   @override
@@ -117,6 +116,9 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                   final isDone =
                       attemptedList.contains(widget.getId(assignment));
                   final questions = widget.getQuestions(assignment);
+                  final displayResult =
+                      (assignment as dynamic).displayResult == true ||
+                          (assignment as dynamic).displayResult == 1;
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(
@@ -142,25 +144,25 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                                   ),
                                 ),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: isDone
-                                      ? Colors.red[100]
-                                      : Colors.blue[100],
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  isDone
-                                      ? 'Done'
-                                      : 'Take ${widget.type[0].toUpperCase()}${widget.type.substring(1)}',
-                                  style: TextStyle(
-                                    color: isDone ? Colors.red : Colors.blue,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
+                              // Container(
+                              //   padding: const EdgeInsets.symmetric(
+                              //       horizontal: 12, vertical: 6),
+                              //   decoration: BoxDecoration(
+                              //     color: isDone
+                              //         ? Colors.red[100]
+                              //         : Colors.blue[100],
+                              //     borderRadius: BorderRadius.circular(20),
+                              //   ),
+                              //   child: Text(
+                              //     isDone
+                              //         ? 'Done'
+                              //         : 'Take ${widget.type[0].toUpperCase()}${widget.type.substring(1)}',
+                              //     style: TextStyle(
+                              //       color: isDone ? Colors.red : Colors.blue,
+                              //       fontWeight: FontWeight.bold,
+                              //     ),
+                              //   ),
+                              // ),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -268,60 +270,72 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                                     child: Text(isDone ? 'Done' : 'Attempt'),
                                   )
                                 : ElevatedButton(
-                                    onPressed: () async {
-                                      final results =
-                                          await AssignmentService.fetchResults(
-                                        type: widget.type,
-                                        id: widget.getId(assignment),
-                                      );
-                                      int obtainedMarks = 0;
-                                      num totalMarks = 0;
-                                      for (final question in questions) {
-                                        if (question is dynamic &&
-                                            question.marks != null) {
-                                          totalMarks += question.marks is int
-                                              ? question.marks
-                                              : (question.marks as num).toInt();
-                                        }
-                                        final match = results.firstWhere(
-                                          (ans) =>
-                                              ans['qno'] ==
-                                              (((question as dynamic).qno) ??
-                                                  0),
-                                          orElse: () => {},
-                                        );
-                                        obtainedMarks += int.tryParse(
-                                                match['marks_awarded']
-                                                        ?.toString() ??
-                                                    '0') ??
-                                            0;
-                                      }
-                                      double percentage = totalMarks > 0
-                                          ? (obtainedMarks / totalMarks) * 100
-                                          : 0.0;
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => ResultPage<Q>(
-                                            title: widget.getTitle(assignment),
-                                            questions: questions,
-                                            results: results,
-                                            questionResultBuilder:
-                                                widget.questionResultBuilder,
-                                            obtainedMarks: obtainedMarks is int
-                                                ? obtainedMarks
-                                                : (obtainedMarks as num)
-                                                    .toInt(),
-                                            totalMarks: totalMarks is int
-                                                ? totalMarks
-                                                : (totalMarks as num).toInt(),
-                                            percentage: percentage,
-                                          ),
-                                        ),
-                                      );
-                                    },
+                                    onPressed: displayResult
+                                        ? () async {
+                                            final results =
+                                                await AssignmentService
+                                                    .fetchResults(
+                                              type: widget.type,
+                                              id: widget.getId(assignment),
+                                            );
+                                            int obtainedMarks = 0;
+                                            num totalMarks = 0;
+                                            for (final question in questions) {
+                                              if (question is dynamic &&
+                                                  question.marks != null) {
+                                                totalMarks += question.marks
+                                                        is int
+                                                    ? question.marks
+                                                    : (question.marks as num)
+                                                        .toInt();
+                                              }
+                                              final match = results.firstWhere(
+                                                (ans) =>
+                                                    ans['qno'] ==
+                                                    (((question as dynamic)
+                                                            .qno) ??
+                                                        0),
+                                                orElse: () => {},
+                                              );
+                                              obtainedMarks += int.tryParse(
+                                                      match['marks_awarded']
+                                                              ?.toString() ??
+                                                          '0') ??
+                                                  0;
+                                            }
+                                            double percentage = totalMarks > 0
+                                                ? (obtainedMarks / totalMarks) *
+                                                    100
+                                                : 0.0;
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => ResultPage<Q>(
+                                                  title: widget
+                                                      .getTitle(assignment),
+                                                  questions: questions,
+                                                  results: results,
+                                                  questionResultBuilder: widget
+                                                      .questionResultBuilder,
+                                                  obtainedMarks: obtainedMarks
+                                                          is int
+                                                      ? obtainedMarks
+                                                      : (obtainedMarks as num)
+                                                          .toInt(),
+                                                  totalMarks: totalMarks is int
+                                                      ? totalMarks
+                                                      : (totalMarks as num)
+                                                          .toInt(),
+                                                  percentage: percentage,
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        : null,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
+                                      backgroundColor: displayResult
+                                          ? Colors.red
+                                          : Colors.grey,
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(30),

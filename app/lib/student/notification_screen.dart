@@ -14,6 +14,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     NotificationItem(
       title: 'Congratulations on completing the test!',
       time: 'Just now',
+      message: 'HELLO WORLD',
       type: 'achievement',
       isRead: false,
       icon: Icons.celebration,
@@ -22,6 +23,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     NotificationItem(
       title: 'Your course has been updated',
       time: 'Today',
+      message: 'HELLO WORLD',
       type: 'update',
       isRead: false,
       icon: Icons.update,
@@ -30,6 +32,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     NotificationItem(
       title: 'You have a new message',
       time: '1 hour ago',
+      message: 'HELLO WORLD',
       type: 'message',
       isRead: true,
       icon: Icons.message,
@@ -38,6 +41,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     NotificationItem(
       title: 'Reminder: Test deadline approaching',
       time: '2 hours ago',
+      message: 'HELLO WORLD',
       type: 'reminder',
       isRead: true,
       icon: Icons.schedule,
@@ -46,6 +50,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     NotificationItem(
       title: 'New course available in Mathematics',
       time: 'Yesterday',
+      message: 'HELLO WORLD',
       type: 'course',
       isRead: true,
       icon: Icons.school,
@@ -71,21 +76,46 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-     appBar: AnimatedCurvedAppBar(title: "Notifications",),
-      body: notifications.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: notifications.length,
-              itemBuilder: (context, index) {
-                return NotificationCard(
-                  notification: notifications[index],
-                  onTap: () => _markAsRead(index),
-                );
-              },
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text('Notifications', style: theme.textTheme.titleLarge),
+        backgroundColor: theme.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 2,
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: notifications.length,
+        itemBuilder: (context, index) {
+          final notification = notifications[index];
+          return Card(
+            color: theme.cardColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
+            elevation: 3,
+            margin: const EdgeInsets.only(bottom: 16),
+            child: ListTile(
+              contentPadding: const EdgeInsets.all(16),
+              title: Text(
+                notification.title,
+                style: theme.textTheme.titleMedium,
+              ),
+              subtitle: Text(
+                notification.message,
+                style: theme.textTheme.bodyMedium,
+              ),
+              trailing: Icon(
+                Icons.notifications,
+                color: theme.primaryColor,
+                size: 28,
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -126,6 +156,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
 // Simple notification data class
 class NotificationItem {
   String title;
+  String message;
   String time;
   String type;
   bool isRead;
@@ -134,6 +165,7 @@ class NotificationItem {
 
   NotificationItem({
     required this.title,
+    required this.message,
     required this.time,
     required this.type,
     required this.isRead,
@@ -198,7 +230,7 @@ class NotificationCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                
+
                 // Notification content
                 Expanded(
                   child: Column(

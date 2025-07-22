@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:career_nest/common/video_recoredr_screen.dart';
+import 'package:career_nest/common/video_service.dart';
 
 class AttemptPage<T> extends StatefulWidget {
   final String title;
@@ -7,6 +10,7 @@ class AttemptPage<T> extends StatefulWidget {
       questionBuilder;
   final Future<bool> Function(List<Map<String, dynamic>>) onSubmit;
   final Map<int, dynamic> Function()? initialAnswers;
+  final String? type;
 
   const AttemptPage({
     Key? key,
@@ -15,6 +19,7 @@ class AttemptPage<T> extends StatefulWidget {
     required this.questionBuilder,
     required this.onSubmit,
     this.initialAnswers,
+    this.type,
   }) : super(key: key);
 
   @override
@@ -31,74 +36,607 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
     answers = widget.initialAnswers?.call() ?? {};
   }
 
+  bool get isVideoType => widget.type == 'technical' || widget.type == 'hr';
+
+  int get answeredQuestions => answers.length;
+  int get totalQuestions => widget.questions.length;
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (widget.questions.isEmpty)
-              const Text(
-                'No questions available.',
-                style:
-                    TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-              )
-            else
-              ...widget.questions.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final question = entry.value;
-                return widget.questionBuilder(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: Text(
+          widget.title,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: theme.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 2,
+        actions: [
+          if (totalQuestions > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '$answeredQuestions/$totalQuestions',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+      body: widget.questions.isEmpty
+          ? _buildEmptyState()
+          : Column(
+              children: [
+                if (totalQuestions > 0) _buildProgressIndicator(),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: widget.questions.length,
+                    itemBuilder: (context, index) {
+                      final question = widget.questions[index];
+                      return _buildQuestionCard(question, index);
+                    },
+                  ),
+                ),
+                _buildSubmitSection(),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.quiz_outlined,
+            size: 80,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No questions available',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Please check back later',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressIndicator() {
+    final progress =
+        totalQuestions > 0 ? answeredQuestions / totalQuestions : 0.0;
+
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Progress',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[800],
+                ),
+              ),
+              Text(
+                '${(progress * 100).round()}% Complete',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: progress,
+            backgroundColor: Colors.grey[200],
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Theme.of(context).primaryColor,
+            ),
+            minHeight: 6,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuestionCard(T question, int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        color: isVideoType ? Colors.white : Colors.blue[50],
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: isVideoType
+              ? _buildVideoQuestion(question, index)
+              : widget.questionBuilder(
                   question,
-                  idx,
-                  answers[idx],
-                  (val) => setState(() => answers[idx] = val),
-                );
-              }),
-            const SizedBox(height: 16.0),
-            Center(
-              child: ElevatedButton(
-                child: isSubmitting
-                    ? const CircularProgressIndicator()
-                    : const Text('Submit'),
-                onPressed: isSubmitting
-                    ? null
-                    : () async {
-                        if (answers.length != widget.questions.length) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Please answer all questions.')),
-                          );
-                          return;
-                        }
-                        setState(() => isSubmitting = true);
-                        final answerList =
-                            widget.questions.asMap().entries.map((entry) {
-                          final idx = entry.key;
-                          final question = entry.value;
-                          return {
-                            'qno': idx + 1,
-                            'answer': answers[idx],
-                          };
-                        }).toList();
-                        final success = await widget.onSubmit(answerList);
-                        setState(() => isSubmitting = false);
-                        if (success) {
-                          Navigator.pop(context, true);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Failed to submit answers.')),
-                          );
-                        }
-                      },
+                  index,
+                  answers[index],
+                  (val) => setState(() => answers[index] = val),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVideoQuestion(T question, int index) {
+    final q = question as dynamic;
+    final videoUrl = answers[index];
+    final hasVideo = videoUrl != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Question header
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'Q${q.qno}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                '${q.marks} marks',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.orange,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Question text
+        Text(
+          q.question,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Video recording section
+        if (!hasVideo)
+          _buildRecordButton(index)
+        else
+          _buildVideoSection(videoUrl, index),
+      ],
+    );
+  }
+
+  Widget _buildRecordButton(int index) {
+    return Container(
+      width: double.infinity,
+      height: 120,
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.grey[300]!,
+          width: 2,
+          style: BorderStyle.solid,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.grey[50],
+      ),
+      child: InkWell(
+        onTap: () => _recordVideo(index),
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.videocam,
+              size: 32,
+              color: Theme.of(context).primaryColor,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Tap to Record Video Answer',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Record your response to this question',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildVideoSection(String videoUrl, int index) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.green[50],
+        border: Border.all(color: Colors.green[200]!),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.check_circle,
+                color: Colors.green[600],
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Video Answer Recorded',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.green[700],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Video URL (truncated)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.link,
+                  size: 16,
+                  color: Colors.grey[600],
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    videoUrl.length > 50
+                        ? '${videoUrl.substring(0, 50)}...'
+                        : videoUrl,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Re-record button
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _recordVideo(index),
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Re-record Answer'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                side: BorderSide(color: Theme.of(context).primaryColor),
+                foregroundColor: Theme.of(context).primaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmitSection() {
+    final canSubmit =
+        answers.length == widget.questions.length && !isSubmitting;
+    final missingAnswers = totalQuestions - answeredQuestions;
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          if (missingAnswers > 0)
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                border: Border.all(color: Colors.orange[200]!),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber,
+                    color: Colors.orange[600],
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '$missingAnswers question${missingAnswers == 1 ? '' : 's'} remaining',
+                      style: TextStyle(
+                        color: Colors.orange[700],
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: canSubmit ? _submitAnswers : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.grey[300],
+                elevation: canSubmit ? 2 : 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                textStyle:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              child: isSubmitting
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Submitting...',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      'Submit',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _recordVideo(int index) async {
+    try {
+      final path = await Navigator.push<String>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VideoRecordScreen(qno: index + 1),
+        ),
+      );
+
+      if (path != null && mounted) {
+        // Show uploading indicator
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                SizedBox(width: 12),
+                Text('Uploading video...'),
+              ],
+            ),
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        final url = await VideoService.uploadVideoFile(File(path));
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+          if (url != null) {
+            setState(() => answers[index] = url);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Video uploaded successfully for Q${index + 1}'),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to upload video for Q${index + 1}'),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+                action: SnackBarAction(
+                  label: 'Retry',
+                  textColor: Colors.white,
+                  onPressed: () => _recordVideo(index),
+                ),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error recording video: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _submitAnswers() async {
+    if (answers.length != widget.questions.length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please answer all questions before submitting.'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => isSubmitting = true);
+
+    try {
+      final answerList = widget.questions.asMap().entries.map((entry) {
+        final idx = entry.key;
+        return {
+          'qno': idx + 1,
+          'answer': answers[idx],
+        };
+      }).toList();
+
+      final success = await widget.onSubmit(answerList);
+
+      if (mounted) {
+        setState(() => isSubmitting = false);
+
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Answers submitted successfully!'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          Navigator.pop(context, true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to submit answers. Please try again.'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error submitting answers: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 }

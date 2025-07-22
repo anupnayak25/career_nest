@@ -22,16 +22,17 @@ class TechnicalItem {
   factory TechnicalItem.fromJson(Map<String, dynamic> json) {
     print('TechnicalItem.fromJson received: ' + json.toString());
     return TechnicalItem(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
-      uploadDate: json['publish_date'],
-      dueDate: json['due_date'],
-      displayResult: json['display_result'] == 1,
-      questions: (json['questions'] as List)
-          .map((q) => TechnicalQuestion.fromJson(q))
-          .toList(),
+      id: json['id'] as int,
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      uploadDate: json['publish_date'] ?? '',
+      dueDate: json['due_date'] ?? '',
       totalMarks: json['total_marks'] ?? 0,
+      displayResult: json['display_result'] == 1,
+      questions: (json['questions'] as List<dynamic>?)
+              ?.map((q) => TechnicalQuestion.fromJson(q))
+              .toList() ??
+          [],
     );
   }
 
@@ -61,9 +62,9 @@ class TechnicalQuestion {
   factory TechnicalQuestion.fromJson(Map<String, dynamic> json) {
     print('TechnicalQuestion.fromJson received: ' + json.toString());
     return TechnicalQuestion(
-      qno: json['qno'],
-      question: json['question'],
-      marks: json['marks'],
+      qno: json['qno'] ?? 0,
+      question: json['question'] ?? '',
+      marks: json['marks'] ?? 0,
     );
   }
 

@@ -67,7 +67,7 @@ class QuizQuestion {
       qno: json['qno'] as int,
       question: json['question'] as String,
       options: json['options'] is String
-          ? List<String>.from(jsonDecode(json['options']))
+          ? (json['options'] as String).split(',').map((e) => e.trim()).toList()
           : (json['options'] as List<dynamic>)
               .map((e) => e.toString())
               .toList(),

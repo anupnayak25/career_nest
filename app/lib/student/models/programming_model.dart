@@ -22,18 +22,17 @@ class ProgramingList {
   factory ProgramingList.fromJson(Map<String, dynamic> json) {
     print('ProgramingList.fromJson received: ' + json.toString());
     return ProgramingList(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
-      uploadDate: json['publish_date'], // changed from upload_date
-      dueDate: json['due_date'],
+      id: json['id'] as int,
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      uploadDate: json['publish_date'] ?? '',
+      dueDate: json['due_date'] ?? '',
+      totalMarks: json['total_marks'] ?? 0,
       displayResult: json['display_result'] == 1,
-      questions: (json['questions'] != null)
-          ? (json['questions'] as List)
-              .map((q) => ProgrammingQuestion.fromJson(q))
-              .toList()
-          : [],
-      totalMarks: json['total_marks'] ?? 0, // Default to 0 if not present
+      questions: (json['questions'] as List<dynamic>?)
+              ?.map((q) => ProgrammingQuestion.fromJson(q))
+              .toList() ??
+          [],
     );
   }
 
@@ -63,10 +62,10 @@ class ProgrammingQuestion {
   factory ProgrammingQuestion.fromJson(Map<String, dynamic> json) {
     print('ProgrammingQuestion.fromJson received: ' + json.toString());
     return ProgrammingQuestion(
-      qno: json['qno'],
-      question: json['question'],
-      programSnippet: json['program_snippet'],
-      marks: json['marks'],
+      qno: json['qno'] ?? 0,
+      question: json['question'] ?? '',
+      programSnippet: json['program_snippet'] ?? '',
+      marks: json['marks'] ?? 0,
     );
   }
 

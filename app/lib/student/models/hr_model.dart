@@ -22,18 +22,17 @@ class HrModel {
   factory HrModel.fromJson(Map<String, dynamic> json) {
     print('HrModel.fromJson received: ' + json.toString());
     return HrModel(
-      id: json['id']?.toString() ?? '', // fallback if not using Mongo _id
-      title: json['title']?.toString() ?? 'No Title',
-      description: json['description']?.toString() ?? 'No Description',
-      uploadDate:
-          json['publish_date']?.toString() ?? '', // changed from upload_date
-      dueDate: json['due_date']?.toString() ?? '',
+      id: json['id'].toString(),
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      uploadDate: json['publish_date'] ?? '',
+      dueDate: json['due_date'] ?? '',
+      totalMarks: json['total_marks'] ?? 0,
       displayResult: json['display_result'] == 1,
       questions: (json['questions'] as List<dynamic>?)
               ?.map((e) => Question.fromJson(e))
               .toList() ??
           [],
-      totalMarks: json['total_marks'] ?? 0, // changed from totalMarks
     );
   }
 }
@@ -53,7 +52,7 @@ class Question {
     print('Question.fromJson received: ' + json.toString());
     return Question(
       qno: json['qno'] ?? 0,
-      question: json['question']?.toString() ?? 'No question',
+      question: json['question'] ?? '',
       marks: json['marks'] ?? 0,
     );
   }

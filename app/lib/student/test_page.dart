@@ -383,12 +383,44 @@ class ProgrammingAssignmentListPage extends StatelessWidget {
       getTotalMarks: (q) => q.totalMarks,
       getQuestions: (q) => q.questions,
       questionBuilder: (question, idx, answer, onChanged) {
-        return ListTile(
-          title: Text('Q${question.qno}: ${question.question}'),
-          subtitle: TextField(
-            decoration: const InputDecoration(labelText: 'Your code'),
-            onChanged: onChanged,
-            maxLines: 4,
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 12),
+          elevation: 3,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Q${question.qno}: ${question.question}',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                if (question.programSnippet.isNotEmpty) ...[
+                  SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      question.programSnippet,
+                      style: TextStyle(
+                          fontFamily: 'monospace', color: Colors.blueGrey[800]),
+                    ),
+                  ),
+                ],
+                SizedBox(height: 8),
+                Text('Marks: ${question.marks}',
+                    style: TextStyle(color: Colors.blueGrey)),
+                SizedBox(height: 12),
+                TextField(
+                  decoration: const InputDecoration(labelText: 'Your code'),
+                  onChanged: onChanged,
+                  maxLines: 4,
+                ),
+              ],
+            ),
           ),
         );
       },

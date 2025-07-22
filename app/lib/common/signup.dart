@@ -388,14 +388,14 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         inputFormatters: inputFormatters,
         maxLength: maxLength,
         style: TextStyle(
-          fontSize: 16,
+          fontSize: 14,
           color: enabled ? Colors.black87 : Colors.grey[600],
         ),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(
             color: enabled ? Colors.grey[700] : Colors.grey[500],
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
           filled: true,
@@ -426,7 +426,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                 )
               : suffixIcon,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 15, vertical: 18),
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
           counterText: maxLength != null ? '' : null,
         ),
       ),
@@ -443,7 +443,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
   }) {
     return Container(
       width: width,
-      height: 56,
+      height: 44,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         gradient: LinearGradient(
@@ -454,8 +454,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         boxShadow: [
           BoxShadow(
             color: (colors?.first ?? Colors.blue).withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -466,7 +466,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
           borderRadius: BorderRadius.circular(16),
           child: Container(
             padding: padding ??
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Center(
               child: isLoading
                   ? const SizedBox(
@@ -481,7 +481,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                       text,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -532,8 +532,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
               child: SlideTransition(
                 position: _slideAnimation,
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24),
-                  padding: const EdgeInsets.all(32),
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppColors.card,
                     borderRadius: BorderRadius.circular(24),
@@ -571,9 +571,10 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                               ),
                             ),
                             const SizedBox(width: 16),
-                            const Text(
+                            Text(
                               "Create Account",
-                              style: AppTextStyles.headline,
+                              style:
+                                  AppTextStyles.headline.copyWith(fontSize: 22),
                             ),
                           ],
                         ),
@@ -802,7 +803,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                 "Already have an account? ",
                                 style: TextStyle(
                                   color: Colors.grey[600],
-                                  fontSize: 16,
+                                  fontSize: 13,
                                 ),
                               ),
                               GestureDetector(

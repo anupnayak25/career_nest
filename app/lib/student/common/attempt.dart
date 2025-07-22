@@ -46,17 +46,21 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: isVideoType ? Colors.white : Colors.grey[50],
       appBar: AppBar(
         title: Text(
           widget.title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
         ),
-        backgroundColor: theme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 2,
+        backgroundColor: isVideoType ? Colors.white : theme.primaryColor,
+        foregroundColor: isVideoType ? Colors.black : Colors.white,
+        elevation: isVideoType ? 0 : 2,
+        centerTitle: true,
         actions: [
-          if (totalQuestions > 0)
+          if (totalQuestions > 0 && !isVideoType)
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
               child: Center(
@@ -84,20 +88,41 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
           ? _buildEmptyState()
           : Column(
               children: [
-                if (totalQuestions > 0) _buildProgressIndicator(),
+                if (isVideoType) _buildVideoTypeHeader(),
+                if (totalQuestions > 0 && !isVideoType)
+                  _buildProgressIndicator(),
                 Expanded(
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: EdgeInsets.all(isVideoType ? 20.0 : 16.0),
                     itemCount: widget.questions.length,
                     itemBuilder: (context, index) {
                       final question = widget.questions[index];
-                      return _buildQuestionCard(question, index);
+                      return isVideoType
+                          ? _buildVideoQuestionCard(question, index)
+                          : _buildQuestionCard(question, index);
                     },
                   ),
                 ),
                 _buildSubmitSection(),
               ],
             ),
+    );
+  }
+
+  Widget _buildVideoTypeHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      child: Text(
+        widget.type == 'technical'
+            ? 'Create technical videos that showcase your skills and expertise. Answer questions to demonstrate your technical knowledge.'
+            : 'Create videos that showcase your personality and communication skills. Answer questions to demonstrate your fit for the role.',
+        style: TextStyle(
+          fontSize: 14,
+          color: Colors.grey[600],
+          height: 1.4,
+        ),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 
@@ -202,81 +227,67 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
         shadowColor: Theme.of(context).primaryColor.withOpacity(0.08),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
-          child: isVideoType
-              ? _buildVideoQuestion(question, index)
-              : widget.questionBuilder(
-                  question,
-                  index,
-                  answers[index],
-                  (val) => setState(() => answers[index] = val),
-                ),
+          child: widget.questionBuilder(
+            question,
+            index,
+            answers[index],
+            (val) => setState(() => answers[index] = val),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildVideoQuestion(T question, int index) {
+  Widget _buildVideoQuestionCard(T question, int index) {
     final q = question as dynamic;
     final videoUrl = answers[index];
     final hasVideo = videoUrl != null;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Question header
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Q${q.qno}',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
-                ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Blue question card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2563EB), // Blue color
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '${index + 1}Question',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '${q.marks} marks',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.orange,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        // Question text
-        Text(
-          q.question,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            height: 1.4,
-            color: Colors.black87,
           ),
-        ),
-        const SizedBox(height: 20),
-        // Video recording section
-        if (!hasVideo)
-          _buildRecordButton(index)
-        else
-          _buildVideoSection(videoUrl, index),
-      ],
+
+          const SizedBox(height: 16),
+
+          // Question text
+          Text(
+            q.question ?? 'Question ${index + 1}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              height: 1.4,
+              color: Colors.black87,
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Video recording section
+          if (!hasVideo)
+            _buildRecordButton(index)
+          else
+            _buildVideoSection(videoUrl, index),
+        ],
+      ),
     );
   }
 
@@ -286,31 +297,31 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
       height: 120,
       decoration: BoxDecoration(
         border: Border.all(
-          color: Theme.of(context).primaryColor.withOpacity(0.18),
+          color: const Color(0xFF2563EB).withOpacity(0.3),
           width: 2,
           style: BorderStyle.solid,
         ),
-        borderRadius: BorderRadius.circular(14),
-        color: Theme.of(context).primaryColor.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFF2563EB).withOpacity(0.05),
       ),
       child: InkWell(
         onTap: () => _recordVideo(index),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.videocam,
-              size: 34,
-              color: Theme.of(context).primaryColor,
+              size: 32,
+              color: Color(0xFF2563EB),
             ),
-            const SizedBox(height: 10),
-            Text(
+            const SizedBox(height: 8),
+            const Text(
               'Click to Record Video Answer',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).primaryColor,
+                color: Color(0xFF2563EB),
               ),
             ),
             const SizedBox(height: 4),
@@ -398,8 +409,8 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
               label: const Text('Re-record Answer'),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                side: BorderSide(color: Theme.of(context).primaryColor),
-                foregroundColor: Theme.of(context).primaryColor,
+                side: const BorderSide(color: Color(0xFF2563EB)),
+                foregroundColor: const Color(0xFF2563EB),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -416,20 +427,22 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
         answers.length == widget.questions.length && !isSubmitting;
     final missingAnswers = totalQuestions - answeredQuestions;
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        boxShadow: !isVideoType
+            ? [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2),
+                ),
+              ]
+            : null,
       ),
       child: Column(
         children: [
-          if (missingAnswers > 0)
+          if (missingAnswers > 0 && !isVideoType)
             Container(
               padding: const EdgeInsets.all(12),
               margin: const EdgeInsets.only(bottom: 12),
@@ -465,21 +478,21 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
             child: ElevatedButton(
               onPressed: canSubmit ? _submitAnswers : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: Colors.grey[300],
                 elevation: canSubmit ? 2 : 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 textStyle:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               child: isSubmitting
-                  ? Row(
+                  ? const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const SizedBox(
+                        SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
@@ -488,8 +501,8 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
                                 AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        const Text(
+                        SizedBox(width: 12),
+                        Text(
                           'Submitting...',
                           style: TextStyle(
                             fontSize: 16,
@@ -498,11 +511,11 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
                         ),
                       ],
                     )
-                  : Text(
-                      'Submit',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                  : const Text(
+                      'SUBMIT',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
             ),

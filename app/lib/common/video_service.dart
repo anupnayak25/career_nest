@@ -9,13 +9,13 @@ class VideoService {
   static Future<List<Map<String, dynamic>>> getUserVideos() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/videos/user-videos'),
+        Uri.parse('$baseUrl/api/videos'),
         headers: {'Content-Type': 'application/json'},
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return List<Map<String, dynamic>>.from(data['videos'] ?? []);
+        return List<Map<String, dynamic>>.from(data['data'] ?? []);
       } else {
         throw Exception('Failed to load videos: ${response.statusCode}');
       }
@@ -28,7 +28,7 @@ class VideoService {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('$baseUrl/api/videos/upload-single'),
+        Uri.parse('$baseUrl/api/videos/upload'),
       );
 
       request.files.add(
@@ -53,7 +53,7 @@ class VideoService {
   static Future<bool> addVideo(Map<String, dynamic> videoData) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/videos/add'),
+        Uri.parse('$baseUrl/api/videos'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(videoData),
       );

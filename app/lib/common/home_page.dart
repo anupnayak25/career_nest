@@ -20,60 +20,73 @@ class _HomePageState extends State<HomePage>
   List<Map<String, dynamic>> _eventVideos = [];
   List<Map<String, dynamic>> _placementVideos = [];
   bool _isLoading = true;
+  late TabController _tabController;
 
   Future<void> _fetchVideos() async {
-  if (mounted) {
-    setState(() {
-      _isLoading = true;
-    });
-  }
-
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('auth_token');
-  final apiUrl = dotenv.get('API_URL');
-  final Uri eventsUri = Uri.parse('$apiUrl/api/videos');
-  final Uri placementsUri = Uri.parse('$apiUrl/api/videos/');
-
-  try {
-    final eventsResponse = await http.get(eventsUri, headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    });
-    final placementsResponse = await http.get(placementsUri, headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    });
-
-    if (eventsResponse.statusCode == 200 &&
-        placementsResponse.statusCode == 200) {
-      final List<dynamic> eventsData = json.decode(eventsResponse.body);
-      final List<dynamic> placementsData = json.decode(placementsResponse.body);
-
-      if (mounted) {
-        setState(() {
-          _eventVideos = eventsData.cast<Map<String, dynamic>>();
-          _placementVideos = placementsData.cast<Map<String, dynamic>>();
-          _isLoading = false;
-        });
-      }
-    } else {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  } catch (error) {
     if (mounted) {
       setState(() {
-        _isLoading = false;
+        _isLoading = true;
       });
     }
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final apiUrl = dotenv.get('API_URL', fallback: 'http://localhost:5000');
+    final Uri videosUri = Uri.parse('$apiUrl/api/videos');
+
+    try {
+      final response = await http.get(videosUri, headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      });
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+
+        if (responseData['success'] == true) {
+          final List<dynamic> allVideos = responseData['data'] ?? [];
+
+          // Separate videos by category
+          final eventVideos = allVideos
+              .where((video) => video['category'] == 'Event')
+              .toList()
+              .cast<Map<String, dynamic>>();
+
+          final placementVideos = allVideos
+              .where((video) => video['category'] == 'Placement')
+              .toList()
+              .cast<Map<String, dynamic>>();
+
+          if (mounted) {
+            setState(() {
+              _eventVideos = eventVideos;
+              _placementVideos = placementVideos;
+              _isLoading = false;
+            });
+          }
+        } else {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (error) {
+      print('Error fetching videos: $error');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
-}
-
-
-  late TabController _tabController; // Add this to your _HomePageState class
 
   @override
   void initState() {

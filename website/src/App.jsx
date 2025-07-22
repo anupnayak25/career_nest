@@ -7,7 +7,7 @@ import VideoPlayer from "./pages/VideoPlayer"; // ✅ Add this import
 
 import Signup from "./pages/Signup";
 import Signin from "./pages/Signin";
-import VideoPage from "./pages/VideoPage";
+import DashboardHome from "./pages/DashboardHome"; // ✅ New dashboard home
 import Quiz from "./pages/QuizPage";
 import Hr from "./pages/HrPage";
 import Programming from "./pages/ProgrammingPage";
@@ -27,7 +27,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />}>
-            <Route index element={<VideoPage />} />
+            <Route index element={<DashboardHome />} />
             <Route path="quiz" element={<Quiz />} />
            {/* // <Route path="quiz/create" element={<CreateQuiz />} /> */}
             <Route path="quiz/edit/:id" element={<EditQuiz />} />

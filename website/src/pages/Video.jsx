@@ -353,7 +353,7 @@ const Video = () => {
                     <source src={`${import.meta.env.VITE_API_URL}/videos/${video.url}`} type="video/mp4" />
                   </video>
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                    <div className="bg-red-600 bg-opacity-90 rounded-full p-3 opacity-0 group-hover:opacity-100 transition-all duration-200 transform scale-75 group-hover:scale-100">
+                    <div className="bg-blue-600 bg-opacity-90 rounded-full p-3 opacity-0 group-hover:opacity-100 transition-all duration-200 transform scale-75 group-hover:scale-100">
                       <Play className="text-white fill-white ml-0.5" size={24} />
                     </div>
                   </div>

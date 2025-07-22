@@ -39,6 +39,8 @@ const Video = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [sortBy, setSortBy] = useState("newest");
   const [showStats, setShowStats] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewVideo, setPreviewVideo] = useState(null);
 
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -72,6 +74,11 @@ const Video = () => {
   useEffect(() => {
     let filtered = [...videos];
 
+    // Only show videos with valid categories (Placement or Event)
+    filtered = filtered.filter(video => 
+      video.category === 'Placement' || video.category === 'Event'
+    );
+
     if (searchTerm) {
       filtered = filtered.filter(video =>
         video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,9 +86,7 @@ const Video = () => {
       );
     }
 
-    if (selectedCategory && selectedCategory !== "all") {
-      filtered = filtered.filter(video => video.category === selectedCategory);
-    }
+    // Removed category filtering - show all Placement and Event videos
 
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -96,20 +101,21 @@ const Video = () => {
     });
 
     setFilteredVideos(filtered);
-  }, [videos, searchTerm, selectedCategory, sortBy]);
+  }, [videos, searchTerm, sortBy]);
 
   const getCategories = () => {
-    const categories = [...new Set(videos.map(video => video.category))];
-    return categories.filter(Boolean);
+    return ["Placement", "Event"];
   };
 
   const getStats = () => {
     const totalVideos = videos.length;
-    const categories = getCategories().length;
+    const placementVideos = videos.filter(v => v.category === 'Placement').length;
+    const eventVideos = videos.filter(v => v.category === 'Event').length;
     
     return {
       totalVideos,
-      categories,
+      placementVideos,
+      eventVideos,
       filtered: filteredVideos.length
     };
   };
@@ -376,82 +382,83 @@ const Video = () => {
   const stats = getStats();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-lg border-b">
-        <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                🎬 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Video Manager</span>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                🎬 <span className="bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">Video Manager</span>
               </h1>
-              <p className="text-gray-600 mt-1">Upload, organize, and manage your video content</p>
+              <p className="text-gray-600 text-sm mt-1">Upload and manage your placement and event videos</p>
             </div>
             <button
               onClick={() => setShowStats(!showStats)}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-all"
+              className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all text-sm"
             >
-              <BarChart3 size={20} />
+              <BarChart3 size={18} />
               Stats
             </button>
           </div>
 
           {/* Stats Panel */}
           {showStats && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl">
-                <div className="text-2xl font-bold">{stats.totalVideos}</div>
-                <div className="text-blue-100">Total Videos</div>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-3 rounded-lg">
+                <div className="text-xl font-bold">{stats.totalVideos}</div>
+                <div className="text-red-100 text-sm">Total Videos</div>
               </div>
-              <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-xl">
-                <div className="text-2xl font-bold">{stats.categories}</div>
-                <div className="text-green-100">Categories</div>
+              <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-3 rounded-lg">
+                <div className="text-xl font-bold">{stats.placementVideos}</div>
+                <div className="text-green-100 text-sm">Placement Videos</div>
               </div>
-              <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-xl">
-                <div className="text-2xl font-bold">{stats.filtered}</div>
-                <div className="text-purple-100">Filtered Results</div>
+              <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-3 rounded-lg">
+                <div className="text-xl font-bold">{stats.eventVideos}</div>
+                <div className="text-purple-100 text-sm">Event Videos</div>
               </div>
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-xl">
-                <div className="text-2xl font-bold">{isUploading ? `${uploadProgress}%` : '✓'}</div>
-                <div className="text-orange-100">{isUploading ? 'Uploading' : 'Ready'}</div>
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-lg">
+                <div className="text-xl font-bold">{stats.filtered}</div>
+                <div className="text-blue-100 text-sm">Filtered Results</div>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Upload Mode Toggle */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <div className="flex items-center justify-center mb-6">
-            <div className="flex bg-gray-100 rounded-xl p-1">
+            <h2 className="text-xl font-bold text-gray-900 mr-6">Upload Videos</h2>
+            <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => {
                   setIsMultipleMode(false);
                   clearAllFiles();
                 }}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                className={`px-4 py-2 rounded-md font-medium transition-all text-sm ${
                   !isMultipleMode
-                    ? 'bg-white text-blue-600 shadow-md'
+                    ? 'bg-white text-red-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <Plus className="inline mr-2" size={16} />
-                Single Upload
+                <Plus className="inline mr-1" size={14} />
+                Single
               </button>
               <button
                 onClick={() => {
                   setIsMultipleMode(true);
                   clearAllFiles();
                 }}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                className={`px-4 py-2 rounded-md font-medium transition-all text-sm ${
                   isMultipleMode
-                    ? 'bg-white text-blue-600 shadow-md'
+                    ? 'bg-white text-red-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <Upload className="inline mr-2" size={16} />
-                Multiple Upload
+                <Upload className="inline mr-1" size={14} />
+                Multiple
               </button>
             </div>
           </div>
@@ -465,7 +472,7 @@ const Video = () => {
                   value={title} 
                   onChange={(e) => setTitle(e.target.value)} 
                   placeholder={isMultipleMode ? "Base title (numbers will be added)" : "Enter video title"} 
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all" 
                   disabled={isUploading}
                 />
               </div>
@@ -475,19 +482,22 @@ const Video = () => {
                   value={description} 
                   onChange={(e) => setDescription(e.target.value)} 
                   placeholder="Enter description" 
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all" 
                   disabled={isUploading}
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Category</label>
-                <input 
+                <select 
                   value={category} 
                   onChange={(e) => setCategory(e.target.value)} 
-                  placeholder="Enter category" 
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-white" 
                   disabled={isUploading}
-                />
+                >
+                  <option value="">Select category</option>
+                  <option value="Placement">Placement</option>
+                  <option value="Event">Event</option>
+                </select>
               </div>
             </div>
             
@@ -496,62 +506,56 @@ const Video = () => {
                 <label className="text-sm font-medium text-gray-700">
                   {isMultipleMode ? "Select Videos" : "Select Video"}
                 </label>
-                <input 
-                  type="file" 
-                  accept="video/*" 
-                  multiple={isMultipleMode}
-                  onChange={handleFileChange} 
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:rounded-md transition-all" 
-                  disabled={isUploading}
-                />
+                <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-all duration-300 bg-gray-50 hover:bg-blue-50">
+                  <input 
+                    type="file" 
+                    accept="video/*" 
+                    multiple={isMultipleMode}
+                    onChange={handleFileChange} 
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                    disabled={isUploading}
+                  />
+                  <div className="text-gray-600">
+                    <Upload className="mx-auto mb-2" size={24} />
+                    <p className="text-sm">
+                      {isMultipleMode 
+                        ? "Drop video files here or click to browse" 
+                        : "Drop a video file here or click to browse"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Supports MP4, AVI, MOV files
+                    </p>
+                  </div>
+                </div>
               </div>
               
-              {isMultipleMode ? (
-                <button 
-                  onClick={handleAddMultipleVideos} 
-                  disabled={!files.length || isUploading}
-                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 whitespace-nowrap"
-                >
-                  {isUploading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload size={18} />
-                      Upload All ({files.length})
-                    </>
-                  )}
-                </button>
-              ) : (
-                <button 
-                  onClick={handleAddVideo} 
-                  disabled={!file || isUploading}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 whitespace-nowrap"
-                >
-                  {isUploading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Plus size={18} />
-                      Upload
-                    </>
-                  )}
-                </button>
-              )}
+              {/* Single Upload Button */}
+              <button 
+                onClick={isMultipleMode ? handleAddMultipleVideos : handleAddVideo} 
+                disabled={(!files.length && !file) || isUploading}
+                className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-xl hover:from-red-700 hover:to-red-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3"
+              >
+                {isUploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload size={20} />
+                    Upload Video{isMultipleMode && files.length > 1 ? `s (${files.length})` : ''}
+                  </>
+                )}
+              </button>
               
               {((isMultipleMode && files.length > 0) || (!isMultipleMode && file)) && (
                 <button 
                   onClick={clearAllFiles} 
                   disabled={isUploading}
-                  className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="px-4 py-4 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl hover:from-red-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
                   title="Clear files"
                 >
-                  <X size={18} />
+                  <X size={20} />
                 </button>
               )}
             </div>
@@ -612,35 +616,24 @@ const Video = () => {
         )}
 
         {/* Search and Filter */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="flex items-center gap-4 flex-1">
+            <div className="flex items-center gap-3 flex-1">
               <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                 <input
                   type="text"
                   placeholder="Search videos..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 />
               </div>
-              
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="all">All Categories</option>
-                {getCategories().map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
 
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -648,26 +641,26 @@ const Video = () => {
               </select>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <button
                 onClick={() => setViewMode("grid")}
                 className={`p-2 rounded-lg transition-all ${
                   viewMode === "grid" 
-                    ? "bg-blue-100 text-blue-600" 
+                    ? "bg-red-100 text-red-600" 
                     : "text-gray-400 hover:text-gray-600"
                 }`}
               >
-                <Grid size={20} />
+                <Grid size={18} />
               </button>
               <button
                 onClick={() => setViewMode("list")}
                 className={`p-2 rounded-lg transition-all ${
                   viewMode === "list" 
-                    ? "bg-blue-100 text-blue-600" 
+                    ? "bg-red-100 text-red-600" 
                     : "text-gray-400 hover:text-gray-600"
                 }`}
               >
-                <List size={20} />
+                <List size={18} />
               </button>
             </div>
           </div>
@@ -687,38 +680,63 @@ const Video = () => {
         ) : (
           <div className={`${
             viewMode === "grid" 
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+              ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6" 
               : "space-y-4"
           }`}>
             {filteredVideos.map((video) => (
               <div
                 key={video.id}
-                className={`bg-white rounded-2xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 ${
+                className={`bg-white rounded-lg shadow-md overflow-hidden group hover:shadow-lg transition-all duration-200 ${
                   viewMode === "list" ? "flex items-center" : ""
                 }`}
               >
                 {viewMode === "grid" ? (
                   <>
-                    <div className="relative">
+                    <div className="relative aspect-video bg-black overflow-hidden">
                       <video 
                         controls={false}
-                        className="w-full h-48 object-cover cursor-pointer"
-                        onClick={() => editingVideoId !== video.id && navigate(`/video-player/${video.id}`)}
+                        className="w-full h-full object-cover cursor-pointer"
+                        onClick={() => {
+                          if (editingVideoId !== video.id) {
+                            setPreviewVideo(video);
+                            setShowPreviewModal(true);
+                          }
+                        }}
                       >
                         <source src={`${import.meta.env.VITE_API_URL}/videos/${video.url}`} type="video/mp4" />
                       </video>
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                        <Play className="text-white opacity-0 group-hover:opacity-100 transition-all duration-300" size={32} />
+                      
+                      {/* YouTube-style play button overlay */}
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
+                        <div className="bg-red-600 bg-opacity-90 rounded-full p-4 opacity-0 group-hover:opacity-100 transition-all duration-200 transform scale-75 group-hover:scale-100">
+                          <Play className="text-white fill-white ml-1" size={24} />
+                        </div>
+                      </div>
+                      
+                      {/* Video duration badge */}
+                      <div className="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded">
+                        4:32
                       </div>
                       
                       {/* Action Buttons */}
-                      <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewVideo(video);
+                            setShowPreviewModal(true);
+                          }}
+                          className="bg-gray-900 bg-opacity-80 text-white p-2 rounded-full hover:bg-opacity-100 transition-all"
+                          title="Preview Video"
+                        >
+                          <Eye size={14} />
+                        </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             startEditing(video);
                           }}
-                          className="bg-yellow-500 text-white p-2 rounded-full hover:bg-yellow-600 transition-all"
+                          className="bg-gray-900 bg-opacity-80 text-white p-2 rounded-full hover:bg-opacity-100 transition-all"
                           title="Edit Video"
                         >
                           <Edit size={14} />
@@ -728,7 +746,7 @@ const Video = () => {
                             e.stopPropagation();
                             handleDelete(video.id);
                           }}
-                          className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all"
+                          className="bg-gray-900 bg-opacity-80 text-white p-2 rounded-full hover:bg-opacity-100 transition-all"
                           title="Delete Video"
                         >
                           <Trash2 size={14} />
@@ -736,35 +754,38 @@ const Video = () => {
                       </div>
                     </div>
 
-                    <div className="p-4 space-y-3">
+                    <div className="p-3">
                       {editingVideoId === video.id ? (
                         <div className="space-y-3">
                           <input 
                             value={editTitle} 
                             onChange={(e) => setEditTitle(e.target.value)} 
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" 
                             placeholder="Title"
                           />
                           <textarea 
                             value={editDescription} 
                             onChange={(e) => setEditDescription(e.target.value)} 
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" 
                             rows={2}
                             placeholder="Description"
                           />
-                          <input 
+                          <select 
                             value={editCategory} 
                             onChange={(e) => setEditCategory(e.target.value)} 
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                            placeholder="Category"
-                          />
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white" 
+                          >
+                            <option value="">Select category</option>
+                            <option value="Placement">Placement</option>
+                            <option value="Event">Event</option>
+                          </select>
                           <div className="flex gap-2">
                             <button 
                               onClick={(e) => { 
                                 e.stopPropagation(); 
                                 saveEditing(); 
                               }} 
-                              className="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-all"
+                              className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-all"
                             >
                               Save
                             </button>
@@ -781,14 +802,19 @@ const Video = () => {
                         </div>
                       ) : (
                         <>
-                          <h3 className="font-semibold text-gray-900 line-clamp-2">{video.title}</h3>
-                          <p className="text-sm text-gray-600 line-clamp-2">{video.description}</p>
-                          <div className="flex items-center justify-between text-xs text-gray-500">
-                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{video.category}</span>
-                            <div className="flex items-center gap-1">
-                              <Calendar size={12} />
+                          <h3 className="font-medium text-gray-900 text-sm line-clamp-2 leading-tight mb-1">{video.title}</h3>
+                          <p className="text-xs text-gray-600 mb-1">Career Nest</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-600">
                               {new Date(video.publish_date).toLocaleDateString()}
-                            </div>
+                            </span>
+                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                              video.category === 'Placement' 
+                                ? 'bg-red-100 text-red-700' 
+                                : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {video.category}
+                            </span>
                           </div>
                         </>
                       )}
@@ -865,6 +891,58 @@ const Video = () => {
             }
           }}
         />
+
+        {/* Video Preview Modal */}
+        {showPreviewModal && previewVideo && (
+          <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+              <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+                <div className="flex-1 mr-4">
+                  <h2 className="text-lg font-bold text-gray-900 line-clamp-1">{previewVideo.title}</h2>
+                  <p className="text-gray-600 text-sm line-clamp-1">{previewVideo.description}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowPreviewModal(false);
+                    setPreviewVideo(null);
+                  }}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-600 p-2 rounded-full transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="p-4 bg-black">
+                <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                  <video 
+                    controls
+                    className="w-full h-full object-contain"
+                    src={`${import.meta.env.VITE_API_URL}/videos/${previewVideo.url}`}
+                    autoPlay
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <span className={`px-3 py-1 rounded-md text-sm font-medium ${
+                    previewVideo.category === 'Placement' 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-purple-100 text-purple-700'
+                  }`}>
+                    {previewVideo.category}
+                  </span>
+                  <div className="flex items-center gap-1 text-gray-500 text-sm">
+                    <Calendar size={14} />
+                    {new Date(previewVideo.publish_date).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

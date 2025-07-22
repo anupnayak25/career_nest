@@ -39,14 +39,8 @@ const Video = () => {
 
   // Available placement/event options
   const placementOptions = [
-    "Campus Placement",
-    "Off-Campus Drive", 
-    "Virtual Event",
-    "Coding Competition",
-    "Technical Workshop",
-    "Career Fair",
-    "Industry Talk",
-    "Mock Interview"
+    "Placement",
+    "Event"
   ];
 
   useEffect(() => {
@@ -344,50 +338,57 @@ const Video = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
             {filteredVideos.map((video) => (
               <div
                 key={video.id}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300"
+                className="bg-white rounded-lg shadow-md overflow-hidden group hover:shadow-lg transition-all duration-200"
               >
-                <div className="relative">
+                <div className="relative aspect-video bg-black">
                   <video 
                     controls={false}
-                    className="w-full h-48 object-cover cursor-pointer"
+                    className="w-full h-full object-cover cursor-pointer"
                     onClick={() => openVideoModal(video)}
                   >
                     <source src={`${import.meta.env.VITE_API_URL}/videos/${video.url}`} type="video/mp4" />
                   </video>
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                    <Play className="text-white opacity-0 group-hover:opacity-100 transition-all duration-300" size={32} />
+                    <div className="bg-blue-600 bg-opacity-90 rounded-full p-3 opacity-0 group-hover:opacity-100 transition-all duration-200 transform scale-75 group-hover:scale-100">
+                      <Play className="text-white fill-white ml-0.5" size={24} />
+                    </div>
+                  </div>
+                  
+                  {/* Video duration badge (YouTube style) */}
+                  <div className="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded">
+                    4:32
                   </div>
                   
                   {/* Action Buttons */}
-                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         startEditing(video);
                       }}
-                      className="bg-yellow-500 text-white p-2 rounded-full hover:bg-yellow-600 transition-all"
+                      className="bg-gray-900 bg-opacity-70 text-white p-1.5 rounded-full hover:bg-opacity-90 transition-all"
                       title="Edit Video"
                     >
-                      <Edit size={14} />
+                      <Edit size={12} />
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDelete(video.id);
                       }}
-                      className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all"
+                      className="bg-gray-900 bg-opacity-70 text-white p-1.5 rounded-full hover:bg-opacity-90 transition-all"
                       title="Delete Video"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={12} />
                     </button>
                   </div>
                 </div>
 
-                <div className="p-4 space-y-3">
+                <div className="p-4">
                   {editingVideoId === video.id ? (
                     <div className="space-y-3">
                       <input 
@@ -408,7 +409,7 @@ const Video = () => {
                         onChange={(e) => setEditPlacement(e.target.value)} 
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="">Select Placement/Event</option>
+                        <option value="">Select category</option>
                         {placementOptions.map(option => (
                           <option key={option} value={option}>{option}</option>
                         ))}
@@ -436,14 +437,19 @@ const Video = () => {
                     </div>
                   ) : (
                     <>
-                      <h3 className="font-semibold text-gray-900 line-clamp-2">{video.title}</h3>
-                      <p className="text-sm text-gray-600 line-clamp-2">{video.description}</p>
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{video.category}</span>
-                        <div className="flex items-center gap-1">
-                          <Calendar size={12} />
+                      <h3 className="font-medium text-gray-900 text-base line-clamp-2 leading-tight mb-2">{video.title}</h3>
+                      <p className="text-sm text-gray-600 mb-2">Career Nest</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">
                           {new Date(video.publish_date).toLocaleDateString()}
-                        </div>
+                        </span>
+                        <span className={`px-2 py-1 rounded text-sm font-medium ${
+                          video.category === 'Placement' 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {video.category}
+                        </span>
                       </div>
                     </>
                   )}
@@ -496,14 +502,14 @@ const Video = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Placement/Event Type</label>
+                    <label className="text-sm font-medium text-gray-700">Category</label>
                     <select 
                       value={placement} 
                       onChange={(e) => setPlacement(e.target.value)} 
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
                       disabled={isUploading}
                     >
-                      <option value="">Select Placement/Event</option>
+                      <option value="">Select category</option>
                       {placementOptions.map(option => (
                         <option key={option} value={option}>{option}</option>
                       ))}
@@ -616,14 +622,16 @@ const Video = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <video 
-                    controls
-                    className="w-full rounded-xl shadow-lg"
-                    autoPlay
-                  >
-                    <source src={`${import.meta.env.VITE_API_URL}/videos/${selectedVideo.url}`} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
+                  <div className="aspect-video bg-black rounded-xl overflow-hidden">
+                    <video 
+                      controls
+                      className="w-full h-full object-contain"
+                      autoPlay
+                    >
+                      <source src={`${import.meta.env.VITE_API_URL}/videos/${selectedVideo.url}`} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
 
                   <div className="bg-gray-50 rounded-xl p-4">
                     <div className="grid grid-cols-2 gap-4">

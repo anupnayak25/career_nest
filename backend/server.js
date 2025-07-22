@@ -24,7 +24,17 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 // ======= Middleware Setup =======
-app.use(cors());
+app.use(cors({
+  origin: true, // Allow all origins during development
+  credentials: true
+}));
+
+// Add request logging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url} from ${req.headers.origin || 'unknown origin'}`);
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

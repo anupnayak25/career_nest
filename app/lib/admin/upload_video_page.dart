@@ -15,10 +15,7 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Upload Video'),
-        backgroundColor: Colors.blue,
-      ),
+      appBar: AppBar(title: Text('Upload Video'), backgroundColor: Colors.blue),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -44,15 +41,23 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
             DropdownButtonFormField<String>(
               value: selectedCategory,
               hint: Text('Select Category'),
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-              items: ['events', 'placement'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value[0].toUpperCase() + value.substring(1)),
-                );
-              }).toList(),
+              decoration: InputDecoration(border: OutlineInputBorder()),
+              items:
+                  [
+                    'Campus Placement',
+                    'Off-Campus Drive',
+                    'Virtual Event',
+                    'Coding Competition',
+                    'Technical Workshop',
+                    'Career Fair',
+                    'Industry Talk',
+                    'Mock Interview',
+                  ].map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
               onChanged: (newValue) {
                 setState(() {
                   selectedCategory = newValue;
@@ -90,7 +95,11 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
                   });
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Please fill all fields and select a video')),
+                    SnackBar(
+                      content: Text(
+                        'Please fill all fields and select a video',
+                      ),
+                    ),
                   );
                 }
               },

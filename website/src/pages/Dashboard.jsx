@@ -126,11 +126,7 @@ function Dashboard() {
             style={{ marginTop: "auto" }}>
             <LogOut size={20} className={sidebarOpen ? "mr-3" : ""} />
             {sidebarOpen && <span>LogOut</span>}
-            {!sidebarOpen && (
-              <div className="absolute left-full ml-2 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20 animate-fade-in">
-                Logout
-              </div>
-            )}
+           
           </button>
         </nav>
       </div>

@@ -1,7 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User'); // your user model
-const auth = require('../middleware/auth'); // middleware to get req.user
 const fetchUser = require('../middlewares/fetchUser');
 const db = require('../db'); // MySQL connection
 const admin = require('./firebase');

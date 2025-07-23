@@ -91,9 +91,6 @@ const DashboardHome = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header Stats */}
-  
-
       {/* Video Content */}
       <div className="bg-white rounded-xl shadow-lg p-6 animate-slide-up">
         <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6 animate-fade-in">

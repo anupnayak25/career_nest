@@ -115,11 +115,7 @@ function Dashboard() {
                   } animate-slide-up`}>
                   <Icon className="mr-3" size={20} />
                   {sidebarOpen && <span>{item.label}</span>}
-                  {!sidebarOpen && (
-                    <div className="absolute left-full ml-2 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20 animate-fade-in">
-                      {item.label}
-                    </div>
-                  )}
+          
                 </Link>
               );
             })}

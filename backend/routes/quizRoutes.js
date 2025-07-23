@@ -233,7 +233,7 @@ router.get("/mypost/:id", (req, res) => {
 router.post("/answers", (req, res) => {
   const { quiz_id, answers } = req.body;
   const user_id = req.user.id; // assuming you're using authentication middleware
-
+  console.log(answers);
   if (!quiz_id || !answers || answers.length === 0) {
     return res.status(400).json({ error: "quiz_id and answers are required" });
   }

@@ -11,7 +11,7 @@ class AssignmentService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final apiUrl = dotenv.get('API_URL');
-    print('Fetching: ' + '$apiUrl/api/$type');
+    // print('Fetching: ' + '$apiUrl/api/$type');
     final response = await http.get(
       Uri.parse('$apiUrl/api/$type'),
       headers: {
@@ -19,8 +19,8 @@ class AssignmentService {
         'Content-Type': 'application/json',
       },
     );
-    print(
-        'Response for $type: \nStatus: ${response.statusCode}\nBody: ${response.body}');
+    // print(
+    //     'Response for $type: \nStatus: ${response.statusCode}\nBody: ${response.body}');
     if (response.statusCode == 200) {
       final List jsonData = json.decode(response.body);
       return jsonData.map((item) => fromJson(item)).toList();
@@ -37,13 +37,63 @@ class AssignmentService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final apiUrl = dotenv.get('API_URL');
-    String userId = prefs.getString('userId') ?? '';
     final url = Uri.parse('$apiUrl/api/$type/answers');
-    final body = jsonEncode({
-      '${type}_id': assignmentId,
-      'user_id': userId,
-      'answers': answers,
-    });
+
+    // For quiz, use quiz_id and selected_ans
+    final isQuiz = type == 'quiz' || type == 'quizzes';
+    final isHr = type == 'hr';
+    final isTechnical = type == 'technical';
+    final isProgramming = type == 'programming';
+
+    final body = jsonEncode(isQuiz
+        ? {
+            'quiz_id': assignmentId,
+            'answers': answers
+                .map((a) => {
+                      'qno': a['qno'],
+                      'selected_ans': a['answer'],
+                      'marks_awarded': a['marks_awarded'] ?? 0,
+                    })
+                .toList(),
+          }
+        : isHr
+            ? {
+                'hr_question_id': assignmentId,
+                'answers': answers
+                    .map((a) => {
+                          'qno': a['qno'],
+                          'answer': a['answer'],
+                          'marks_awarded': a['marks_awarded'] ?? 0,
+                        })
+                    .toList(),
+              }
+            : isTechnical
+                ? {
+                    'technical_id': assignmentId,
+                    'answers': answers
+                        .map((a) => {
+                              'qno': a['qno'],
+                              'answer': a['answer'],
+                              'marks_awarded': a['marks_awarded'] ?? 0,
+                            })
+                        .toList(),
+                  }
+                : isProgramming
+                    ? {
+                        'program_id': assignmentId,
+                        'answers': answers
+                            .map((a) => {
+                                  'qno': a['qno'],
+                                  'answer': a['answer'],
+                                  'marks_awarded': a['marks_awarded'] ?? 0,
+                                })
+                            .toList(),
+                      }
+                    : {
+                        'id': assignmentId,
+                        'answers': answers,
+                      });
+
     final response = await http.post(
       url,
       headers: {
@@ -76,6 +126,10 @@ class AssignmentService {
     } else {
       throw Exception('Failed to load $type answers: ${response.body}');
     }
+  }
+
+  static Future<List<int>> fetchAttempted(String type) async {
+    return await ApiService.fetchAttempted(type);
   }
 }
 
@@ -175,7 +229,7 @@ class ApiService {
       throw Exception("No authentication token found");
     }
     final apiUrl = dotenv.get('API_URL');
-    print('$apiUrl/api/$type/answers/$id/$userId');
+    // print('$apiUrl/api/$type/answers/$id/$userId');
     final response = await http.get(
       Uri.parse('$apiUrl/api/$type/answers/$id/$userId'),
       headers: {
@@ -183,8 +237,8 @@ class ApiService {
         'Content-Type': 'application/json',
       },
     );
-    //log("Response status: ${response.statusCode} , Response body: ${response.body}");
-    print(response.body);
+    // log("Response status: ${response.statusCode} , Response body: ${response.body}");
+    // print(response.body);
     if (response.statusCode == 200) {
       final List data = json.decode(response.body);
       return data.map((e) => e as Map<String, dynamic>).toList();

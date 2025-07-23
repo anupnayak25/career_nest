@@ -73,7 +73,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-     appBar: AnimatedCurvedAppBar(title: "Notifications",),
+      appBar: AnimatedCurvedAppBar(
+        title: "Notifications",
+      ),
       body: notifications.isEmpty
           ? _buildEmptyState()
           : ListView.builder(
@@ -198,7 +200,7 @@ class NotificationCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                
+
                 // Notification content
                 Expanded(
                   child: Column(

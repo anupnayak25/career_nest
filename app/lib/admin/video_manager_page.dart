@@ -49,9 +49,8 @@ class _VideoManagerPageState extends State<VideoManagerPage> {
   void _filterVideos() {
     setState(() {
       _filteredVideos = _videos.where((video) {
-        final matchesSearch = video['title']
-            .toLowerCase()
-            .contains(_searchQuery.toLowerCase());
+        final matchesSearch =
+            video['title'].toLowerCase().contains(_searchQuery.toLowerCase());
         final matchesCategory = _selectedCategory == 'All' ||
             video['category'] == _selectedCategory;
         return matchesSearch && matchesCategory;
@@ -224,7 +223,8 @@ class _VideoManagerPageState extends State<VideoManagerPage> {
                                               MainAxisAlignment.spaceBetween,
                                           children: [
                                             IconButton(
-                                              icon: const Icon(Icons.play_arrow),
+                                              icon:
+                                                  const Icon(Icons.play_arrow),
                                               onPressed: () {
                                                 // TODO: Implement video preview
                                               },
@@ -251,7 +251,8 @@ class _VideoManagerPageState extends State<VideoManagerPage> {
                                                       ),
                                                       TextButton(
                                                         onPressed: () {
-                                                          Navigator.pop(context);
+                                                          Navigator.pop(
+                                                              context);
                                                           _deleteVideo(
                                                               video['id']);
                                                         },
@@ -340,18 +341,19 @@ class _VideoUploadModalState extends State<VideoUploadModal> {
       // First upload the file
       final videoFile = File(_selectedFile!.path!);
       final filename = await VideoService.uploadVideoFile(videoFile);
-      
+
       if (filename != null) {
         // Then add video metadata to database
         final videoData = {
+          'user_id': 1, // TODO: Get actual user ID from session/auth
           'title': _titleController.text,
           'description': _descriptionController.text,
           'category': _selectedCategory,
-          'filename': filename,
+          'url': filename, // Backend expects 'url' not 'filename'
         };
-        
+
         final success = await VideoService.addVideo(videoData);
-        
+
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Video uploaded successfully')),

@@ -1,11 +1,11 @@
 // server.js
 
-require('dotenv').config();
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
-require('./logger'); // optional: for log creation
+require("./logger"); // optional: for log creation
 
 const connection = require("./db");
 const fetchUser = require("./middlewares/fetchUser");
@@ -24,14 +24,16 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 // ======= Middleware Setup =======
-app.use(cors({
-  origin: true, // Allow all origins during development
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: true, // Allow all origins during development
+    credentials: true,
+  })
+);
 
 // Add request logging
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url} from ${req.headers.origin || 'unknown origin'}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url} from ${req.headers.origin || "unknown origin"}`);
   next();
 });
 
@@ -50,7 +52,8 @@ const getTimeStamp = () => {
   const formattedDate = `${time.getDate().toString().padStart(2, "0")}/${(time.getMonth() + 1)
     .toString()
     .padStart(2, "0")}/${time.getFullYear().toString().slice(-2)}`;
-  const formattedTime = `${time.getHours().toString().padStart(2, "0")}:${time.getMinutes()
+  const formattedTime = `${time.getHours().toString().padStart(2, "0")}:${time
+    .getMinutes()
     .toString()
     .padStart(2, "0")}:${time.getSeconds().toString().padStart(2, "0")}`;
   return { formattedDate, formattedTime };
@@ -58,9 +61,7 @@ const getTimeStamp = () => {
 
 app.get("/", (req, res) => {
   const { formattedDate, formattedTime } = getTimeStamp();
-  res.send(
-    `🚀 Welcome to the API!<br/>🕒 Server Restarted At Date: ${formattedDate} Time: ${formattedTime}`
-  );
+  res.send(`🚀 Welcome to the API!<br/>🕒 Server Restarted At Date: ${formattedDate} Time: ${formattedTime}`);
 });
 
 // ======= Direct Query Test (DEV Only) =======
@@ -76,6 +77,13 @@ app.post("/run-query", (req, res) => {
 
 // ======= Public Routes =======
 app.use("/api/auth", require("./routes/authenticateRoutes"));
+
+// Serve logo image publicly without auth
+app.get("/api/logo", (req, res) => {
+  const logoPath = path.join(__dirname, "assets", "logo.png");
+  if (!fs.existsSync(logoPath)) return res.status(404).send("Logo not found.");
+  res.sendFile(logoPath);
+});
 
 app.get("/api/logs", (req, res) => {
   const logFilePath = path.join(__dirname, "logs", "app.log");
@@ -93,6 +101,6 @@ app.use("/api/hr", require("./routes/hrRoutes"));
 app.use("/api/videos", require("./routes/videoRoutes")); // ✅ Video API route
 
 // ======= Start Server =======
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
 });

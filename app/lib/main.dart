@@ -88,7 +88,12 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      //
+       builder: (context, child) {
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      return Center(child: Text(details.exceptionAsString()));
+    };
+    return child!;
+  },
       home: SplashScreen(),
     );
   }

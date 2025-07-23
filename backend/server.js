@@ -80,7 +80,7 @@ app.use("/api/auth", require("./routes/authenticateRoutes"));
 
 // Serve logo image publicly without auth
 app.get("/api/logo/:no", (req, res) => {
-  const no = req.params.no;
+  const no = req.params.no || ' ';
   const logoPath = path.join(__dirname, "assets", `logo${no}.png`);
   if (!fs.existsSync(logoPath)) return res.status(404).send("Logo not found.");
   res.sendFile(logoPath);

@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class VideoService {
   // static const String baseUrl = 'https://career-nest-backend.vercel.app';
-  static const String baseUrl = 'http://localhost:5000';
+  static String baseUrl = dotenv.get('API_URL');
 
   static Future<List<Map<String, dynamic>>> getUserVideos() async {
     try {

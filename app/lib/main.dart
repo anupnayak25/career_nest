@@ -1,4 +1,6 @@
 import 'package:career_nest/common/splash_screen.dart';
+import 'package:career_nest/notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -8,6 +10,14 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await dotenv.load(fileName: ".env");
+
+    //firebase setup
+    WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  final notificationService = NotificationService();
+  await notificationService.init();
+
     runApp(const MyApp());
   } catch (e, stack) {
     // print("Error loading app: $e\n$stack");

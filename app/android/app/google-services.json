@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "887323555808",
+    "project_id": "careernest-1",
+    "storage_bucket": "careernest-1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:887323555808:android:45bab0542b85858bae9d85",
+        "android_client_info": {
+          "package_name": "com.example.career_nest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBas7QZYhyJjPlDdx_ATfTWd8ZLyeu3TGM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

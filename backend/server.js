@@ -93,12 +93,11 @@ app.get("/api/logs", (req, res) => {
 
 // ======= Protected Routes (require fetchUser middleware) =======
 app.use(fetchUser); // protect all below
-
 app.use("/api/technical", require("./routes/technicalRoutes"));
 app.use("/api/quiz", require("./routes/quizRoutes"));
 app.use("/api/programming", require("./routes/programmingRoutes"));
 app.use("/api/hr", require("./routes/hrRoutes"));
-app.use("/api/notification", require("./routes/notificationRoutes"));
+//app.use("/api/notification", require("./routes/notificationRoutes"));
 app.use("/api/videos", require("./routes/videoRoutes")); // ✅ Video API route
 
 // ======= Start Server =======

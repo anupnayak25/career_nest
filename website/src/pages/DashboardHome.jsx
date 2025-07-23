@@ -92,72 +92,7 @@ const DashboardHome = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-3xl font-bold">{videos.length}</div>
-              <div className="text-blue-100">Total Videos</div>
-            </div>
-            <Play className="text-blue-200" size={40} />
-          </div>
-        </div>
-        <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-3xl font-bold">{eventsVideos.length}</div>
-              <div className="text-green-100">Event Videos</div>
-            </div>
-            <Calendar className="text-green-200" size={40} />
-          </div>
-        </div>
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-3xl font-bold">{placementsVideos.length}</div>
-              <div className="text-purple-100">Placement Videos</div>
-            </div>
-            <Trophy className="text-purple-200" size={40} />
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
-            onClick={() => navigate('/dashboard/video')}
-            className="flex items-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all duration-200"
-          >
-            <Upload className="text-blue-600" size={24} />
-            <div className="text-left">
-              <div className="font-medium text-gray-900">Upload Videos</div>
-              <div className="text-sm text-gray-600">Add new content</div>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/dashboard/video')}
-            className="flex items-center gap-3 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-all duration-200"
-          >
-            <Eye className="text-green-600" size={24} />
-            <div className="text-left">
-              <div className="font-medium text-gray-900">Manage Videos</div>
-              <div className="text-sm text-gray-600">Edit and organize</div>
-            </div>
-          </button>
-          <button
-            onClick={loadVideos}
-            className="flex items-center gap-3 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-all duration-200"
-          >
-            <Play className="text-purple-600" size={24} />
-            <div className="text-left">
-              <div className="font-medium text-gray-900">Refresh</div>
-              <div className="text-sm text-gray-600">Reload content</div>
-            </div>
-          </button>
-        </div>
-      </div>
+  
 
       {/* Video Content */}
       <div className="bg-white rounded-xl shadow-lg p-6 animate-slide-up">

@@ -5,7 +5,7 @@ const db = require('../db'); // MySQL connection
 const admin = require('./firebase');
 
 
-app.post('/save-token', fetchUser, async (req, res) => {
+router.post('/save-token', fetchUser, async (req, res) => {
   const userId = req.user.id;
   const { fcmToken } = req.body;
 

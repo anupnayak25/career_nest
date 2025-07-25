@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:career_nest/common/video_recoredr_screen.dart';
 import 'package:career_nest/common/video_service.dart';
 import 'package:career_nest/student/models/hr_model.dart' show Question;
+import 'package:career_nest/student/models/programming_model.dart'
+    show ProgrammingQuestion;
+import 'package:career_nest/student/models/quiz_model.dart' show QuizQuestion;
 
 class AttemptPage<T> extends StatefulWidget {
   final String title;
@@ -194,7 +197,60 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
   }
 
   Widget _buildQuestionCard(T question, int index) {
-    final q = question as Question;
+    // Check the type of the question dynamically
+    if (question is ProgrammingQuestion) {
+      return _buildProgrammingQuestionCard(question, index);
+    } else if (question is QuizQuestion) {
+      return _buildQuizQuestionCard(question, index);
+    } else if (question is Question) {
+      return _buildGeneralQuestionCard(question, index);
+    } else {
+      return const SizedBox.shrink(); // Handle unexpected types gracefully
+    }
+  }
+
+  Widget _buildProgrammingQuestionCard(
+      ProgrammingQuestion question, int index) {
+    final controller = TextEditingController(text: answers[index] ?? "");
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: Theme.of(context).primaryColor.withOpacity(0.12),
+        shadowColor: Theme.of(context).primaryColor.withOpacity(0.08),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("${question.qno}) ${question.question}",
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 16)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                onChanged: (val) => answers[index] = val,
+                maxLines: 8,
+                minLines: 5,
+                decoration: InputDecoration(
+                  hintText: 'Enter your code here...',
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGeneralQuestionCard(T question, int index) {
     final isBlueType = widget.type == 'quiz' || widget.type == 'programming';
 
     return Container(
@@ -211,21 +267,17 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("${q.qno}) ${q.question}",
+              Text(
+                  "${(question as dynamic).qno}) ${(question as dynamic).question}",
                   style: const TextStyle(
                       fontWeight: FontWeight.w600, fontSize: 16)),
               const SizedBox(height: 12),
-              if (widget.type == 'quiz')
-                _buildOptions(q, index)
-              else if (widget.type == 'programming')
-                _buildCodeInput(q, index)
-              else
-                widget.questionBuilder(
-                  question,
-                  index,
-                  answers[index],
-                  (val) => setState(() => answers[index] = val),
-                ),
+              widget.questionBuilder(
+                question,
+                index,
+                answers[index],
+                (val) => setState(() => answers[index] = val),
+              ),
             ],
           ),
         ),
@@ -233,93 +285,195 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
     );
   }
 
-  Widget _buildOptions(dynamic q, int index) {
-    final options = (q != null && q is dynamic && q.options != null)
-        ? q.options as List<String>
-        : <String>[];
-    return Column(
-      children: List.generate(options.length, (i) {
-        return RadioListTile(
-          value: options[i],
-          groupValue: answers[index],
-          onChanged: (val) {
-            setState(() => answers[index] = val);
-          },
-          title: Text(options[i]),
-        );
-      }),
-    );
-  }
-
-  Widget _buildCodeInput(Question q, int index) {
-    final controller = TextEditingController(text: answers[index] ?? "");
-
-    return TextField(
-      controller: controller,
-      onChanged: (val) => answers[index] = val,
-      maxLines: 8,
-      minLines: 5,
-      decoration: InputDecoration(
-        hintText: 'Enter your code here...',
-        filled: true,
-        fillColor: Colors.grey[100],
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+  Widget _buildQuizQuestionCard(QuizQuestion question, int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: Theme.of(context).primaryColor.withOpacity(0.12),
+        shadowColor: Theme.of(context).primaryColor.withOpacity(0.08),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("${question.qno}) ${question.question}",
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 16)),
+              const SizedBox(height: 12),
+              Column(
+                children: List.generate(question.options.length, (i) {
+                  return RadioListTile(
+                    value: question.options[i],
+                    groupValue: answers[index],
+                    onChanged: (val) {
+                      setState(() => answers[index] = val);
+                    },
+                    title: Text(question.options[i]),
+                  );
+                }),
+              ),
+            ],
+          ),
+        ),
       ),
-      style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
     );
   }
 
   Widget _buildVideoQuestionCard(T question, int index) {
     final q = question as Question;
     final uploaded = answers[q.qno] != null;
+    final isUploading = uploadingQuestions.contains(q.qno);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF2F2F2),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("${q.qno}) ${q.question}",
-              style:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 8),
-          GestureDetector(
-            onTap: () => _recordVideo(q.qno),
-            child: Container(
-              decoration: BoxDecoration(
-                color: uploaded ? Colors.green : Colors.blueAccent,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      uploaded ? "Video Uploaded" : "Click Here To Add Video",
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                    ),
+          Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2563EB).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  "Question ${q.qno}",
+                  style: const TextStyle(
+                    color: Color(0xFF2563EB),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
                   ),
-                  Icon(uploaded ? Icons.check : Icons.add, color: Colors.white),
-                ],
+                ),
               ),
+              const Spacer(),
+              if (uploaded)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.green, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        "Completed",
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            q.question,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              height: 1.4,
+              color: Color(0xFF1F2937),
             ),
           ),
-          const SizedBox(height: 10),
-          if (uploadingQuestions.contains(q.qno))
-            const Row(
-              children: [
-                SizedBox(
+          const SizedBox(height: 20),
+          if (isUploading)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2)),
-                SizedBox(width: 10),
-                Text("Uploading...", style: TextStyle(fontSize: 13)),
-              ],
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    "Uploading your video...",
+                    style: TextStyle(
+                      color: Colors.blue[700],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            GestureDetector(
+              onTap: () => _recordVideo(q.qno),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: uploaded
+                        ? [Colors.green, Colors.green.shade600]
+                        : [const Color(0xFF2563EB), const Color(0xFF1D4ED8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (uploaded ? Colors.green : const Color(0xFF2563EB))
+                          .withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      uploaded ? Icons.check_circle : Icons.videocam,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      uploaded
+                          ? "Video Recorded Successfully"
+                          : "Record Your Answer",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
         ],
       ),
@@ -327,8 +481,7 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
   }
 
   Widget _buildSubmitSection() {
-    final canSubmit =
-        answers.length == widget.questions.length && !isSubmitting;
+    final canSubmit = answers.isNotEmpty && !isSubmitting;
     final missingAnswers = totalQuestions - answeredQuestions;
 
     return Container(
@@ -351,20 +504,19 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
               padding: const EdgeInsets.all(12),
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: Colors.orange[50],
-                border: Border.all(color: Colors.orange[200]!),
+                color: Colors.blue[50],
+                border: Border.all(color: Colors.blue[200]!),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber,
-                      color: Colors.orange[600], size: 20),
+                  Icon(Icons.info_outline, color: Colors.blue[600], size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '$missingAnswers question${missingAnswers == 1 ? '' : 's'} remaining',
+                      '$missingAnswers question${missingAnswers == 1 ? '' : 's'} remaining (Optional - you can submit partial answers)',
                       style: TextStyle(
-                          color: Colors.orange[700],
+                          color: Colors.blue[700],
                           fontWeight: FontWeight.w500,
                           fontSize: 14),
                     ),
@@ -404,9 +556,12 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
                                 fontSize: 16, fontWeight: FontWeight.w600)),
                       ],
                     )
-                  : const Text('SUBMIT',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  : Text(
+                      canSubmit
+                          ? 'SUBMIT ANSWERS'
+                          : 'ANSWER AT LEAST ONE QUESTION',
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w600)),
             ),
           ),
         ],
@@ -416,12 +571,14 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
 
   Future<void> _recordVideo(int index) async {
     try {
+      debugPrint("Starting video recording for question index: $index");
       final path = await Navigator.push<String>(
         context,
         MaterialPageRoute(builder: (_) => VideoRecordScreen(qno: index + 1)),
       );
 
       if (path != null && mounted) {
+        debugPrint("Video recorded successfully. Path: $path");
         setState(() => uploadingQuestions.add(index));
 
         final url = await VideoService.uploadVideoFile(File(path));
@@ -429,7 +586,12 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
         if (mounted) {
           setState(() {
             uploadingQuestions.remove(index);
-            if (url != null) answers[index] = url;
+            if (url != null) {
+              answers[index] = url;
+              debugPrint("Video uploaded successfully. URL: $url");
+            } else {
+              debugPrint("Video upload failed for question index: $index");
+            }
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -438,41 +600,44 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
                   ? 'Video uploaded successfully for Q${index + 1}'
                   : 'Failed to upload video for Q${index + 1}'),
               backgroundColor: url != null ? Colors.green : Colors.red,
+              duration: const Duration(seconds: 3),
             ),
           );
         }
+      } else {
+        debugPrint("Video recording was canceled for question index: $index");
       }
     } catch (e) {
-      setState(() => uploadingQuestions.remove(index));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+      debugPrint(
+          "Error during video recording or upload for question index: $index. Error: $e");
+      if (mounted) {
+        setState(() => uploadingQuestions.remove(index));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
             content: Text('Error recording video: $e'),
-            backgroundColor: Colors.red),
-      );
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
   Future<void> _submitAnswers() async {
-    if (answers.length != widget.questions.length) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please answer all questions before submitting.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
     setState(() => isSubmitting = true);
 
     try {
-      final answerList = widget.questions.asMap().entries.map((entry) {
-        final idx = entry.key;
-        return {
-          'qno': idx + 1,
-          'answer': answers[idx],
-        };
-      }).toList();
+      final answerList = <Map<String, dynamic>>[];
+
+      // Include all answered questions
+      for (int i = 0; i < widget.questions.length; i++) {
+        if (answers.containsKey(i)) {
+          answerList.add({
+            'qno': i + 1,
+            'answer': answers[i],
+          });
+        }
+      }
 
       final success = await widget.onSubmit(answerList);
 
@@ -481,9 +646,10 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(success
-                ? 'Answers submitted successfully!'
-                : 'Failed to submit answers.'),
+                ? 'Answers submitted successfully! (${answerList.length} out of ${widget.questions.length} questions answered)'
+                : 'Failed to submit answers. Please try again.'),
             backgroundColor: success ? Colors.green : Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
         if (success) Navigator.pop(context, true);
@@ -493,8 +659,10 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
         setState(() => isSubmitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error submitting answers: $e'),
-              backgroundColor: Colors.red),
+            content: Text('Error submitting answers: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
     }

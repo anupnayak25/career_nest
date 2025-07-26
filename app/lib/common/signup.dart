@@ -442,11 +442,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
-        boxShadow: [
-          BoxShadow(
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
       child: Material(
         color: Colors.transparent,

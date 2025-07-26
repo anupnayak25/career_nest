@@ -37,11 +37,15 @@ const otpStore = {};
 const verifiedEmails = new Set();
 
 router.post("/otp", [body("email", "Invalid email").isEmail()], async (req, res) => {
+  console.log("Hey");
+  console.log(req);
+  console.log("Hey");
+ 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
-
+  
   const { email } = req.body;
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); // Generate 6-digit OTP
 

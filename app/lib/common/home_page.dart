@@ -22,8 +22,8 @@ class _HomePageState extends State<HomePage>
   bool _isLoading = true;
   late TabController _tabController;
 
-  Future<void> _fetchVideos() async {
-    if (mounted) {
+  Future<void> _fetchVideos({bool isManualRefresh = false}) async {
+    if (isManualRefresh && mounted) {
       setState(() {
         _isLoading = true;
       });
@@ -38,7 +38,8 @@ class _HomePageState extends State<HomePage>
       final response = await http.get(videosUri, headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
-      });
+      }).timeout(
+          const Duration(seconds: 10)); // Added timeout to prevent hanging
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -85,6 +86,12 @@ class _HomePageState extends State<HomePage>
           _isLoading = false;
         });
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to fetch videos. Please try again later.'),
+          backgroundColor: Colors.red,
+        ),
+      ); // Added user-friendly error message
     }
   }
 
@@ -108,15 +115,41 @@ class _HomePageState extends State<HomePage>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Background Content (Tab Views)
+          // Background Content (Tab Views) with RefreshIndicator
           Padding(
             padding: const EdgeInsets.only(top: 120), // Same height as AppBar
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                YouTubeVideoGrid(videos: _eventVideos, type: 'Events'),
-                YouTubeVideoGrid(videos: _placementVideos, type: 'Placements'),
-              ],
+            child: RefreshIndicator(
+              onRefresh: () => _fetchVideos(isManualRefresh: true),
+              child: _isLoading
+                  ? ListView(
+                      children: const [
+                        SizedBox(height: 200),
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 16),
+                              Text(
+                                'Loading videos...',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : TabBarView(
+                      controller: _tabController,
+                      children: [
+                        YouTubeVideoGrid(videos: _eventVideos, type: 'Events'),
+                        YouTubeVideoGrid(
+                            videos: _placementVideos, type: 'Placements'),
+                      ],
+                    ),
             ),
           ),
 

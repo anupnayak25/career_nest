@@ -34,10 +34,18 @@ class AssignmentService {
     required int assignmentId,
     required List<Map<String, dynamic>> answers,
   }) async {
+    print('📤 [submitAnswers] Starting submission for type: $type');
+    print('📤 [submitAnswers] Assignment ID: $assignmentId');
+    print('📤 [submitAnswers] Answers count: ${answers.length}');
+    print('📤 [submitAnswers] Answers: $answers');
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
+    final userId = prefs.getString('userId');
     final apiUrl = dotenv.get('API_URL');
     final url = Uri.parse('$apiUrl/api/$type/answers');
+
+    print('📤 [submitAnswers] URL: $url');
 
     // For quiz, use quiz_id and selected_ans
     final isQuiz = type == 'quiz' || type == 'quizzes';
@@ -45,64 +53,49 @@ class AssignmentService {
     final isTechnical = type == 'technical';
     final isProgramming = type == 'programming';
 
-    final body = jsonEncode(isQuiz
-        ? {
-            'quiz_id': assignmentId,
-            'answers': answers
-                .map((a) => {
-                      'qno': a['qno'],
-                      'selected_ans': a['answer'],
-                      'marks_awarded': a['marks_awarded'] ?? 0,
-                    })
-                .toList(),
-          }
-        : isHr
-            ? {
-                'hr_question_id': assignmentId,
-                'answers': answers
-                    .map((a) => {
-                          'qno': a['qno'],
-                          'answer': a['answer'],
-                          'marks_awarded': a['marks_awarded'] ?? 0,
-                        })
-                    .toList(),
-              }
-            : isTechnical
-                ? {
-                    'technical_id': assignmentId,
-                    'answers': answers
-                        .map((a) => {
-                              'qno': a['qno'],
-                              'answer': a['answer'],
-                              'marks_awarded': a['marks_awarded'] ?? 0,
-                            })
-                        .toList(),
-                  }
-                : isProgramming
-                    ? {
-                        'program_id': assignmentId,
-                        'answers': answers
-                            .map((a) => {
-                                  'qno': a['qno'],
-                                  'answer': a['answer'],
-                                  'marks_awarded': a['marks_awarded'] ?? 0,
-                                })
-                            .toList(),
-                      }
-                    : {
-                        'id': assignmentId,
-                        'answers': answers,
-                      });
+    print(
+        '📤 [submitAnswers] Type flags - isQuiz: $isQuiz, isHr: $isHr, isTechnical: $isTechnical, isProgramming: $isProgramming');
 
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: body,
-    );
-    return response.statusCode == 201;
+    final body = jsonEncode({
+      if (isHr || isTechnical) 'user_id': userId,
+      if (isHr) 'hr_question_id': assignmentId,
+      if (isTechnical) 'technical_question_id': assignmentId,
+      if (isProgramming) 'programming_question_id': assignmentId,
+      if (isQuiz) 'quiz_id': assignmentId,
+      'answers': answers
+          .map((answer) => {
+                'qno': answer['id'],
+                'answer': answer['answer'],
+              })
+          .toList(),
+    });
+
+    print('📤 [submitAnswers] Request body: $body');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: body,
+      );
+
+      print('📤 [submitAnswers] Response status: ${response.statusCode}');
+      print('📤 [submitAnswers] Response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        print('📤 [submitAnswers] ✅ SUCCESS for type: $type');
+        return true;
+      } else {
+        print('📤 [submitAnswers] ❌ FAILURE for type: $type');
+        return false;
+      }
+    } catch (e) {
+      print('📤 [submitAnswers] ❌ ERROR: $e');
+      return false;
+    }
   }
 
   static Future<List<Map<String, dynamic>>> fetchResults({
@@ -181,11 +174,17 @@ class ApiService {
   }
 
   static Future<List<int>> fetchAttempted(type) async {
+    print('🔍 [fetchAttempted] Starting fetch for type: $type');
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final apiUrl = dotenv.get('API_URL');
     String userId = prefs.getString('userId') ?? '';
     final url = Uri.parse('$apiUrl/api/$type/attempted/$userId');
+
+    print('🔍 [fetchAttempted] URL: $url');
+    print('🔍 [fetchAttempted] User ID: $userId');
+    print('🔍 [fetchAttempted] Token exists: ${token != null}');
 
     try {
       final response = await http.get(
@@ -196,26 +195,41 @@ class ApiService {
         },
       );
 
+      print('🔍 [fetchAttempted] Response status: ${response.statusCode}');
+      print('🔍 [fetchAttempted] Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         if (response.body.trim().isEmpty) {
-          print("Empty response body");
+          print("⚠️ [fetchAttempted] Empty response body for type: $type");
           return [];
         }
 
         final decoded = json.decode(response.body);
+        print('🔍 [fetchAttempted] Decoded response: $decoded');
+
         final attempted = decoded['attempted'];
+        print(
+            '🔍 [fetchAttempted] Attempted field: $attempted (type: ${attempted.runtimeType})');
 
         if (attempted is List) {
-          return attempted.map((e) => int.tryParse(e.toString()) ?? 0).toList();
+          final result =
+              attempted.map((e) => int.tryParse(e.toString()) ?? 0).toList();
+          print(
+              '✅ [fetchAttempted] Successfully parsed attempted list for $type: $result');
+          return result;
         } else {
+          print(
+              "⚠️ [fetchAttempted] Attempted field is not a List for type: $type. Got: ${attempted.runtimeType}");
           return [];
         }
       } else {
-        print("Failed to fetch attempted $type: ${response.body}");
+        print(
+            "❌ [fetchAttempted] Failed to fetch attempted $type: Status ${response.statusCode}, Body: ${response.body}");
         return [];
       }
     } catch (e) {
-      print("Error fetching attempted $type: $e");
+      print("💥 [fetchAttempted] Error fetching attempted $type: $e");
+      print("💥 [fetchAttempted] Stack trace: ${StackTrace.current}");
       return [];
     }
   }

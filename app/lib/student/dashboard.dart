@@ -22,12 +22,7 @@ class _DashboardPageState extends State<DashboardPage>
   late AnimationController _animationController;
 
   // List of widgets to display for each tab in the bottom navigation bar
-  final List<Widget> _pages = [
-    HomePage(userName: 'Kristin'), // Home screen
-    TestsPage(), // Tests listing screen
-    NotificationsPage(), // Notifications screen
-    AccountPage(userName: 'Kristin'), // User account screen
-  ];
+  late final List<Widget> _pages;
 
   // Navigation items with enhanced styling data
   final List<NavigationItem> _navItems = [
@@ -61,6 +56,14 @@ class _DashboardPageState extends State<DashboardPage>
       vsync: this,
     );
     _animationController.forward();
+
+    // Initialize pages once to prevent recreation on tab switches
+    _pages = [
+      const HomePage(userName: 'Kristin'), // Home screen
+      const TestsPage(), // Tests listing screen
+      const NotificationsPage(), // Notifications screen
+      const AccountPage(userName: 'Kristin'), // User account screen
+    ];
   }
 
   @override
@@ -83,30 +86,9 @@ class _DashboardPageState extends State<DashboardPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        transitionBuilder: (child, animation) {
-          // Create a slide animation for this specific transition
-          final slideAnimation = Tween<Offset>(
-            begin: const Offset(0.1, 0.0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          ));
-
-          return SlideTransition(
-            position: slideAnimation,
-            child: FadeTransition(
-              opacity: animation,
-              child: child,
-            ),
-          );
-        },
-        child: Container(
-          key: ValueKey<int>(_selectedIndex),
-          child: _pages[_selectedIndex],
-        ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

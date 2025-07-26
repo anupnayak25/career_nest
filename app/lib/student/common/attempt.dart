@@ -6,6 +6,8 @@ import 'package:career_nest/student/models/hr_model.dart' show Question;
 import 'package:career_nest/student/models/programming_model.dart'
     show ProgrammingQuestion;
 import 'package:career_nest/student/models/quiz_model.dart' show QuizQuestion;
+import 'package:career_nest/student/common/success_screen.dart';
+import 'package:flutter/services.dart';
 
 class AttemptPage<T> extends StatefulWidget {
   final String title;
@@ -39,6 +41,16 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
   void initState() {
     super.initState();
     answers = widget.initialAnswers?.call() ?? {};
+
+    // Restrict screenshots and split-screen
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
+
+  @override
+  void dispose() {
+    // Re-enable screenshots and split-screen when leaving the page
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    super.dispose();
   }
 
   bool get isVideoType => widget.type == 'technical' || widget.type == 'hr';
@@ -258,9 +270,9 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: isBlueType
+        color: (isBlueType
             ? Theme.of(context).primaryColor.withOpacity(0.12)
-            : Colors.white,
+            : Colors.white),
         shadowColor: Theme.of(context).primaryColor.withOpacity(0.08),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -324,7 +336,6 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
   Widget _buildVideoQuestionCard(T question, int index) {
     final q = question as Question;
     final uploaded = answers[q.qno] != null;
-    final isUploading = uploadingQuestions.contains(q.qno);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -399,82 +410,51 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
             ),
           ),
           const SizedBox(height: 20),
-          if (isUploading)
-            Container(
-              padding: const EdgeInsets.all(16),
+          GestureDetector(
+            onTap: () => _recordVideo(q.qno),
+            child: Container(
               decoration: BoxDecoration(
-                color: Colors.blue[50],
+                gradient: LinearGradient(
+                  colors: uploaded
+                      ? [Colors.green, Colors.green.shade600]
+                      : [const Color(0xFF2563EB), const Color(0xFF1D4ED8)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: Colors.blue[200]!),
+                boxShadow: [
+                  BoxShadow(
+                    color: (uploaded ? Colors.green : const Color(0xFF2563EB))
+                        .withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                    ),
+                  Icon(
+                    uploaded ? Icons.check_circle : Icons.videocam,
+                    color: Colors.white,
+                    size: 24,
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    "Uploading your video...",
-                    style: TextStyle(
-                      color: Colors.blue[700],
-                      fontWeight: FontWeight.w500,
+                    uploaded
+                        ? "Video Recorded Successfully"
+                        : "Record Your Answer",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
-            )
-          else
-            GestureDetector(
-              onTap: () => _recordVideo(q.qno),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: uploaded
-                        ? [Colors.green, Colors.green.shade600]
-                        : [const Color(0xFF2563EB), const Color(0xFF1D4ED8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (uploaded ? Colors.green : const Color(0xFF2563EB))
-                          .withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      uploaded ? Icons.check_circle : Icons.videocam,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      uploaded
-                          ? "Video Recorded Successfully"
-                          : "Record Your Answer",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
+          ),
         ],
       ),
     );
@@ -624,47 +604,66 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
   }
 
   Future<void> _submitAnswers() async {
-    setState(() => isSubmitting = true);
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Submission'),
+        content: const Text('Are you sure you want to submit your answers?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
+    );
 
-    try {
-      final answerList = <Map<String, dynamic>>[];
+    if (confirm != true) return;
 
-      // Include all answered questions
-      for (int i = 0; i < widget.questions.length; i++) {
-        if (answers.containsKey(i)) {
-          answerList.add({
-            'qno': i + 1,
-            'answer': answers[i],
-          });
+    // Fill unanswered questions with "NA" for non-quiz questions
+    for (int i = 0; i < widget.questions.length; i++) {
+      if (answers[i] == null) {
+        final question = widget.questions[i];
+        if (question is! QuizQuestion) {
+          answers[i] = 'NA';
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Please select an option for question ${i + 1}.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
         }
       }
+    }
 
-      final success = await widget.onSubmit(answerList);
+    setState(() => isSubmitting = true);
 
-      if (mounted) {
-        setState(() => isSubmitting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(success
-                ? 'Answers submitted successfully! (${answerList.length} out of ${widget.questions.length} questions answered)'
-                : 'Failed to submit answers. Please try again.'),
-            backgroundColor: success ? Colors.green : Colors.red,
-            duration: const Duration(seconds: 4),
+    final success = await widget.onSubmit(
+      answers.entries.map((e) => {'id': e.key, 'answer': e.value}).toList(),
+    );
+
+    setState(() => isSubmitting = false);
+
+    if (success) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SuccessScreen(
+            title: 'Submission Successful',
+            message: 'Your answers have been submitted successfully.',
           ),
-        );
-        if (success) Navigator.pop(context, true);
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => isSubmitting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error submitting answers: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Submission failed. Please try again.')),
+      );
     }
   }
 }

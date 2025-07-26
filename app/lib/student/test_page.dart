@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:career_nest/common/animated_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -33,58 +31,106 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
     );
   }
 
-  Future<List<TestCategory>> _loadCategories() async {
-    final quizAssignments = await AssignmentService.fetchList<QuizList>(
-        'quiz', (json) => QuizList.fromJson(json));
-    final quizAttempted = await AssignmentService.fetchAttempted('quiz');
-    final programmingAssignments =
-        await AssignmentService.fetchList<ProgramingList>(
-            'programming', (json) => ProgramingList.fromJson(json));
-    final programmingAttempted =
-        await AssignmentService.fetchAttempted('programming');
-    final hrAssignments = await AssignmentService.fetchList<HrModel>(
-        'hr', (json) => HrModel.fromJson(json));
-    final hrAttempted = await AssignmentService.fetchAttempted('hr');
-    final technicalAssignments =
-        await AssignmentService.fetchList<TechnicalItem>(
-            'technical', (json) => TechnicalItem.fromJson(json));
-    final technicalAttempted =
-        await AssignmentService.fetchAttempted('technical');
+  Future<List<TestCategory>> _loadCategories(
+      {bool isManualRefresh = false}) async {
+    // No need to show loading indicator here as RefreshIndicator handles it
+    print('📊 [_loadCategories] Starting to load categories...');
 
-    return [
-      TestCategory(
-        title: 'QUIZ',
-        subtitle: '${quizAssignments.length} Tests Available',
-        completed: quizAttempted.length,
-        icon: Icons.quiz,
-        color: const Color(0xFFE1BEE7),
-        page: const QuizAssignmentListPage(),
-      ),
-      TestCategory(
-        title: 'Programming',
-        subtitle: '${programmingAssignments.length} Challenges',
-        completed: programmingAttempted.length,
-        icon: Icons.code,
-        color: const Color(0xFFBBDEFB),
-        page: const ProgrammingAssignmentListPage(),
-      ),
-      TestCategory(
-        title: 'HR Interview',
-        subtitle: '${hrAssignments.length} Sessions',
-        completed: hrAttempted.length,
-        icon: Icons.people,
-        color: const Color(0xFFFFF9C4),
-        page: const HrAssignmentListPage(),
-      ),
-      TestCategory(
-        title: 'Technical',
-        subtitle: '${technicalAssignments.length} Topics',
-        completed: technicalAttempted.length,
-        icon: Icons.engineering,
-        color: const Color(0xFFC8E6C9),
-        page: const TechnicalAssignmentListPage(),
-      ),
-    ];
+    try {
+      print('📊 [_loadCategories] Fetching quiz assignments...');
+      final quizAssignments = await AssignmentService.fetchList<QuizList>(
+          'quiz', (json) => QuizList.fromJson(json));
+      print(
+          '📊 [_loadCategories] Quiz assignments count: ${quizAssignments.length}');
+
+      print('📊 [_loadCategories] Fetching quiz attempted...');
+      final quizAttempted = await AssignmentService.fetchAttempted('quiz');
+      print('📊 [_loadCategories] Quiz attempted: $quizAttempted');
+
+      print('📊 [_loadCategories] Fetching programming assignments...');
+      final programmingAssignments =
+          await AssignmentService.fetchList<ProgramingList>(
+              'programming', (json) => ProgramingList.fromJson(json));
+      print(
+          '📊 [_loadCategories] Programming assignments count: ${programmingAssignments.length}');
+
+      print('📊 [_loadCategories] Fetching programming attempted...');
+      final programmingAttempted =
+          await AssignmentService.fetchAttempted('programming');
+      print(
+          '📊 [_loadCategories] Programming attempted: $programmingAttempted');
+
+      print('📊 [_loadCategories] Fetching HR assignments...');
+      final hrAssignments = await AssignmentService.fetchList<HrModel>(
+          'hr', (json) => HrModel.fromJson(json));
+      print(
+          '📊 [_loadCategories] HR assignments count: ${hrAssignments.length}');
+
+      print('📊 [_loadCategories] Fetching HR attempted...');
+      final hrAttempted = await AssignmentService.fetchAttempted('hr');
+      print(
+          '📊 [_loadCategories] ❗ HR attempted: $hrAttempted (This is the critical one!)');
+
+      print('📊 [_loadCategories] Fetching technical assignments...');
+      final technicalAssignments =
+          await AssignmentService.fetchList<TechnicalItem>(
+              'technical', (json) => TechnicalItem.fromJson(json));
+      print(
+          '📊 [_loadCategories] Technical assignments count: ${technicalAssignments.length}');
+
+      print('📊 [_loadCategories] Fetching technical attempted...');
+      final technicalAttempted =
+          await AssignmentService.fetchAttempted('technical');
+      print('📊 [_loadCategories] Technical attempted: $technicalAttempted');
+
+      print('📊 [_loadCategories] Technical attempted: $technicalAttempted');
+
+      final categories = [
+        TestCategory(
+          title: 'QUIZ',
+          subtitle: '${quizAssignments.length} Tests Available',
+          completed: quizAttempted.length,
+          icon: Icons.quiz,
+          color: const Color(0xFFE1BEE7),
+          page: const QuizAssignmentListPage(),
+        ),
+        TestCategory(
+          title: 'Programming',
+          subtitle: '${programmingAssignments.length} Challenges',
+          completed: programmingAttempted.length,
+          icon: Icons.code,
+          color: const Color(0xFFBBDEFB),
+          page: const ProgrammingAssignmentListPage(),
+        ),
+        TestCategory(
+          title: 'HR Interview',
+          subtitle: '${hrAssignments.length} Sessions',
+          completed: hrAttempted.length,
+          icon: Icons.people,
+          color: const Color(0xFFFFF9C4),
+          page: const HrAssignmentListPage(),
+        ),
+        TestCategory(
+          title: 'Technical',
+          subtitle: '${technicalAssignments.length} Topics',
+          completed: technicalAttempted.length,
+          icon: Icons.engineering,
+          color: const Color(0xFFC8E6C9),
+          page: const TechnicalAssignmentListPage(),
+        ),
+      ];
+
+      print('📊 [_loadCategories] ✅ Categories created successfully:');
+      for (var category in categories) {
+        print('   - ${category.title}: ${category.completed} completed');
+      }
+
+      return categories;
+    } catch (e, stackTrace) {
+      print('💥 [_loadCategories] Error loading categories: $e');
+      print('💥 [_loadCategories] Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 
   @override
@@ -98,74 +144,137 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: const AnimatedCurvedAppBar(title: 'Tests'),
-      body: FutureBuilder<List<TestCategory>>(
-        future: _categoriesFuture,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final categories = snapshot.data!;
-          _slideAnimations = List.generate(
-            categories.length,
-            (index) => Tween<Offset>(
-              begin: const Offset(0, 1),
-              end: Offset.zero,
-            ).animate(
-              CurvedAnimation(
-                parent: _animationController,
-                curve: Interval(
-                  index * 0.2,
-                  min(1.0, 0.8 + (index * 0.1)),
-                  curve: Curves.easeOutBack,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {
+            _categoriesFuture = _loadCategories(isManualRefresh: true);
+          });
+        },
+        child: FutureBuilder<List<TestCategory>>(
+          future: _categoriesFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error loading tests',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Pull down to refresh',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-          );
-          _fadeAnimations = List.generate(
-            categories.length,
-            (index) => Tween<double>(
-              begin: 0.0,
-              end: 1.0,
-            ).animate(
-              CurvedAnimation(
-                parent: _animationController,
-                curve: Interval(
-                  index * 0.15,
-                  min(1.0, 0.7 + (index * 0.1)),
-                  curve: Curves.easeOut,
+              );
+            }
+
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.assignment_outlined,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No tests available',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Pull down to refresh',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-          );
-          _animationController.forward();
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: categories.length,
-                    itemBuilder: (context, index) {
-                      return SlideTransition(
-                        position: _slideAnimations[index],
-                        child: FadeTransition(
-                          opacity: _fadeAnimations[index],
-                          child: _buildAnimatedTestCard(
-                            context,
-                            categories[index],
-                            index,
-                          ),
-                        ),
-                      );
-                    },
+              );
+            }
+            final categories = snapshot.data!;
+            _slideAnimations = List.generate(
+              categories.length,
+              (index) => Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: _animationController,
+                  curve: Interval(
+                    index * 0.1,
+                    1.0,
+                    curve: Curves.easeOut,
                   ),
                 ),
-              ],
-            ),
-          );
-        },
+              ),
+            );
+            _fadeAnimations = List.generate(
+              categories.length,
+              (index) => Tween<double>(
+                begin: 0.0,
+                end: 1.0,
+              ).animate(
+                CurvedAnimation(
+                  parent: _animationController,
+                  curve: Interval(
+                    index * 0.1,
+                    1.0,
+                    curve: Curves.easeOut,
+                  ),
+                ),
+              ),
+            );
+            _animationController.forward();
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ListView.builder(
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  return SlideTransition(
+                    position: _slideAnimations[index],
+                    child: FadeTransition(
+                      opacity: _fadeAnimations[index],
+                      child: _buildAnimatedTestCard(
+                        context,
+                        categories[index],
+                        index,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }

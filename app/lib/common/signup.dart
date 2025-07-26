@@ -110,9 +110,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         isLoading = true;
       });
 
-      // Simulate network request
-      await Future.delayed(const Duration(seconds: 2));
-
       final apiUrl = dotenv.get('API_URL');
       final response =
           await http.post(Uri.parse('$apiUrl/api/auth/signup'), body: {
@@ -121,8 +118,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         'password': passwordController.text,
         'userType': userType,
       });
-
-      // print(response.body);
 
       if (response.statusCode == 201) {
         final responseData = json.decode(response.body);
@@ -144,7 +139,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         }
       } else if (response.statusCode == 401) {
         _showSnackBar('Invalid OTP.. Try again later..', isError: true);
-        // print(response.body);
         _otpController.text = "";
       } else if ([400, 409].contains(response.statusCode)) {
         final responseData = json.decode(response.body);
@@ -159,8 +153,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
           _showSnackBar('Invalid input', isError: true);
         }
       } else {
-        // print(response.body);
-        // print(response.statusCode);
         _showSnackBar('Something went wrong.. Try again later..',
             isError: true);
       }
@@ -439,7 +431,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     bool isLoading = false,
     List<Color>? colors,
     double? width,
-    EdgeInsets? padding,
   }) {
     return Container(
       width: width,
@@ -453,8 +444,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         ),
         boxShadow: [
           BoxShadow(
-            color: (colors?.first ?? Colors.blue).withOpacity(0.3),
-            blurRadius: 8,
             offset: const Offset(0, 3),
           ),
         ],
@@ -462,30 +451,23 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onPressed,
+          onTap: isOtpVerified
+              ? onPressed
+              : null, // Disable button until OTP is verified
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: padding ??
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            child: Center(
-              child: isLoading
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : Text(
-                      text,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+            alignment: Alignment.center,
+            child: isLoading
+                ? const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  )
+                : Text(
+                    text,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
-            ),
+                  ),
           ),
         ),
       ),

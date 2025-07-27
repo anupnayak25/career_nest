@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../common/responsive_text.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -42,7 +43,8 @@ class VideoList extends StatelessWidget {
             }
           },
           child: Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             elevation: 5,
             margin: const EdgeInsets.only(bottom: 16),
             child: Padding(
@@ -57,27 +59,24 @@ class VideoList extends StatelessWidget {
                       color: Colors.blue.shade100,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.play_circle_fill, color: Colors.blue, size: 40),
+                    child: const Icon(Icons.play_circle_fill,
+                        color: Colors.blue, size: 40),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title,
-                            style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87)),
+                        AppText.bodyLarge(context, title,
+                            color: Colors.black87),
                         const SizedBox(height: 4),
-                        Text(uploadDate, style: const TextStyle(color: Colors.grey)),
+                        AppText.bodySmall(context, uploadDate,
+                            color: Colors.grey),
                         const SizedBox(height: 6),
-                        Text(
-                          description,
-                          style: const TextStyle(color: Colors.black87),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        AppText.bodyMedium(context, description,
+                            color: Colors.black87,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis),
                       ],
                     ),
                   ),

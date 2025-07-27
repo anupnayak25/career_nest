@@ -77,7 +77,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           ),
           content: Text(
             message,
-            style: const TextStyle(fontSize: 16),
+            style: AppTextStyles.bodyLarge(context),
           ),
           actions: [
             TextButton(
@@ -311,15 +311,14 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              const Text(
+                              Text(
                                 "Welcome Back!",
-                                style: AppTextStyles.headline,
+                                style: AppTextStyles.headline(context),
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 "Enter your credentials to access your account",
-                                style: TextStyle(
-                                  fontSize: 16,
+                                style: AppTextStyles.subtitle(context).copyWith(
                                   color: Colors.grey[600],
                                 ),
                                 textAlign: TextAlign.center,
@@ -332,8 +331,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         // Email Field
                         Text(
                           "Email Address",
-                          style: TextStyle(
-                            fontSize: 16,
+                          style: AppTextStyles.subtitle(context).copyWith(
                             fontWeight: FontWeight.w600,
                             color: Colors.grey[700],
                           ),
@@ -385,8 +383,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         // Password Field
                         Text(
                           "Password",
-                          style: TextStyle(
-                            fontSize: 16,
+                          style: AppTextStyles.subtitle(context).copyWith(
                             fontWeight: FontWeight.w600,
                             color: Colors.grey[700],
                           ),
@@ -476,9 +473,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Text(
+                                : Text(
                                     "Sign In",
-                                    style: AppTextStyles.button,
+                                    style: AppTextStyles.button(context),
                                   ),
                           ),
                         ),
@@ -491,8 +488,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             children: [
                               Text(
                                 "Don't have an account? ",
-                                style: TextStyle(
-                                  fontSize: 16,
+                                style:
+                                    AppTextStyles.bodyLarge(context).copyWith(
                                   color: Colors.grey[600],
                                 ),
                               ),
@@ -520,8 +517,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                 },
                                 child: Text(
                                   "Sign Up",
-                                  style: TextStyle(
-                                    fontSize: 16,
+                                  style:
+                                      AppTextStyles.bodyLarge(context).copyWith(
                                     color: Colors.blue[600],
                                     fontWeight: FontWeight.bold,
                                   ),

@@ -13,10 +13,10 @@ Future<void> main() async {
 
     //firebase setup
     WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+    await Firebase.initializeApp();
 
-  final notificationService = NotificationService();
-  await notificationService.init();
+    final notificationService = NotificationService();
+    await notificationService.init();
 
     runApp(const MyApp());
   } catch (e, stack) {
@@ -56,10 +56,10 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.background,
         cardColor: AppColors.card,
         textTheme: const TextTheme(
-          headlineLarge: AppTextStyles.headline,
-          titleMedium: AppTextStyles.subtitle,
+          headlineLarge: AppTextStyles.headlineLegacy,
+          titleMedium: AppTextStyles.subtitleLegacy,
           bodyMedium: AppTextStyles.body,
-          labelLarge: AppTextStyles.button,
+          labelLarge: AppTextStyles.buttonLegacy,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: AppButtonStyles.elevated,
@@ -88,12 +88,25 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-       builder: (context, child) {
-    ErrorWidget.builder = (FlutterErrorDetails details) {
-      return Center(child: Text(details.exceptionAsString()));
-    };
-    return child!;
-  },
+      builder: (context, child) {
+        // Constrain text scaling to prevent UI breaking
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: MediaQuery.of(context).textScaler.clamp(
+                  minScaleFactor: 0.8, // Minimum 80% of default
+                  maxScaleFactor: 1.5, // Maximum 150% of default
+                ),
+          ),
+          child: Builder(
+            builder: (context) {
+              ErrorWidget.builder = (FlutterErrorDetails details) {
+                return Center(child: Text(details.exceptionAsString()));
+              };
+              return child!;
+            },
+          ),
+        );
+      },
       home: SplashScreen(),
     );
   }

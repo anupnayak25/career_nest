@@ -380,14 +380,14 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         inputFormatters: inputFormatters,
         maxLength: maxLength,
         style: TextStyle(
-          fontSize: 14,
+          fontSize: AppTextScale.scaledFontSize(context, 14),
           color: enabled ? Colors.black87 : Colors.grey[600],
         ),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(
             color: enabled ? Colors.grey[700] : Colors.grey[500],
-            fontSize: 13,
+            fontSize: AppTextScale.scaledFontSize(context, 13),
             fontWeight: FontWeight.w500,
           ),
           filled: true,
@@ -458,10 +458,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                   )
                 : Text(
                     text,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: AppTextStyles.buttonLegacy,
                   ),
           ),
         ),
@@ -550,8 +547,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                             const SizedBox(width: 16),
                             Text(
                               "Create Account",
-                              style:
-                                  AppTextStyles.headline.copyWith(fontSize: 22),
+                              style: AppTextStyles.titleLarge(context),
                             ),
                           ],
                         ),
@@ -682,17 +678,19 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                           children: [
                                             Text(
                                               "Email Verified!",
-                                              style: TextStyle(
+                                              style: AppTextStyles.bodyLarge(
+                                                      context)
+                                                  .copyWith(
                                                 color: Colors.green[800],
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: 16,
                                               ),
                                             ),
                                             Text(
                                               emailController.text,
-                                              style: TextStyle(
+                                              style: AppTextStyles.bodyMedium(
+                                                      context)
+                                                  .copyWith(
                                                 color: Colors.green[700],
-                                                fontSize: 14,
                                               ),
                                             ),
                                           ],
@@ -778,9 +776,9 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                             children: [
                               Text(
                                 "Already have an account? ",
-                                style: TextStyle(
+                                style:
+                                    AppTextStyles.bodySmall(context).copyWith(
                                   color: Colors.grey[600],
-                                  fontSize: 13,
                                 ),
                               ),
                               GestureDetector(
@@ -793,7 +791,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                                 },
                                 child: Text(
                                   "Sign In",
-                                  style: AppTextStyles.button
+                                  style: AppTextStyles.buttonLegacy
                                       .copyWith(color: AppColors.primary),
                                 ),
                               )

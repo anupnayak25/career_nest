@@ -1,5 +1,6 @@
 import 'package:career_nest/common/animated_appbar.dart';
 import 'package:flutter/material.dart';
+import '../common/responsive_text.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -102,23 +103,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
             color: Colors.grey[400],
           ),
           const SizedBox(height: 16),
-          Text(
-            'No notifications yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
+          AppText.subtitle(context, 'No notifications yet',
+              color: Colors.grey[600]),
           const SizedBox(height: 8),
-          Text(
-            'We\'ll notify you when something important happens',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
-            textAlign: TextAlign.center,
-          ),
+          AppText.bodyMedium(
+              context, 'We\'ll notify you when something important happens',
+              color: Colors.grey[500], textAlign: TextAlign.center),
         ],
       ),
     );

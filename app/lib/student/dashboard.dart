@@ -3,6 +3,7 @@ import 'package:career_nest/student/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import "../common/home_page.dart";
+import '../common/theme.dart';
 import './test_page.dart';
 
 // Enhanced StatefulWidget for the main Dashboard page with modern UI
@@ -116,8 +117,8 @@ class _DashboardPageState extends State<DashboardPage>
             type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.transparent,
             elevation: 0,
-            selectedFontSize: 12,
-            unselectedFontSize: 11,
+            selectedFontSize: AppTextScale.scaledFontSize(context, 12),
+            unselectedFontSize: AppTextScale.scaledFontSize(context, 11),
             selectedLabelStyle: const TextStyle(
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,

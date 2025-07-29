@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:career_nest/common/theme.dart';
+import 'dart:ui';
+import 'package:flutter/services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +19,12 @@ Future<void> main() async {
 
     final notificationService = NotificationService();
     await notificationService.init();
+
+    // Restore status bar behavior
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent, // Makes the status bar transparent
+      statusBarIconBrightness: Brightness.light, // Adjust icon brightness
+    ));
 
     runApp(const MyApp());
   } catch (e, stack) {

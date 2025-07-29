@@ -8,6 +8,8 @@ import 'package:career_nest/student/models/programming_model.dart'
 import 'package:career_nest/student/models/quiz_model.dart' show QuizQuestion;
 import 'package:career_nest/student/common/success_screen.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+
 
 class AttemptPage<T> extends StatefulWidget {
   final String title;
@@ -32,25 +34,41 @@ class AttemptPage<T> extends StatefulWidget {
   State<AttemptPage<T>> createState() => _AttemptPageState<T>();
 }
 
-class _AttemptPageState<T> extends State<AttemptPage<T>> {
+class _AttemptPageState<T> extends State<AttemptPage<T>>
+    with WidgetsBindingObserver {
   late Map<int, dynamic> answers;
   bool isSubmitting = false;
   List<int> uploadingQuestions = [];
 
+ 
   @override
-  void initState() {
-    super.initState();
-    answers = widget.initialAnswers?.call() ?? {};
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addObserver(this);
+  _secureScreen(); // block screenshots
+  answers = widget.initialAnswers?.call() ?? {};
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+}
 
-    // Restrict screenshots and split-screen
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  }
+Future<void> _secureScreen() async {
+  await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+}
+
+@override
+void dispose() {
+  WidgetsBinding.instance.removeObserver(this);
+  FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  super.dispose();
+}
+
 
   @override
-  void dispose() {
-    // Re-enable screenshots and split-screen when leaving the page
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    super.dispose();
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // App is in the background, automatically submit attempt
+      _submitAttemptWithNA();
+    }
   }
 
   bool get isVideoType => widget.type == 'technical' || widget.type == 'hr';
@@ -665,5 +683,28 @@ class _AttemptPageState<T> extends State<AttemptPage<T>> {
         SnackBar(content: Text('Submission failed. Please try again.')),
       );
     }
+  }
+
+  void _submitAttemptWithNA() {
+    // Fill unanswered questions with "NA" for non-quiz questions
+    for (int i = 0; i < widget.questions.length; i++) {
+      if (answers[i] == null) {
+        final question = widget.questions[i];
+        if (question is! QuizQuestion) {
+          answers[i] = 'NA';
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Please select an option for question ${i + 1}.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      }
+    }
+
+    // Submit answers
+    _submitAnswers();
   }
 }

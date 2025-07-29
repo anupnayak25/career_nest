@@ -113,8 +113,8 @@ function Dashboard() {
                       ? "bg-blue-50 text-blue-600 border-r-4 border-blue-600 animate-fade-in"
                       : "hover:bg-gray-100 text-gray-700 animate-fade-in"
                   } animate-slide-up`}>
-                  <Icon className="mr-3" size={20} />
-                  {sidebarOpen && <span>{item.label}</span>}
+                  <Icon  size={20} />
+                  {sidebarOpen && <span className="ml-3">{item.label}</span>}
           
                 </Link>
               );

@@ -17,19 +17,50 @@ import CreateQuestion from "./components/CreateQuestion";
 import ViewAttempted from "./pages/ViewAttempted";
 import Answers from "./components/Answers";
 import Video from "./pages/Video"; // 👈 Fixed typo
+import Loading from "./components/Loading";
+
+import { useEffect, useState } from "react";
 import { DataProvider } from "./context/DataContext";
 import { ToastProvider } from "./ui/Toast";
 
 function App() {
+  const [serverUp, setServerUp] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const checkServerStatus = async () => {
+      try {
+        // Change the URL to your backend server's health endpoint
+        const res = await fetch("/" , {
+          method: "GET",
+        });
+        if (res.status === 200) {
+          setServerUp(true);
+        } else {
+          setServerUp(false);
+        }
+      } catch (e) {
+        setServerUp(false);
+      } finally {
+        setChecking(false);
+      }
+    };
+    checkServerStatus();
+  }, []);
+
+  if (checking || !serverUp) {
+    return <Loading />;
+  }
+
   return (
     <ToastProvider>
       <DataProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />}>
+          <Route path="/dashboard" element={<Loading />}>
             <Route index element={<DashboardHome />} />
             <Route path="quiz" element={<Quiz />} />
-           {/* // <Route path="quiz/create" element={<CreateQuiz />} /> */}
+            {/* // <Route path="quiz/create" element={<CreateQuiz />} /> */}
             <Route path="quiz/edit/:id" element={<EditQuiz />} />
             <Route path="hr" element={<Hr />} />
             <Route path="programming" element={<Programming />} />

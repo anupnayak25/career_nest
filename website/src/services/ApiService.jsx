@@ -1,3 +1,19 @@
+// --- Health Check ---
+export const checkServerHealth = async () => {
+  try {
+    const res = await fetch(`${apiUrl}/`, {
+      method: "GET",
+    });
+    // Accept any 2xx as up
+    if (res.status >= 200 && res.status < 300) return true;
+    // If status is 200 but response is HTML/text, still treat as up
+    if (res.status === 200) return true;
+    return false;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+};
 const apiUrl = import.meta.env.VITE_API_URL;
 
 // --- Cached Auth State ---
@@ -13,13 +29,12 @@ export const refresh = () => {
 console.log("UserId:", userId);
 
 // --- Helper Functions ---
-const buildUrl = (type, endpoint = "") =>
-  `${apiUrl}/api/${type}${endpoint ? endpoint : ""}`;
+const buildUrl = (type, endpoint = "") => `${apiUrl}/api/${type}${endpoint ? endpoint : ""}`;
 
 const getHeaders = (json = true) => {
   const headers = {};
   if (json) headers["Content-Type"] = "application/json";
-   headers["Authorization"] = `Bearer ${authToken}`;
+  headers["Authorization"] = `Bearer ${authToken}`;
   return headers;
 };
 
@@ -120,30 +135,30 @@ export const uploadVideoFile = async (formData) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("UPLOAD RESPONSE NOT OK:", response.status, errorText);
-      
+
       // Try to parse as JSON, fallback to text if it fails
       let errorMessage;
       try {
         const errorJson = JSON.parse(errorText);
         errorMessage = errorJson.message || `Upload failed with status ${response.status}`;
       } catch {
-        errorMessage = errorText.includes('<!DOCTYPE') 
-          ? "Server returned HTML instead of JSON. Check your authentication token." 
+        errorMessage = errorText.includes("<!DOCTYPE")
+          ? "Server returned HTML instead of JSON. Check your authentication token."
           : errorText || `Upload failed with status ${response.status}`;
       }
-      
+
       throw new Error(errorMessage);
     }
 
     const text = await response.text();
     console.log("UPLOAD RAW RESPONSE:", text);
-    
+
     if (!text) {
       throw new Error("Empty response from server");
     }
 
     // Check if response is HTML (which indicates an error page)
-    if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+    if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
       throw new Error("Server returned HTML page instead of JSON. Please check your authentication.");
     }
 
@@ -169,7 +184,6 @@ export const uploadVideoFile = async (formData) => {
 // Upload multiple video files
 export const uploadMultipleVideoFiles = async (formData) => {
   try {
-
     const response = await fetch(`${apiUrl}/api/videos/upload-multiple`, {
       method: "POST",
       headers: {
@@ -183,30 +197,30 @@ export const uploadMultipleVideoFiles = async (formData) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("MULTIPLE UPLOAD RESPONSE NOT OK:", response.status, errorText);
-      
+
       // Try to parse as JSON, fallback to text if it fails
       let errorMessage;
       try {
         const errorJson = JSON.parse(errorText);
         errorMessage = errorJson.message || `Upload failed with status ${response.status}`;
       } catch {
-        errorMessage = errorText.includes('<!DOCTYPE') 
-          ? "Server returned HTML instead of JSON. Check your authentication token." 
+        errorMessage = errorText.includes("<!DOCTYPE")
+          ? "Server returned HTML instead of JSON. Check your authentication token."
           : errorText || `Upload failed with status ${response.status}`;
       }
-      
+
       throw new Error(errorMessage);
     }
 
     const text = await response.text();
     console.log("MULTIPLE UPLOAD RAW RESPONSE:", text);
-    
+
     if (!text) {
       throw new Error("Empty response from server");
     }
 
     // Check if response is HTML (which indicates an error page)
-    if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+    if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
       throw new Error("Server returned HTML page instead of JSON. Please check your authentication.");
     }
 
@@ -234,19 +248,19 @@ export const addVideo = async (videoData) => {
   const token = authToken;
   const { title, description, url, category } = videoData;
 
-    if (!title || !description || !url || !category) {
-      throw new Error("Missing required video fields.");
-    }
+  if (!title || !description || !url || !category) {
+    throw new Error("Missing required video fields.");
+  }
 
-    const body = JSON.stringify({
-      title,
-      description,
-      url,
-      category,
-      user_id: userId,
-    });
+  const body = JSON.stringify({
+    title,
+    description,
+    url,
+    category,
+    user_id: userId,
+  });
   if ("id" in videoData) delete videoData.id; // Prevent duplicate primary key error
- 
+
   try {
     const res = await fetch(`${apiUrl}/api/videos`, {
       method: "POST",
@@ -274,9 +288,9 @@ export const addVideo = async (videoData) => {
 export const addMultipleVideos = async (videosData) => {
   try {
     // Add user_id to each video
-    const videosWithUserId = videosData.map(video => ({
+    const videosWithUserId = videosData.map((video) => ({
       ...video,
-      user_id: userId
+      user_id: userId,
     }));
 
     const res = await fetch(`${apiUrl}/api/videos/batch`, {

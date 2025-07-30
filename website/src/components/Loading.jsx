@@ -17,6 +17,7 @@ const Loading = () => {
   const [currentPhase, setCurrentPhase] = useState(0);
 //   const [clickCount, setClickCount] = useState(0);
   const [showEasterEgg, setShowEasterEgg] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const phases = [
     { message: "Initializing server...", icon: "⚡", color: 0x3b82f6 },
@@ -28,7 +29,24 @@ const Loading = () => {
 
   // Initialize Three.js scene
   useEffect(() => {
-    if (!mountRef.current) return;
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    // Small delay to ensure component is fully mounted
+    const timer = setTimeout(() => {
+      if (!mountRef.current) return;
+
+      // Check WebGL support
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) {
+        console.error('WebGL not supported');
+        return;
+      }
 
     // Scene setup
     const scene = new THREE.Scene();
@@ -86,25 +104,14 @@ const Loading = () => {
     const pupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
     pupil.position.z = 0.35;
     eyeGroup.add(pupil);
-    
-    // Iris
-    const irisGeometry = new THREE.SphereGeometry(0.3, 32, 32);
-    const irisMaterial = new THREE.MeshBasicMaterial({ 
-      color: phases[0].color,
-      transparent: true,
-      opacity: 0.7
-    });
-    const iris = new THREE.Mesh(irisGeometry, irisMaterial);
-    iris.position.z = 0.3;
-    eyeGroup.add(iris);
 
     scene.add(eyeGroup);
     eyeRef.current = eyeGroup;
     pupilRef.current = pupil;
 
-    // Create particle system
+    // Create particle system (reduced for mobile)
     const particleGeometry = new THREE.BufferGeometry();
-    const particleCount = 50;
+    const particleCount = isMobile ? 25 : 50;
     const positions = new Float32Array(particleCount * 3);
     const colors = new Float32Array(particleCount * 3);
     const sizes = new Float32Array(particleCount);
@@ -136,10 +143,20 @@ const Loading = () => {
     scene.add(particles);
     particlesRef.current = particles;
 
-    // Mouse move handler
+    // Mouse/Touch move handlers
     const handleMouseMove = (event) => {
-      mouseRef.current.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouseRef.current.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      if (!isMobile) {
+        mouseRef.current.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouseRef.current.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      }
+    };
+
+    const handleTouchMove = (event) => {
+      if (isMobile && event.touches.length > 0) {
+        const touch = event.touches[0];
+        mouseRef.current.x = (touch.clientX / window.innerWidth) * 2 - 1;
+        mouseRef.current.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+      }
     };
 
     // Click handler
@@ -154,37 +171,55 @@ const Loading = () => {
       }
     };
 
+    // Auto-movement for mobile (since touch tracking is limited)
+    const autoMoveEye = () => {
+      if (isMobile) {
+        const time = Date.now() * 0.001;
+        mouseRef.current.x = Math.sin(time * 0.7) * 0.5;
+        mouseRef.current.y = Math.cos(time * 0.5) * 0.3;
+      }
+    };
+
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('click', handleClick);
 
     // Animation loop
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate);
 
-      // Rotate orbiting particles
+      // Auto-move eye on mobile
+      if (isMobile) {
+        autoMoveEye();
+      }
+
+      // Rotate orbiting particles (slower on mobile)
       if (spinnerRingsRef.current.orbitGroup) {
-        spinnerRingsRef.current.orbitGroup.rotation.y += 0.02;
+        const rotationSpeed = isMobile ? 0.015 : 0.02;
+        spinnerRingsRef.current.orbitGroup.rotation.y += rotationSpeed;
         // Add some vertical bobbing to particles
         spinnerRingsRef.current.orbitParticles.forEach((particle, index) => {
           particle.position.y = Math.sin(Date.now() * 0.003 + index) * 0.3;
         });
       }
 
-      // Eye tracking mouse
+      // Eye tracking mouse/touch
       if (eyeRef.current && pupilRef.current) {
-        const maxMovement = 0.2;
+        const maxMovement = isMobile ? 0.15 : 0.2;
         pupilRef.current.position.x = mouseRef.current.x * maxMovement;
         pupilRef.current.position.y = mouseRef.current.y * maxMovement;
         
-        // Subtle head rotation
-        eyeRef.current.rotation.y = mouseRef.current.x * 0.1;
-        eyeRef.current.rotation.x = mouseRef.current.y * 0.1;
+        // Subtle head rotation (reduced on mobile)
+        const rotationAmount = isMobile ? 0.05 : 0.1;
+        eyeRef.current.rotation.y = mouseRef.current.x * rotationAmount;
+        eyeRef.current.rotation.x = mouseRef.current.y * rotationAmount;
       }
 
-      // Animate particles
+      // Animate particles (slower on mobile)
       if (particlesRef.current) {
-        particlesRef.current.rotation.y += 0.005;
-        particlesRef.current.rotation.x += 0.002;
+        const particleSpeed = isMobile ? 0.003 : 0.005;
+        particlesRef.current.rotation.y += particleSpeed;
+        particlesRef.current.rotation.x += particleSpeed * 0.4;
       }
 
       renderer.render(scene, camera);
@@ -194,6 +229,7 @@ const Loading = () => {
 
     // Handle resize
     const handleResize = () => {
+      if (!cameraRef.current || !rendererRef.current) return;
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -204,6 +240,7 @@ const Loading = () => {
     // Cleanup
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('click', handleClick);
       window.removeEventListener('resize', handleResize);
       
@@ -211,11 +248,29 @@ const Loading = () => {
         cancelAnimationFrame(animationIdRef.current);
       }
       
-      if (mountRef.current && renderer.domElement) {
+      if (mountRef.current && renderer.domElement && mountRef.current.contains(renderer.domElement)) {
         mountRef.current.removeChild(renderer.domElement);
       }
       
       renderer.dispose();
+      
+      // Dispose geometries and materials
+      scene.traverse((child) => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach(material => material.dispose());
+          } else {
+            child.material.dispose();
+          }
+        }
+      });
+    };
+    }, 100); // 100ms delay
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', checkMobile);
     };
   }, []);
 
@@ -226,11 +281,6 @@ const Loading = () => {
       spinnerRingsRef.current.orbitParticles.forEach(particle => {
         particle.material.color.setHex(currentColor);
       });
-
-      // Update iris color
-      if (eyeRef.current && eyeRef.current.children[2]) {
-        eyeRef.current.children[2].material.color.setHex(currentColor);
-      }
     }
   }, [currentPhase]);
 
@@ -254,7 +304,7 @@ const Loading = () => {
     <div className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Animated background particles */}
       <div className="absolute inset-0">
-        {[...Array(30)].map((_, i) => (
+        {[...Array(isMobile ? 15 : 30)].map((_, i) => (
           <div
             key={i}
             className="absolute w-1 h-1 bg-white rounded-full opacity-20 animate-pulse"
@@ -273,10 +323,10 @@ const Loading = () => {
 
       {/* UI Overlay */}
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <div className="text-center text-white z-10 mt-80">
+        <div className={`text-center text-white z-10 ${isMobile ? 'mt-64 px-4' : 'mt-80'}`}>
           {/* Status Message */}
           <div className="mb-6">
-            <p className="text-xl font-medium mb-2 transition-all duration-500">
+            <p className={`font-medium mb-2 transition-all duration-500 ${isMobile ? 'text-lg' : 'text-xl'}`}>
               {currentPhaseData.icon} {currentPhaseData.message}
             </p>
             <div className="flex justify-center space-x-1">
@@ -293,6 +343,12 @@ const Loading = () => {
             </div>
           </div>
 
+          {/* Mobile hint */}
+          {isMobile && (
+            <div className="text-sm text-gray-400 opacity-75 mt-8">
+              👆 Tap anywhere to interact
+            </div>
+          )}
 
 
 

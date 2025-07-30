@@ -1,3 +1,17 @@
+  static Future<bool> checkServerHealth() async {
+    final apiUrl = dotenv.get('API_URL');
+    try {
+      final response = await http.get(
+        Uri.parse('$apiUrl/api/health'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';

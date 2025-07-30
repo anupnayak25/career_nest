@@ -20,6 +20,7 @@ import Video from "./pages/Video"; // 👈 Fixed typo
 import Loading from "./components/Loading";
 
 import { useEffect, useState } from "react";
+import { checkServerHealth } from "./services/ApiService";
 import { DataProvider } from "./context/DataContext";
 import { ToastProvider } from "./ui/Toast";
 
@@ -28,24 +29,13 @@ function App() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const checkServerStatus = async () => {
-      try {
-        // Change the URL to your backend server's health endpoint
-        const res = await fetch("/" , {
-          method: "GET",
-        });
-        if (res.status === 200) {
-          setServerUp(true);
-        } else {
-          setServerUp(false);
-        }
-      } catch (e) {
-        setServerUp(false);
-      } finally {
-        setChecking(false);
-      }
+    const check = async () => {
+      const up = await checkServerHealth();
+      setServerUp(up);
+      setChecking(false);
     };
-    checkServerStatus();
+    check();
+    console.log("Checking server health...");
   }, []);
 
   if (checking || !serverUp) {

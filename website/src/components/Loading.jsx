@@ -16,7 +16,6 @@ const Loading = () => {
 //   const [progress, setProgress] = useState(0);
   const [currentPhase, setCurrentPhase] = useState(0);
 //   const [clickCount, setClickCount] = useState(0);
-//   const [progress, setProgress] = useState(0);
   const [showEasterEgg, setShowEasterEgg] = useState(false);
 
   const phases = [

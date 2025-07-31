@@ -7,12 +7,7 @@ import VideoPlayer from "./pages/VideoPlayer"; // ✅ Add this import
 
 import Signup from "./pages/Signup";
 import Signin from "./pages/Signin";
-import DashboardHome from "./pages/Home"; // ✅ New dashboard home
-import Quiz from "./pages/QuizPage";
-import Hr from "./pages/HrPage";
-import Programming from "./pages/ProgrammingPage";
-import Tehnical from "./pages/TehnicalPage";
-import EditQuiz from "./components/EditQuiz";
+import DashboardHome from "./pages/Home"; 
 import CreateQuestion from "./components/CreateQuestion";
 import ViewAttempted from "./pages/ViewAttempted";
 import Answers from "./components/Answers";
@@ -28,15 +23,15 @@ import { ToastProvider } from "./ui/Toast";
 function App() {
   const [serverUp, setServerUp] = useState(false);
   const [checking, setChecking] = useState(true);
-  // const [minimumLoadingTimePassed, setMinimumLoadingTimePassed] = useState(false);
+   const [minimumLoadingTimePassed, setMinimumLoadingTimePassed] = useState(false);
 
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     setMinimumLoadingTimePassed(true);
-  //   }, 15000); // 30 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinimumLoadingTimePassed(true);
+    }, 15000); // 15 seconds
 
-  //   return () => clearTimeout(timer);
-  // }, []);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     let intervalId;
@@ -64,8 +59,7 @@ function App() {
     };
   }, []);
 
-  if (checking || !serverUp) {
-    //|| !minimumLoadingTimePassed
+  if (checking || !serverUp || !minimumLoadingTimePassed) {
     return <Loading />;
   }
 

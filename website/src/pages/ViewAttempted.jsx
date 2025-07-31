@@ -46,7 +46,7 @@ function ViewAttempted() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-8 mt-8 animate-fade-in">
+    <div className="max-w-full mx-auto bg-white rounded-xl shadow-lg px-4 mt-8 animate-fade-in">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-blue-800 flex items-center gap-3 animate-slide-up">
           <span role="img" aria-label="students">👨‍🎓</span> 

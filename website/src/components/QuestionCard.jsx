@@ -38,99 +38,94 @@ const QuestionCard = ({ id, type, title, description, dueDate, totalMarks, publi
   };
 
   return (
-    <div className="group border border-gray-200 rounded-xl p-6 hover:shadow-xl hover:border-gray-300 transition-all duration-300 cursor-pointer bg-white relative overflow-hidden">
-      {/* Background gradient overlay on hover */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-50/0 to-purple-50/0 group-hover:from-blue-50/30 group-hover:to-purple-50/30 transition-all duration-300 pointer-events-none" />
-
-      <div className="relative flex justify-between items-start" onClick={handleView}>
-        <div className="flex-1 min-w-0 pr-4">
-          {/* Header with title and status */}
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-              <h3 className="text-xl font-bold text-gray-900 group-hover:text-gray-700 transition-colors mb-2 line-clamp-2">
-                {title}
-              </h3>
-              <div className="flex items-center space-x-2">
-                {published !== undefined && published && (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Published
-                  </span>
-                )}
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 capitalize">
-                  {type}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Description */}
-          <p className="text-gray-600 mb-4 line-clamp-2 leading-relaxed">{description}</p>
-
-          {/* Metadata with enhanced styling */}
-          <div className="flex items-center space-x-4 text-sm">
-            <div className="flex items-center text-gray-600 bg-gray-50 px-3 py-2 rounded-lg border">
-              <Calendar className="w-4 h-4 mr-2 text-blue-500" />
-              <span className="font-medium">Due:</span>
-              <span className="ml-1">{dueDate ? new Date(dueDate).toLocaleDateString() : "No deadline"}</span>
-            </div>
-            <div className="flex items-center text-gray-600 bg-gray-50 px-3 py-2 rounded-lg border">
-              <Award className="w-4 h-4 mr-2 text-amber-500" />
-              <span className="font-medium">Marks:</span>
-              <span className="ml-1 font-semibold text-gray-700">{totalMarks}</span>
-            </div>
+    <>
+      <div className="px-6 py-4 grid grid-cols-12 gap-4 items-center hover:bg-gray-50 transition-colors duration-200">
+        {/* Question Title - 4 columns */}
+        <div className="col-span-4">
+          <div className="cursor-pointer" onClick={handleView}>
+            <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors mb-1 line-clamp-1">
+              {title}
+            </h3>
+            <p className="text-sm text-gray-500 line-clamp-1">{description}</p>
           </div>
         </div>
 
-        {/* Action buttons with enhanced styling */}
-        <div className="flex  space-y-2 ml-4 shrink-0">
+        {/* Due Date - 2 columns */}
+        <div className="col-span-2">
+          <div className="flex items-center text-sm text-gray-600">
+            <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+            <span>{dueDate ? new Date(dueDate).toLocaleDateString() : "No deadline"}</span>
+          </div>
+        </div>
+
+        {/* Total Marks - 2 columns */}
+        <div className="col-span-2">
+          <div className="flex items-center text-sm text-gray-600">
+            <Award className="w-4 h-4 mr-2 text-amber-500" />
+            <span className="font-medium">{totalMarks} pts</span>
+          </div>
+        </div>
+
+        {/* Status - 2 columns */}
+        <div className="col-span-2">
+          <div className="flex items-center space-x-2">
+            {published ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                Published
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                <Clock className="w-3 h-3 mr-1" />
+                Draft
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Actions - 2 columns */}
+        <div className="col-span-2 flex justify-end space-x-1">
           <button
-            className="p-2.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 group/btn shadow-sm hover:shadow-md"
+            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
             onClick={(e) => {
               e.stopPropagation();
               handleView();
             }}
             title="View Responses">
-            <Eye className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+            <Eye className="w-4 h-4" />
           </button>
 
           <button
-            className="p-2.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 hover:scale-105 transition-all duration-200 group/btn shadow-sm hover:shadow-md"
+            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
             onClick={(e) => {
               e.stopPropagation();
               handleEdit();
             }}
-            title="Edit">
-            <Edit3 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+            title="Edit Question">
+            <Edit3 className="w-4 h-4" />
           </button>
 
           <button
-            className="p-2.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 hover:scale-105 transition-all duration-200 group/btn shadow-sm hover:shadow-md"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowConfirm(true);
-            }}
-            title="Delete">
-            <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-          </button>
-
-          <button
-            className={`p-2.5 rounded-lg transition-all duration-200 group/btn shadow-sm hover:shadow-md ${
-              published
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-green-100 text-green-700 hover:bg-green-200 hover:scale-105"
+            className={`p-2 rounded-lg transition-colors duration-200 ${
+              published ? "text-gray-300 cursor-not-allowed" : "text-gray-400 hover:text-green-600 hover:bg-green-50"
             }`}
             onClick={(e) => {
               e.stopPropagation();
               if (!published) handlePublish();
             }}
             disabled={published}
-            title={published ? "Already Published" : "Publish"}>
-            {published ? (
-              <CheckCircle className="w-4 h-4" />
-            ) : (
-              <Send className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-            )}
+            title={published ? "Already Published" : "Publish Question"}>
+            {published ? <CheckCircle className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+          </button>
+
+          <button
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowConfirm(true);
+            }}
+            title="Delete Question">
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -144,7 +139,17 @@ const QuestionCard = ({ id, type, title, description, dueDate, totalMarks, publi
           setShowConfirm(false);
         }}
       />
-    </div>
+
+      <style jsx>{`
+        .line-clamp-1 {
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
+    </>
   );
 };
+
 export default QuestionCard;

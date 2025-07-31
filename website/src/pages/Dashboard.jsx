@@ -141,7 +141,7 @@ function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 capitalize animate-slide-up">
-                {pageTitle || (activeTab === "dashboard" ? "Dashboard" : activeTab)}
+                { pageTitle || (activeTab === "dashboard" ? "Dashboard" : activeTab + " Questions")}
               </h2>
               {activeTab === "dashboard" && (
                 <p className="text-sm text-gray-600 animate-fade-in">
@@ -167,7 +167,7 @@ function Dashboard() {
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-8 animate-fade-in">
+        <main className="flex-1 p-1  animate-fade-in">
           <Outlet />
         </main>
       </div>

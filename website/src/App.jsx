@@ -7,7 +7,7 @@ import VideoPlayer from "./pages/VideoPlayer"; // ✅ Add this import
 
 import Signup from "./pages/Signup";
 import Signin from "./pages/Signin";
-import DashboardHome from "./pages/DashboardHome"; // ✅ New dashboard home
+import DashboardHome from "./pages/Home"; // ✅ New dashboard home
 import Quiz from "./pages/QuizPage";
 import Hr from "./pages/HrPage";
 import Programming from "./pages/ProgrammingPage";
@@ -18,6 +18,7 @@ import ViewAttempted from "./pages/ViewAttempted";
 import Answers from "./components/Answers";
 import Video from "./pages/Video"; // 👈 Fixed typo
 import Loading from "./components/Loading";
+import QuestionManagementPage from "./pages/QuestionManagementPage"; // Import the new component
 
 import { useEffect, useState } from "react";
 import { checkServerHealth } from "./services/ApiService";
@@ -27,7 +28,7 @@ import { ToastProvider } from "./ui/Toast";
 function App() {
   const [serverUp, setServerUp] = useState(false);
   const [checking, setChecking] = useState(true);
- // const [minimumLoadingTimePassed, setMinimumLoadingTimePassed] = useState(false);
+  // const [minimumLoadingTimePassed, setMinimumLoadingTimePassed] = useState(false);
 
   // useEffect(() => {
   //   const timer = setTimeout(() => {
@@ -63,7 +64,8 @@ function App() {
     };
   }, []);
 
-  if (checking || !serverUp ) { //|| !minimumLoadingTimePassed
+  if (checking || !serverUp) {
+    //|| !minimumLoadingTimePassed
     return <Loading />;
   }
 
@@ -74,15 +76,11 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<DashboardHome />} />
-            <Route path="quiz" element={<Quiz />} />
             {/* // <Route path="quiz/create" element={<CreateQuiz />} /> */}
-            <Route path="quiz/edit/:id" element={<EditQuiz />} />
-            <Route path="hr" element={<Hr />} />
-            <Route path="programming" element={<Programming />} />
-            <Route path="technical" element={<Tehnical />} />
             <Route path="video" element={<Video />} /> {/* ✅ Fixed typo */}
             <Route path="vedio" element={<Video />} /> {/* ✅ Backward compatibility */}
             <Route path="add-question/:type" element={<CreateQuestion />} />
+            <Route path=":type" element={<QuestionManagementPage />} /> {/* Dynamic route for question management */}
           </Route>
 
           {/* Answers and Attempts */}

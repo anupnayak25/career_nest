@@ -46,45 +46,49 @@ router.get("/user/:id", (req, res) => {
 
 router.post("/", (req, res) => {
   const { hrQuestion, hrQuestionItems } = req.body;
-  const { title, description, due_date, totalMarks } = hrQuestion;
+  const { title, description, publish_date, due_date, totalMarks } = hrQuestion;
 
   const queryInsertHR = `
-    INSERT INTO hr_questions (title, description, due_date, total_marks, user_id)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO hr_questions (title, description, publish_date, due_date, total_marks, user_id)
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
 
-  connection.query(queryInsertHR, [title, description, due_date, totalMarks, req.user.id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
+  connection.query(
+    queryInsertHR,
+    [title, description, publish_date, due_date, totalMarks, req.user.id],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
 
-    const hr_question_id = result.insertId;
+      const hr_question_id = result.insertId;
 
-    const queryInsertItem = `
+      const queryInsertItem = `
       INSERT INTO hr_question_items (hr_question_id, qno, question, marks)
       VALUES (?, ?, ?, ?)
     `;
 
-    // Convert each item insert into a Promise
-    const insertItemPromises = hrQuestionItems.map(({ qno, question, marks }) => {
-      return new Promise((resolve, reject) => {
-        connection.query(queryInsertItem, [hr_question_id, qno, question, marks], (err, result) => {
-          if (err) return reject(err);
-          resolve(result);
+      // Convert each item insert into a Promise
+      const insertItemPromises = hrQuestionItems.map(({ qno, question, marks }) => {
+        return new Promise((resolve, reject) => {
+          connection.query(queryInsertItem, [hr_question_id, qno, question, marks], (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+          });
         });
       });
-    });
 
-    // Wait for all inserts to finish
-    Promise.all(insertItemPromises)
-      .then(() => {
-        res.status(201).json({
-          message: "questions uploaded successfully",
-          id: hr_question_id,
+      // Wait for all inserts to finish
+      Promise.all(insertItemPromises)
+        .then(() => {
+          res.status(201).json({
+            message: "questions uploaded successfully",
+            id: hr_question_id,
+          });
+        })
+        .catch((error) => {
+          res.status(500).json({ error: error.message });
         });
-      })
-      .catch((error) => {
-        res.status(500).json({ error: error.message });
-      });
-  });
+    }
+  );
 });
 
 router.put("/:id", (req, res) => {
@@ -209,26 +213,21 @@ router.get("/answers/:id", (req, res) => {
   const id = req.params.id;
 
   // Step 1: Get unique user IDs who answered the question
-  connection.query(
-    "SELECT user_id FROM hr_answers WHERE hr_question_id = ? GROUP BY user_id",
-    [id],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
-      if (results.length === 0) return res.status(404).json({ message: "No answers yet" });
+  connection.query("SELECT user_id FROM hr_answers WHERE hr_question_id = ? GROUP BY user_id", [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).json({ message: "No answers yet" });
 
-      const userIds = results.map((row) => row.user_id);
+    const userIds = results.map((row) => row.user_id);
 
-      // Step 2: Fetch user details for those IDs
-      const query = `SELECT id, name, email_id FROM user WHERE id IN (?)`;
-      connection.query(query, [userIds], (err2, userDetails) => {
-        if (err2) return res.status(500).json({ error: err2.message });
+    // Step 2: Fetch user details for those IDs
+    const query = `SELECT id, name, email_id FROM user WHERE id IN (?)`;
+    connection.query(query, [userIds], (err2, userDetails) => {
+      if (err2) return res.status(500).json({ error: err2.message });
 
-        res.json({ users: userDetails });
-      });
-    }
-  );
+      res.json({ users: userDetails });
+    });
+  });
 });
-
 
 router.get("/answers/:id/:user_id", (req, res) => {
   const id = req.params.id;
@@ -249,7 +248,7 @@ router.put("/publish/:id", (req, res) => {
   const id = req.params.id;
   const { display_result } = req.body;
   const query = `UPDATE hr_questions SET display_result=? WHERE id=?`;
-  connection.query(query, [display_result,id], (err, result) => {
+  connection.query(query, [display_result, id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });
   });

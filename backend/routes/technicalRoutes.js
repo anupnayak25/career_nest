@@ -9,21 +9,33 @@ router.post("/", (req, res) => {
   const totalMarks = questions.reduce((sum, q) => sum + (parseInt(q.marks) || 0), 0);
   const insertSetQuery = `INSERT INTO technical_questions (title, description, publish_date, due_date, total_marks, user_id) VALUES (?, ?, ?, ?, ?, ?)`;
 
-  connection.query(insertSetQuery, [title, description, publish_date, due_date, totalMarks, user_id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    const technicalId = result.insertId;
+  connection.query(
+    insertSetQuery,
+    [title, description, publish_date, due_date, totalMarks, user_id],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      const technicalId = result.insertId;
+      // Insert related questions
+      const insertQuestionsQuery = `INSERT INTO technical_question_items (technical_id, qno, question, marks) VALUES ?`;
+      const values = questions.map((q) => [technicalId, q.qno, q.question, q.marks]);
 
-    // Insert related questions
-    const insertQuestionsQuery = `INSERT INTO technical_question_items (technical_id, qno, question, marks) VALUES ?`;
-    const values = questions.map((q) => [technicalId, q.qno, q.question, q.marks]);
-
-    connection.query(insertQuestionsQuery, [values], (err2) => {
-      if (err2) return res.status(500).json({ error: err2.message });
-      res
-        .status(201)
-        .json({ id: technicalId, title, description, publish_date, due_date, totalMarks, user_id, questions });
-    });
-  });
+      connection.query(insertQuestionsQuery, [values], (err2) => {
+        if (err2) return res.status(500).json({ error: err2.message });
+        res
+          .status(201)
+          .json({
+            id: technicalId,
+            title,
+            description,
+            publish_date,
+            due_date,
+            totalMarks,
+            user_id,
+            questions,
+          });
+      });
+    }
+  );
 });
 
 // Get all technical sets
@@ -143,7 +155,7 @@ router.get("/answers/:id", (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     if (results.length === 0) return res.status(404).json({ message: "No answers found" });
 
-    const userIdList = results.map(row => row.user_id);
+    const userIdList = results.map((row) => row.user_id);
 
     connection.query(user_query, [userIdList], (err2, userDetails) => {
       if (err2) return res.status(500).json({ error: err2.message });
@@ -151,7 +163,6 @@ router.get("/answers/:id", (req, res) => {
     });
   });
 });
-
 
 // Get all answers of a specific user for a technical set
 router.get("/answers/:id/:user_id", (req, res) => {
@@ -169,7 +180,7 @@ router.put("/publish/:id", (req, res) => {
   const id = req.params.id;
   const { display_result } = req.body;
   const query = `UPDATE technical_questions SET display_result=? WHERE id=?`;
-  connection.query(query, [display_result,id], (err, result) => {
+  connection.query(query, [display_result, id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });
   });

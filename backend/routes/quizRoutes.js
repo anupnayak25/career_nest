@@ -43,15 +43,15 @@ router.get("/student/:id", (req, res) => {
 
 // Create a new quiz
 router.post("/", [body("title", "Must have a title").notEmpty()], (req, res) => {
-  const { title, description, due_date, quizQuestions } = req.body;
+  const { title, description, publish_date, due_date, quizQuestions } = req.body;
   console.log("Received Data:", req.body);
   console.log("User:", req.user); // Ensure user is not undefined
 
   // First, insert the quiz
-  const query = `INSERT INTO quizzes (title, description, due_date, user_id)
-                 VALUES (?, ?, ?, ?)`;
+  const query = `INSERT INTO quizzes (title, description, publish_date, due_date, user_id)
+                 VALUES (?, ?, ?, ?, ?)`;
 
-  connection.query(query, [title, description, due_date, req.user.id], (err, result) => {
+  connection.query(query, [title, description, publish_date, due_date, req.user.id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
 
     const quiz_id = result.insertId;
@@ -267,7 +267,7 @@ router.get("/answers/:quiz_id", (req, res) => {
       return res.status(404).json({ message: "No answers found" });
     }
 
-    const userIds = results.map(row => row.user_id);
+    const userIds = results.map((row) => row.user_id);
 
     connection.query(user_query, [userIds], (err2, userDetails) => {
       if (err2) return res.status(500).json({ error: err2.message });
@@ -275,7 +275,6 @@ router.get("/answers/:quiz_id", (req, res) => {
     });
   });
 });
-
 
 // Get a specific user's answers for a quiz
 router.get("/answers/:quiz_id/:user_id", (req, res) => {

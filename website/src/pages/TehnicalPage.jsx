@@ -4,15 +4,11 @@ import { Cog, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import QuestionCard from "../components/QuestionCard";
 import Alert from "../ui/AlertDailog";
-import { publishResult, deleteQuestion, getUserQuestions } from "../services/ApiService";
+import { getUserQuestions } from "../services/ApiService";
 
 function Technical() {
   const navigate = useNavigate();
   const [sets, setSets] = useState([]);
-  const [error, setError] = useState(null);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [selectedSet, setSelectedSet] = useState(null);
-  const token = sessionStorage.getItem("auth_token");
   const [show, setShow] = useState();
 
   useEffect(() => {
@@ -27,25 +23,6 @@ function Technical() {
   useEffect(() => {
     setShow(sets.length === 0);
   }, [sets]);
-
-  const handleDelete = async () => {
-    try {
-      await deleteQuestion("technical", selectedSet.id);
-      setSets((prev) => prev.filter((q) => q.id !== selectedSet.id));
-      setShowConfirm(false);
-    } catch {
-      console.error("Delete failed");
-    }
-  };
-
-  const handlePublish = async (set) => {
-    try {
-      await publishResult("technical", set.id, true);
-      setSets((prev) => prev.map((q) => (q.id === set.id ? { ...q, display_result: 1 } : q)));
-    } catch {
-      console.error("Failed to publish");
-    }
-  };
 
   return (
     <div className="p-6 animate-fade-in">
@@ -65,9 +42,10 @@ function Technical() {
           Add Question
         </button>
       </div>
-      {error ? (
+      {/* {error ? (
         <p className="text-red-500 text-center mt-8 animate-fade-in">{error}</p>
-      ) : sets.length === 0 ? (
+      ) :  */}
+      {sets.length === 0 ? (
         <p className="text-gray-500 text-center mt-8 animate-fade-in">No technical sets found.</p>
       ) : (
         <div className="space-y-4 animate-fade-in">
@@ -84,27 +62,12 @@ function Technical() {
                 totalMarks={set.totalMarks}
                 published={!!set.display_result}
                 type="technical"
-                onEdit={() => navigate(`/dashboard/technical/edit/${set.id}`)}
-                onView={() => navigate(`/answers/technical/${set.id}`)}
-                onPublish={() => handlePublish(set)}
-                onDelete={() => {
-                  setSelectedSet(set);
-                  setShowConfirm(true);
-                }}
+                onDeleteSuccess={loadQuestions} // Refresh the list after delete
               />
             </div>
           ))}
         </div>
       )}
-      <Alert
-        isVisible={showConfirm}
-        text="Are you sure you want to delete this question?"
-        type="warning"
-        onResult={(result) => {
-          if (result) handleDelete();
-          else setShowConfirm(false);
-        }}
-      />
     </div>
   );
 }

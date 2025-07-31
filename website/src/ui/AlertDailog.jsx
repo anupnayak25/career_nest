@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { AlertTriangle, CheckCircle, X } from "lucide-react";
 
 const Alert = ({ text, onResult, isVisible = false, type = "warning" }) => {
@@ -23,19 +24,9 @@ const Alert = ({ text, onResult, isVisible = false, type = "warning" }) => {
     }
   };
 
-  //   const getAccentColor = () => {
-  //     switch (type) {
-  //       case 'success':
-  //         return 'border-green-200 bg-green-50';
-  //       case 'error':
-  //         return 'border-red-200 bg-red-50';
-  //       default:
-  //         return 'border-amber-200 bg-amber-50';
-  //     }
-  //   };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+  // Create portal to render at document body level
+  const alertDialog = (
+    <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-fadeIn">
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-500 scale-100 animate-slideUp border border-gray-100 overflow-hidden">
         {/* Animated gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 opacity-60"></div>
@@ -114,6 +105,38 @@ const Alert = ({ text, onResult, isVisible = false, type = "warning" }) => {
       </div>
     </div>
   );
+
+  // Render the dialog at the document body level to escape stacking context issues
+  return createPortal(alertDialog, document.body);
 };
+
+// Add these CSS animations to your global styles or use Tailwind's arbitrary values
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .animate-slideUp {
+    animation: slideUp 0.4s ease-out;
+  }
+`;
+document.head.appendChild(style);
 
 export default Alert;

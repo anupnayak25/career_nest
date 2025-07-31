@@ -46,62 +46,66 @@ router.get("/user/:id", (req, res) => {
 });
 
 router.post("/", (req, res) => {
-  const { title, description, upload_date, due_date, totalMarks, user_id, programQuestions } = req.body;
+  const { title, description, publish_date, due_date, totalMarks, user_id, programQuestions } = req.body;
 
   // Insert the program set first
   const query = `INSERT INTO program_sets (title, description, publish_date, due_date, total_marks, user_id)
                  VALUES (?, ?, ?, ?, ?, ?)`;
 
-  connection.query(query, [title, description, upload_date, due_date, totalMarks, user_id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
+  connection.query(
+    query,
+    [title, description, publish_date, due_date, totalMarks, user_id],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
 
-    const program_set_id = result.insertId;
+      const program_set_id = result.insertId;
 
-    // If there are no program questions to insert, return early
-    if (!programQuestions || !programQuestions.length) {
-      return res.status(201).json({
-        message: "Program set created successfully with no questions",
-        id: program_set_id,
-        ...req.body,
-      });
-    }
+      // If there are no program questions to insert, return early
+      if (!programQuestions || !programQuestions.length) {
+        return res.status(201).json({
+          message: "Program set created successfully with no questions",
+          id: program_set_id,
+          ...req.body,
+        });
+      }
 
-    // Insert program questions
-    const queryInsertQuestion = `
+      // Insert program questions
+      const queryInsertQuestion = `
       INSERT INTO program_questions (program_set_id, qno, question, program_snippet, marks)
       VALUES (?, ?, ?, ?, ?)
     `;
 
-    // Convert each question insert into a Promise
-    const insertQuestionPromises = programQuestions.map(({ qno, question, program_snippet, marks }) => {
-      return new Promise((resolve, reject) => {
-        connection.query(
-          queryInsertQuestion,
-          [program_set_id, qno, question, program_snippet, marks],
-          (err, result) => {
-            if (err) return reject(err);
-            resolve(result);
-          }
-        );
+      // Convert each question insert into a Promise
+      const insertQuestionPromises = programQuestions.map(({ qno, question, program_snippet, marks }) => {
+        return new Promise((resolve, reject) => {
+          connection.query(
+            queryInsertQuestion,
+            [program_set_id, qno, question, program_snippet, marks],
+            (err, result) => {
+              if (err) return reject(err);
+              resolve(result);
+            }
+          );
+        });
       });
-    });
 
-    // Wait for all inserts to finish
-    Promise.all(insertQuestionPromises)
-      .then(() => {
-        res.status(201).json({
-          message: "Program set and questions created successfully",
-          id: program_set_id,
-          ...req.body,
+      // Wait for all inserts to finish
+      Promise.all(insertQuestionPromises)
+        .then(() => {
+          res.status(201).json({
+            message: "Program set and questions created successfully",
+            id: program_set_id,
+            ...req.body,
+          });
+        })
+        .catch((error) => {
+          res.status(500).json({
+            error: error.message,
+            message: "Failed to create program questions",
+          });
         });
-      })
-      .catch((error) => {
-        res.status(500).json({
-          error: error.message,
-          message: "Failed to create program questions",
-        });
-      });
-  });
+    }
+  );
 });
 
 router.put("/:id", (req, res) => {
@@ -165,7 +169,7 @@ router.get("/answers/:id", (req, res) => {
       return res.status(404).json({ message: "No answers yet" });
     }
 
-    const userIds = results.map(row => row.user_id);
+    const userIds = results.map((row) => row.user_id);
 
     connection.query(user_query, [userIds], (err2, userDetails) => {
       if (err2) return res.status(500).json({ error: err2.message });
@@ -173,7 +177,6 @@ router.get("/answers/:id", (req, res) => {
     });
   });
 });
-
 
 // GET /answers/:id/:user_id: Get specific user's answers
 router.get("/answers/:id/:user_id", (req, res) => {
@@ -196,7 +199,7 @@ router.put("/publish/:id", (req, res) => {
   const id = req.params.id;
   const { display_result } = req.body;
   const query = `UPDATE program_sets SET display_result=? WHERE id=?`;
-  connection.query(query, [display_result,id], (err, result) => {
+  connection.query(query, [display_result, id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });
   });
@@ -250,6 +253,5 @@ router.put("/answers/:program_set_id/:user_id/marks", (req, res) => {
       res.status(500).json({ error: error.message });
     });
 });
-
 
 module.exports = router;

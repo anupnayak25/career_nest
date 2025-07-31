@@ -1,33 +1,48 @@
-import React from "react";
+import React, { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Edit3, Trash2, Send, CheckCircle, Calendar, Award, Eye, Clock } from "lucide-react";
+import { deleteQuestion, publishResult } from "../services/ApiService";
+import Alert from "../ui/AlertDailog";
 
-const QuestionCard = ({
-  id,
-  type,
-  title,
-  description,
-  dueDate,
-  totalMarks,
-  published,
-  onEdit,
-  onDelete,
-  onPublish,
-  disablePublish,
-}) => {
+const QuestionCard = ({ id, type, title, description, dueDate, totalMarks, published, onDeleteSuccess }) => {
   const navigate = useNavigate();
-  const openAnsweredList = () => {
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleEdit = () => {
+    navigate(`/dashboard/${type}/edit/${id}`);
+  };
+
+  const handleView = () => {
     navigate(`/answers/${type}/${id}`);
   };
 
+  const handlePublish = async () => {
+    try {
+      await publishResult(type, id, true);
+      console.log("Published successfully");
+    } catch (error) {
+      console.error("Failed to publish", error.message);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteQuestion(type, id);
+      console.log("Deleted successfully");
+      if (onDeleteSuccess) {
+        onDeleteSuccess();
+      }
+    } catch (error) {
+      console.error("Failed to delete", error.message);
+    }
+  };
+
   return (
-    <div
-      className="group border border-gray-200 rounded-xl p-6 hover:shadow-xl hover:border-gray-300 transition-all duration-300 cursor-pointer bg-white relative overflow-hidden"
-      onClick={openAnsweredList}>
+    <div className="group border border-gray-200 rounded-xl p-6 hover:shadow-xl hover:border-gray-300 transition-all duration-300 cursor-pointer bg-white relative overflow-hidden">
       {/* Background gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-50/0 to-purple-50/0 group-hover:from-blue-50/30 group-hover:to-purple-50/30 transition-all duration-300 pointer-events-none" />
 
-      <div className="relative flex justify-between items-start">
+      <div className="relative flex justify-between items-start" onClick={handleView}>
         <div className="flex-1 min-w-0 pr-4">
           {/* Header with title and status */}
           <div className="flex items-start justify-between mb-3">
@@ -73,58 +88,62 @@ const QuestionCard = ({
             className="p-2.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 group/btn shadow-sm hover:shadow-md"
             onClick={(e) => {
               e.stopPropagation();
-              openAnsweredList();
+              handleView();
             }}
             title="View Responses">
             <Eye className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
           </button>
 
-          {onEdit && (
-            <button
-              className="p-2.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 hover:scale-105 transition-all duration-200 group/btn shadow-sm hover:shadow-md"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit();
-              }}
-              title="Edit">
-              <Edit3 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-            </button>
-          )}
+          <button
+            className="p-2.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 hover:scale-105 transition-all duration-200 group/btn shadow-sm hover:shadow-md"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEdit();
+            }}
+            title="Edit">
+            <Edit3 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+          </button>
 
-          {onDelete && (
-            <button
-              className="p-2.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 hover:scale-105 transition-all duration-200 group/btn shadow-sm hover:shadow-md"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-              title="Delete">
-              <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-            </button>
-          )}
+          <button
+            className="p-2.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 hover:scale-105 transition-all duration-200 group/btn shadow-sm hover:shadow-md"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowConfirm(true);
+            }}
+            title="Delete">
+            <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+          </button>
 
-          {onPublish && (
-            <button
-              className={`p-2.5 rounded-lg transition-all duration-200 group/btn shadow-sm hover:shadow-md ${
-                published
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-green-100 text-green-700 hover:bg-green-200 hover:scale-105"
-              }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!published) onPublish();
-              }}
-              disabled={published || disablePublish}
-              title={published ? "Already Published" : "Publish"}>
-              {published ? (
-                <CheckCircle className="w-4 h-4" />
-              ) : (
-                <Send className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-              )}
-            </button>
-          )}
+          <button
+            className={`p-2.5 rounded-lg transition-all duration-200 group/btn shadow-sm hover:shadow-md ${
+              published
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-green-100 text-green-700 hover:bg-green-200 hover:scale-105"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!published) handlePublish();
+            }}
+            disabled={published}
+            title={published ? "Already Published" : "Publish"}>
+            {published ? (
+              <CheckCircle className="w-4 h-4" />
+            ) : (
+              <Send className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+            )}
+          </button>
         </div>
       </div>
+
+      <Alert
+        isVisible={showConfirm}
+        text="Are you sure you want to delete this question?"
+        type="warning"
+        onResult={(result) => {
+          if (result) handleDelete();
+          setShowConfirm(false);
+        }}
+      />
     </div>
   );
 };

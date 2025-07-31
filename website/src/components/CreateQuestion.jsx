@@ -13,7 +13,8 @@ function CreateQuestion() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    due_date: "",
+    publish_date_time: "", // New field for publish date & time
+    due_date_time: "", // New field for due date & time
     total_marks: "",
     questionItems: [
       type === "programming"
@@ -38,7 +39,8 @@ function CreateQuestion() {
     setFormData({
       title: "",
       description: "",
-      due_date: "",
+      publish_date_time: "", // New field for publish date & time
+      due_date_time: "", // New field for due date & time
       total_marks: "",
       questionItems: [
         type === "programming"
@@ -54,12 +56,14 @@ function CreateQuestion() {
     e.preventDefault();
     setLoading(true);
     let payload;
+    // Added publish_date_time to the payload for all question types and updated due_date to use due_date_time
     if (type === "hr") {
       payload = {
         hrQuestion: {
           title: formData.title,
           description: formData.description,
-          due_date: formData.due_date,
+          due_date: formData.due_date_time, // Updated to use due_date_time
+          publish_date: formData.publish_date_time, // Added publish_date_time
           totalMarks: parseInt(formData.total_marks),
         },
         hrQuestionItems: formData.questionItems.map((item, index) => ({
@@ -73,7 +77,8 @@ function CreateQuestion() {
         title: formData.title,
         description: formData.description,
         upload_date: new Date().toISOString().slice(0, 10),
-        due_date: formData.due_date,
+        due_date: formData.due_date_time, // Updated to use due_date_time
+        publish_date: formData.publish_date_time, // Added publish_date_time
         totalMarks: parseInt(formData.total_marks),
         user_id: sessionStorage.getItem("userId"),
         programQuestions: formData.questionItems.map((item, index) => ({
@@ -87,7 +92,8 @@ function CreateQuestion() {
       payload = {
         title: formData.title,
         description: formData.description,
-        due_date: formData.due_date,
+        due_date: formData.due_date_time, // Updated to use due_date_time
+        publish_date: formData.publish_date_time, // Added publish_date_time
         quizQuestions: formData.questionItems.map((item, index) => ({
           qno: index + 1,
           question: item.question,
@@ -101,7 +107,8 @@ function CreateQuestion() {
         title: formData.title,
         description: formData.description,
         upload_date: new Date().toISOString().slice(0, 10),
-        due_date: formData.due_date,
+        due_date: formData.due_date_time, // Updated to use due_date_time
+        publish_date: formData.publish_date_time, // Added publish_date_time
         totalMarks: parseInt(formData.total_marks),
         user_id: sessionStorage.getItem("userId"),
         questions: formData.questionItems.map((item, index) => ({
@@ -111,6 +118,17 @@ function CreateQuestion() {
         })),
       };
     }
+
+    // Log the payload before sending to debug the issue
+    console.log("Payload:", payload);
+
+    // Ensure publish_date_time is included in the payload and properly set
+    if (!formData.publish_date_time) {
+      showToast("Publish Date & Time is required!", "error");
+      setLoading(false);
+      return;
+    }
+
     try {
       await uploadQuestions(type, payload);
       showToast("Question created successfully!", "success");
@@ -285,12 +303,12 @@ function CreateQuestion() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block font-medium">Due Date</label>
+            <label className="block font-medium">Publish Date & Time</label>
             <input
-              type="date"
+              type="datetime-local"
               className="w-full px-3 py-2 border rounded-lg"
-              value={formData.due_date}
-              onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+              value={formData.publish_date_time}
+              onChange={(e) => setFormData({ ...formData, publish_date_time: e.target.value })}
               required
             />
           </div>
@@ -301,6 +319,19 @@ function CreateQuestion() {
               className="w-full px-3 py-2 border rounded-lg"
               value={formData.total_marks}
               onChange={(e) => setFormData({ ...formData, total_marks: e.target.value })}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block font-medium">Due Date & Time</label>
+            <input
+              type="datetime-local"
+              className="w-full px-3 py-2 border rounded-lg"
+              value={formData.due_date_time}
+              onChange={(e) => setFormData({ ...formData, due_date_time: e.target.value })}
               required
             />
           </div>

@@ -1,18 +1,13 @@
 import { BookOpen, Plus } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "../ui/Toast";
 import Alert from "../ui/AlertDailog";
 import QuestionCard from "../components/QuestionCard";
-import { getUserQuestions, publishResult } from "../services/ApiService";
+import { getUserQuestions } from "../services/ApiService";
 
 function Quiz() {
   const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState([]);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [selectedQuiz, setSelectedQuiz] = useState(null);
-  const token = sessionStorage.getItem("auth_token");
-  const { showToast } = useToast();
   const [show, setShow] = useState();
 
   useEffect(() => {
@@ -26,32 +21,6 @@ function Quiz() {
   const loadQuestions = async () => {
     const data = await getUserQuestions("quiz");
     setQuizzes(data);
-  };
-
-  const handleDelete = async () => {
-    try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/quiz/${selectedQuiz.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setQuizzes((prev) => prev.filter((q) => q.id !== selectedQuiz.id));
-      setShowConfirm(false);
-      showToast("Quiz deleted successfully!", "success");
-    } catch (err) {
-      console.error("Delete failed", err);
-      showToast("Failed to delete quiz.", "error");
-    }
-  };
-
-  const handlePublish = async (quiz) => {
-    try {
-      await publishResult("quiz", quiz.id, true);
-      setQuizzes((prev) => prev.map((q) => (q.id === quiz.id ? { ...q, display_result: 1 } : q)));
-      showToast("Quiz published!", "success");
-    } catch (err) {
-      showToast("Failed to publish quiz.", "error");
-      console.error("Publish failed", err);
-    }
   };
 
   return (
@@ -88,27 +57,12 @@ function Quiz() {
                 totalMarks={q.total_marks}
                 published={!!q.display_result}
                 type="quiz"
-                onEdit={() => navigate(`/dashboard/quiz/edit/${q.id}`)}
-                onView={() => navigate(`/answers/quiz/${q.id}`)}
-                onPublish={() => handlePublish(q)}
-                onDelete={() => {
-                  setSelectedQuiz(q);
-                  setShowConfirm(true);
-                }}
+                onDeleteSuccess={loadQuestions} // Refresh the list after delete
               />
             </div>
           ))}
         </div>
       ) : null}
-      <Alert
-        isVisible={showConfirm}
-        text="Are you sure you want to delete this quiz?"
-        type="warning"
-        onResult={(result) => {
-          if (result) handleDelete();
-          else setShowConfirm(false);
-        }}
-      />
     </div>
   );
 }

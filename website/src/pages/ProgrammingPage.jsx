@@ -3,13 +3,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import QuestionCard from "../components/QuestionCard";
 import Alert from "../ui/AlertDailog";
-import { publishResult, deleteQuestion, getUserQuestions } from "../services/ApiService";
+import { getUserQuestions } from "../services/ApiService";
 
 function Programming() {
   const navigate = useNavigate();
   const [sets, setSets] = useState([]);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [selectedSet, setSelectedSet] = useState(null);
   const [show, setShow] = useState();
 
   useEffect(() => {
@@ -23,25 +21,6 @@ function Programming() {
   const loadQuestions = async () => {
     const data = await getUserQuestions("programming");
     setSets(data);
-  };
-
-  const handleDelete = async () => {
-    try {
-      await deleteQuestion("programming", selectedSet.id);
-      setSets((prev) => prev.filter((q) => q.id !== selectedSet.id));
-      setShowConfirm(false);
-    } catch {
-      // Handle error
-    }
-  };
-
-  const handlePublish = async (set) => {
-    try {
-      await publishResult("programming", set.id, true);
-      setSets((prev) => prev.map((q) => (q.id === set.id ? { ...q, display_result: 1 } : q)));
-    } catch {
-      // Handle error
-    }
   };
 
   return (
@@ -79,27 +58,12 @@ function Programming() {
                 totalMarks={set.totalMarks}
                 published={!!set.display_result}
                 type="programming"
-                onEdit={() => navigate(`/dashboard/programming/edit/${set.id}`)}
-                onView={() => navigate(`/answers/programming/${set.id}`)}
-                onPublish={() => handlePublish(set)}
-                onDelete={() => {
-                  setSelectedSet(set);
-                  setShowConfirm(true);
-                }}
+                onDeleteSuccess={loadQuestions} // Refresh the list after delete
               />
             </div>
           ))}
         </div>
       )}
-      <Alert
-        isVisible={showConfirm}
-        text="Are you sure you want to delete this question?"
-        type="warning"
-        onResult={(result) => {
-          if (result) handleDelete();
-          else setShowConfirm(false);
-        }}
-      />
     </div>
   );
 }

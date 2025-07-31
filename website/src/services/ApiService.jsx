@@ -75,37 +75,36 @@ export const publishResult = async (type, id, display_result) => {
 };
 
 export const getSubmittedUsers = async (type, id) => {
-  try{
-  refresh();
-  const res = await fetch(buildUrl(type, `/answers/${id}`), {
-    headers: getHeaders(false),
-  });
-   if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status} ${res.message}`);
+  try {
+    refresh();
+    const res = await fetch(buildUrl(type, `/answers/${id}`), {
+      headers: getHeaders(false),
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status} ${res.error}`);
     }
 
     const data = await res.json();
-    
+
     // Handle "No answers yet" as a valid response, not an error
     if (data && data.message === "No answers yet") {
       return { message: "No answers yet" };
     }
-    
+
     // Return the data as is (could be array or object with users array)
     return data;
-    
   } catch (error) {
-    console.error('Error fetching submitted users:', error);
-    
+    console.error("Error fetching submitted users:", error);
+
     // Don't throw for "No answers yet" - return it as valid data
     if (error.message && error.message.includes("No answers yet")) {
       return { message: "No answers yet" };
     }
-    
+
     // Only throw for actual errors
     throw error;
   }
-}
+};
 
 export const getUserAnswers = async (type, questionId) => {
   refresh();
@@ -135,8 +134,25 @@ export const deleteQuestion = async (type, questionId) => {
     method: "DELETE",
     headers: getHeaders(false),
   });
-  if (!res.ok) throw new Error(await res.text());
-  return await res.json();
+
+  let responseText;
+  try {
+    responseText = await res.text();
+  } catch (err) {
+    console.error("Failed to read response text:", err.message);
+    throw new Error("Failed to read response from server.");
+  }
+
+  if (!res.ok) {
+    console.error("DELETE RESPONSE NOT OK:", res.status, responseText);
+    throw new Error(responseText);
+  }
+
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    return responseText;
+  }
 };
 
 // --- Video APIs ---

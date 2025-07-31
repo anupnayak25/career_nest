@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Plus, FileText } from "lucide-react";
-import { getUserQuestions, publishResult, deleteQuestion } from "../services/ApiService";
+import { getUserQuestions } from "../services/ApiService";
 import { useNavigate } from "react-router-dom";
 import QuestionCard from "../components/QuestionCard";
-import Alert from "../ui/AlertDailog";
 
 const HRQuestionsManager = () => {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [show, setShow] = useState();
   const navigate = useNavigate();
 
@@ -30,25 +27,6 @@ const HRQuestionsManager = () => {
       console.error("Error loading questions:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      await deleteQuestion("hr", selectedQuestion.id);
-      setQuestions((prev) => prev.filter((q) => q.id !== selectedQuestion.id));
-      setShowConfirm(false);
-    } catch {
-      console.error("Delete failed");
-    }
-  };
-
-  const handlePublish = async (question) => {
-    try {
-      await publishResult("hr", question.id, true);
-      setQuestions((prev) => prev.map((q) => (q.id === question.id ? { ...q, display_result: 1 } : q)));
-    } catch {
-      console.error("Failed to publish");
     }
   };
 
@@ -102,28 +80,13 @@ const HRQuestionsManager = () => {
                   totalMarks={question.totalMarks}
                   published={!!question.display_result}
                   type="hr"
-                  onEdit={() => navigate(`/dashboard/hr/edit/${question.id}`)}
-                  onView={() => navigate(`/answers/hr/${question.id}`)}
-                  onPublish={() => handlePublish(question)}
-                  onDelete={() => {
-                    setSelectedQuestion(question);
-                    setShowConfirm(true);
-                  }}
+                  onDeleteSuccess={loadQuestions} // Refresh the list after delete
                 />
               </div>
             ))
           )}
         </div>
       </div>
-      <Alert
-        isVisible={showConfirm}
-        text="Are you sure you want to delete this question?"
-        type="warning"
-        onResult={(result) => {
-          if (result) handleDelete();
-          else setShowConfirm(false);
-        }}
-      />
     </div>
   );
 };

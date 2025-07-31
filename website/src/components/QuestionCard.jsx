@@ -84,30 +84,34 @@ const QuestionCard = ({ id, type, title, description, dueDate, totalMarks, publi
         </div>
 
         {/* Actions - 2 columns */}
-        <div className="col-span-2 flex justify-end space-x-1">
+        <div className="col-span-2 flex justify-end space-x-2">
           <button
-            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+            className="group relative p-2.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
             onClick={(e) => {
               e.stopPropagation();
               handleView();
             }}
             title="View Responses">
-            <Eye className="w-4 h-4" />
+            <Eye className="w-4 h-4 transition-transform group-hover:scale-110" />
+            <div className="absolute inset-0 bg-blue-100 rounded-lg opacity-0 group-hover:opacity-30 transition-opacity duration-200"></div>
           </button>
 
           <button
-            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+            className="group relative p-2.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
             onClick={(e) => {
               e.stopPropagation();
               handleEdit();
             }}
             title="Edit Question">
-            <Edit3 className="w-4 h-4" />
+            <Edit3 className="w-4 h-4 transition-transform group-hover:scale-110" />
+            <div className="absolute inset-0 bg-indigo-100 rounded-lg opacity-0 group-hover:opacity-30 transition-opacity duration-200"></div>
           </button>
 
           <button
-            className={`p-2 rounded-lg transition-colors duration-200 ${
-              published ? "text-gray-300 cursor-not-allowed" : "text-gray-400 hover:text-green-600 hover:bg-green-50"
+            className={`group relative p-2.5 rounded-lg transition-all duration-200 shadow-sm ${
+              published
+                ? "text-green-600 bg-green-50 cursor-default"
+                : "text-gray-500 hover:text-green-600 hover:bg-green-50 hover:scale-105 active:scale-95 hover:shadow-md"
             }`}
             onClick={(e) => {
               e.stopPropagation();
@@ -115,17 +119,25 @@ const QuestionCard = ({ id, type, title, description, dueDate, totalMarks, publi
             }}
             disabled={published}
             title={published ? "Already Published" : "Publish Question"}>
-            {published ? <CheckCircle className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+            {published ? (
+              <CheckCircle className="w-4 h-4 text-green-600" />
+            ) : (
+              <>
+                <Send className="w-4 h-4 transition-transform group-hover:scale-110" />
+                <div className="absolute inset-0 bg-green-100 rounded-lg opacity-0 group-hover:opacity-30 transition-opacity duration-200"></div>
+              </>
+            )}
           </button>
 
           <button
-            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+            className="group relative p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
             onClick={(e) => {
               e.stopPropagation();
               setShowConfirm(true);
             }}
             title="Delete Question">
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4 transition-transform group-hover:scale-110" />
+            <div className="absolute inset-0 bg-red-100 rounded-lg opacity-0 group-hover:opacity-30 transition-opacity duration-200"></div>
           </button>
         </div>
       </div>

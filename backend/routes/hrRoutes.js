@@ -207,12 +207,28 @@ router.post("/answers", (req, res) => {
 // routes/hr.js
 router.get("/answers/:id", (req, res) => {
   const id = req.params.id;
-  connection.query("SELECT user_id FROM hr_answers WHERE hr_question_id = ? GROUP BY user_id", [id], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (results.length === 0) return res.status(404).json({ message: "No answers yet" });
-    res.json(results);
-  });
+
+  // Step 1: Get unique user IDs who answered the question
+  connection.query(
+    "SELECT user_id FROM hr_answers WHERE hr_question_id = ? GROUP BY user_id",
+    [id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0) return res.status(404).json({ message: "No answers yet" });
+
+      const userIds = results.map((row) => row.user_id);
+
+      // Step 2: Fetch user details for those IDs
+      const query = `SELECT id, name, email_id FROM user WHERE id IN (?)`;
+      connection.query(query, [userIds], (err2, userDetails) => {
+        if (err2) return res.status(500).json({ error: err2.message });
+
+        res.json({ users: userDetails });
+      });
+    }
+  );
 });
+
 
 router.get("/answers/:id/:user_id", (req, res) => {
   const id = req.params.id;
@@ -233,7 +249,7 @@ router.put("/publish/:id", (req, res) => {
   const id = req.params.id;
   const { display_result } = req.body;
   const query = `UPDATE hr_questions SET display_result=? WHERE id=?`;
-  connection.query(query, [display_result], (err, result) => {
+  connection.query(query, [display_result,id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });
   });

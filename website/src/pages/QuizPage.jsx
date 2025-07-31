@@ -50,6 +50,7 @@ function Quiz() {
       showToast("Quiz published!", "success");
     } catch (err) {
       showToast("Failed to publish quiz.", "error");
+      console.error("Publish failed", err);
     }
   };
 

@@ -258,12 +258,24 @@ router.post("/answers", (req, res) => {
 router.get("/answers/:quiz_id", (req, res) => {
   const quiz_id = req.params.quiz_id;
   const query = `SELECT DISTINCT user_id FROM quiz_answers WHERE quiz_id = ?`;
+  const user_query = `SELECT id, name, email_id FROM user WHERE id IN (?)`;
 
   connection.query(query, [quiz_id], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "No answers found" });
+    }
+
+    const userIds = results.map(row => row.user_id);
+
+    connection.query(user_query, [userIds], (err2, userDetails) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      res.json({ users: userDetails });
+    });
   });
 });
+
 
 // Get a specific user's answers for a quiz
 router.get("/answers/:quiz_id/:user_id", (req, res) => {
@@ -280,7 +292,7 @@ router.put("/publish/:id", (req, res) => {
   const id = req.params.id;
   const { display_result } = req.body;
   const query = `UPDATE quizzes SET display_result=? WHERE id=?`;
-  connection.query(query, [display_result], (err, result) => {
+  connection.query(query, [display_result, id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });
   });

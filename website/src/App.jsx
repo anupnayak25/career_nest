@@ -27,18 +27,43 @@ import { ToastProvider } from "./ui/Toast";
 function App() {
   const [serverUp, setServerUp] = useState(false);
   const [checking, setChecking] = useState(true);
+ // const [minimumLoadingTimePassed, setMinimumLoadingTimePassed] = useState(false);
+
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     setMinimumLoadingTimePassed(true);
+  //   }, 15000); // 30 seconds
+
+  //   return () => clearTimeout(timer);
+  // }, []);
 
   useEffect(() => {
+    let intervalId;
     const check = async () => {
+      console.log("[App] Checking server health...");
       const up = await checkServerHealth();
+      console.log(`[App] Server health check result: ${up}`);
       setServerUp(up);
+      console.log(`[App] Updated serverUp state: ${up}`);
       setChecking(false);
+      console.log("[App] Updated checking state: false");
+      if (!up) {
+        console.log("[App] Server is down, retrying in 3 seconds...");
+        intervalId = setTimeout(check, 3000);
+      } else {
+        console.log("[App] Server is up, stopping health checks.");
+      }
     };
     check();
-    console.log("Checking server health...");
+    return () => {
+      if (intervalId) {
+        console.log("[App] Clearing health check interval.");
+        clearTimeout(intervalId);
+      }
+    };
   }, []);
 
-  if (checking || !serverUp) {
+  if (checking || !serverUp ) { //|| !minimumLoadingTimePassed
     return <Loading />;
   }
 
@@ -47,7 +72,7 @@ function App() {
       <DataProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Loading />}>
+          <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<DashboardHome />} />
             <Route path="quiz" element={<Quiz />} />
             {/* // <Route path="quiz/create" element={<CreateQuiz />} /> */}

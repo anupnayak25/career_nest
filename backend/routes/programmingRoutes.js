@@ -155,17 +155,25 @@ router.post("/answers", (req, res) => {
 // GET /answers/:id: List of users who answered a set
 router.get("/answers/:id", (req, res) => {
   const program_set_id = req.params.id;
+  const query = `SELECT DISTINCT user_id FROM program_answers WHERE program_set_id = ?`;
+  const user_query = `SELECT id, name, email_id FROM user WHERE id IN (?)`;
 
-  connection.query(
-    `SELECT DISTINCT user_id FROM program_answers WHERE program_set_id = ?`,
-    [program_set_id],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
-      if (results.length === 0) return res.status(404).json({ message: "No answers yet" });
-      res.json(results);
+  connection.query(query, [program_set_id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "No answers yet" });
     }
-  );
+
+    const userIds = results.map(row => row.user_id);
+
+    connection.query(user_query, [userIds], (err2, userDetails) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      res.json({ users: userDetails });
+    });
+  });
 });
+
 
 // GET /answers/:id/:user_id: Get specific user's answers
 router.get("/answers/:id/:user_id", (req, res) => {
@@ -188,7 +196,7 @@ router.put("/publish/:id", (req, res) => {
   const id = req.params.id;
   const { display_result } = req.body;
   const query = `UPDATE program_sets SET display_result=? WHERE id=?`;
-  connection.query(query, [display_result], (err, result) => {
+  connection.query(query, [display_result,id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id, ...req.body });
   });

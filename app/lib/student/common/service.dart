@@ -1,17 +1,3 @@
-  static Future<bool> checkServerHealth() async {
-    final apiUrl = dotenv.get('API_URL');
-    try {
-      final response = await http.get(
-        Uri.parse('$apiUrl/api/health'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      );
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
-  }
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -20,6 +6,27 @@ import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AssignmentService {
+  /// Waits for the backend server to return 200 on / (root) for up to 1 minute.
+  static Future<void> pingServer() async {
+    final apiUrl = dotenv.get('API_URL');
+    bool serverReady = false;
+    int attempts = 0;
+    while (!serverReady && attempts < 60) {
+      try {
+        final response =
+            await http.get(Uri.parse(apiUrl));
+        if (response.statusCode == 200) {
+          serverReady = true;
+          break;
+        }
+      } catch (e) {
+        // ignore, try again
+      }
+      await Future.delayed(const Duration(seconds: 1));
+      attempts++;
+    }
+  }
+
   static Future<List<T>> fetchList<T>(
       String type, T Function(Map<String, dynamic>) fromJson) async {
     final prefs = await SharedPreferences.getInstance();

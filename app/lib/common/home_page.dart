@@ -1,10 +1,7 @@
 //home_page.dart
 import 'package:career_nest/common/animated_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:career_nest/common/video_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,61 +20,23 @@ class _HomePageState extends State<HomePage>
   late TabController _tabController;
 
   Future<void> _fetchVideos({bool isManualRefresh = false}) async {
-    if (isManualRefresh && mounted) {
+    if (mounted) {
       setState(() {
         _isLoading = true;
       });
     }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    final apiUrl = dotenv.get('API_URL', fallback: 'http://localhost:5000');
-    final Uri videosUri = Uri.parse('$apiUrl/api/videos');
-
     try {
-      final response = await http.get(videosUri, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      }).timeout(
-          const Duration(seconds: 10)); // Added timeout to prevent hanging
-
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-
-        if (responseData['success'] == true) {
-          final List<dynamic> allVideos = responseData['data'] ?? [];
-
-          // Separate videos by category
-          final eventVideos = allVideos
-              .where((video) => video['category'] == 'Event')
-              .toList()
-              .cast<Map<String, dynamic>>();
-
-          final placementVideos = allVideos
-              .where((video) => video['category'] == 'Placement')
-              .toList()
-              .cast<Map<String, dynamic>>();
-
-          if (mounted) {
-            setState(() {
-              _eventVideos = eventVideos;
-              _placementVideos = placementVideos;
-              _isLoading = false;
-            });
-          }
-        } else {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-            });
-          }
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+      final allVideos = await VideoService.getAllVideos();
+      final eventVideos =
+          allVideos.where((video) => video['category'] == 'Event').toList();
+      final placementVideos =
+          allVideos.where((video) => video['category'] == 'Placement').toList();
+      if (mounted) {
+        setState(() {
+          _eventVideos = List<Map<String, dynamic>>.from(eventVideos);
+          _placementVideos = List<Map<String, dynamic>>.from(placementVideos);
+          _isLoading = false;
+        });
       }
     } catch (error) {
       print('Error fetching videos: $error');
@@ -91,7 +50,7 @@ class _HomePageState extends State<HomePage>
           content: Text('Failed to fetch videos. Please try again later.'),
           backgroundColor: Colors.red,
         ),
-      ); // Added user-friendly error message
+      );
     }
   }
 
@@ -115,45 +74,46 @@ class _HomePageState extends State<HomePage>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Background Content (Tab Views) with RefreshIndicator
           Padding(
-            padding: const EdgeInsets.only(top: 120), // Same height as AppBar
-            child: RefreshIndicator(
-              onRefresh: () => _fetchVideos(isManualRefresh: true),
-              child: _isLoading
-                  ? ListView(
-                      children: const [
-                        SizedBox(height: 200),
-                        Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CircularProgressIndicator(),
-                              SizedBox(height: 16),
-                              Text(
-                                'Loading videos...',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
+            padding: const EdgeInsets.only(top: 120),
+            child: _isLoading
+                ? ListView(
+                    children: const [
+                      SizedBox(height: 200),
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text(
+                              'Loading videos...',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    )
-                  : TabBarView(
-                      controller: _tabController,
-                      children: [
-                        YouTubeVideoGrid(videos: _eventVideos, type: 'Events'),
-                        YouTubeVideoGrid(
-                            videos: _placementVideos, type: 'Placements'),
-                      ],
-                    ),
-            ),
+                      ),
+                    ],
+                  )
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      YouTubeVideoGrid(
+                        videos: _eventVideos,
+                        type: 'Events',
+                        onRefresh: _fetchVideos,
+                      ),
+                      YouTubeVideoGrid(
+                        videos: _placementVideos,
+                        type: 'Placements',
+                        onRefresh: _fetchVideos,
+                      ),
+                    ],
+                  ),
           ),
-
-          // Floating AppBar on top of content
           SizedBox(
             height: 120,
             child: AnimatedCurvedAppBar(
@@ -170,11 +130,13 @@ class _HomePageState extends State<HomePage>
 class YouTubeVideoGrid extends StatelessWidget {
   final List<Map<String, dynamic>> videos;
   final String type;
+  final Future<void> Function()? onRefresh;
 
   const YouTubeVideoGrid({
     super.key,
     required this.videos,
     required this.type,
+    this.onRefresh,
   });
 
   Future<void> _launchURL(String url) async {
@@ -219,226 +181,228 @@ class YouTubeVideoGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (videos.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              type == 'Events' ? Icons.event_busy : Icons.work_off,
-              size: 80,
-              color: Colors.grey[600],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No $type videos yet',
-              style: TextStyle(
-                color: Colors.grey[400],
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Check back later for new content',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      color: Colors.white,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: videos.length,
-        itemBuilder: (context, index) {
-          final video = videos[index];
-          return GestureDetector(
-            onTap: () {
-              if (video['url'] != null) {
-                _launchURL(video['url']);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Video URL not available.'),
-                    backgroundColor: Colors.red,
+    return RefreshIndicator(
+      onRefresh: onRefresh ?? () async {},
+      child: videos.isEmpty
+          ? ListView(
+              children: [
+                SizedBox(height: 120),
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        type == 'Events' ? Icons.event_busy : Icons.work_off,
+                        size: 80,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No $type videos yet',
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Check back later for new content',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              }
-            },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Video Thumbnail
-                  Container(
-                    width: double.infinity,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Colors.grey[900],
-                    ),
-                    child: Stack(
+                ),
+              ],
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: videos.length,
+              itemBuilder: (context, index) {
+                final video = videos[index];
+                return GestureDetector(
+                  onTap: () {
+                    if (video['url'] != null) {
+                      _launchURL(video['url']);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Video URL not available.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Placeholder thumbnail
+                        // ...existing code for video card...
                         Container(
                           width: double.infinity,
-                          height: double.infinity,
+                          height: 200,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.red.withOpacity(0.3),
-                                Colors.blue.withOpacity(0.3),
-                              ],
-                            ),
+                            color: Colors.grey[900],
                           ),
-                          child: const Icon(
-                            Icons.play_circle_outline,
-                            size: 60,
-                            color: Colors.black,
+                          child: Stack(
+                            children: [
+                              // ...existing code for thumbnail and duration...
+                              Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.red.withOpacity(0.3),
+                                      Colors.blue.withOpacity(0.3),
+                                    ],
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.play_circle_outline,
+                                  size: 60,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 8,
+                                right: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.8),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    _formatDuration(video['duration']),
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        // Duration badge
-                        Positioned(
-                          bottom: 8,
-                          right: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              _formatDuration(video['duration']),
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
+                        const SizedBox(height: 12),
+                        // ...existing code for video info...
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // ...existing code for avatar and details...
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Colors.red,
+                              child: Text(
+                                'CN',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // ...existing code for title, channel, views, upload time, description...
+                                  Text(
+                                    video['title'] ?? 'No Title',
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.3,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Career Nest',
+                                    style: TextStyle(
+                                      color: Colors.grey[400],
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        _formatViewCount(
+                                          (video['views'] as int?) ??
+                                              (100 + (index * 50)),
+                                        ),
+                                        style: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      Text(
+                                        ' • ',
+                                        style: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      Text(
+                                        _formatUploadTime(
+                                            video['uploaded_datetime']),
+                                        style: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (video['description'] != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      video['description'],
+                                      style: TextStyle(
+                                        color: Colors.grey[500],
+                                        fontSize: 13,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.more_vert,
+                                color: Colors.grey[400],
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                // Add more options functionality
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  // Video Info
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Channel Avatar
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: Colors.red,
-                        child: Text(
-                          'CN',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Video Details
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              video['title'] ?? 'No Title',
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                height: 1.3,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Career Nest',
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Row(
-                              children: [
-                                Text(
-                                  _formatViewCount(
-                                    (video['views'] as int?) ??
-                                        (100 + (index * 50)), // Mock view count
-                                  ),
-                                  style: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                Text(
-                                  ' • ',
-                                  style: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                Text(
-                                  _formatUploadTime(video['uploaded_datetime']),
-                                  style: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (video['description'] != null) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                video['description'],
-                                style: TextStyle(
-                                  color: Colors.grey[500],
-                                  fontSize: 13,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      // More options
-                      IconButton(
-                        icon: Icon(
-                          Icons.more_vert,
-                          color: Colors.grey[400],
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          // Add more options functionality
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }

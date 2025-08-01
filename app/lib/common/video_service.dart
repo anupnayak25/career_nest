@@ -6,6 +6,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http_parser/http_parser.dart';
 
 class VideoService {
+  /// Fetch all videos (not just user-specific)
+  static Future<List<Map<String, dynamic>>> getAllVideos() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/videos'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+      } else {
+        throw Exception('Failed to load all videos: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching all videos: $e');
+    }
+  }
+
   // static const String baseUrl = 'https://career-nest-backend.vercel.app';
   static String baseUrl = dotenv.get('API_URL');
 

@@ -70,13 +70,10 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<DashboardHome />} />
-            {/* // <Route path="quiz/create" element={<CreateQuiz />} /> */}
-            <Route path="video" element={<Video />} /> {/* ✅ Fixed typo */}
-            <Route path="vedio" element={<Video />} /> {/* ✅ Backward compatibility */}
-            <Route path="add-question/:type" element={<CreateQuestion />} />
+            <Route path="video" element={<Video />} /> 
             <Route path=":type" element={<QuestionManagementPage />} /> {/* Dynamic route for question management */}
           </Route>
-
+          <Route path="/add-question/:type" element={<CreateQuestion />} />
           {/* Answers and Attempts */}
           <Route path="/answers/:type/:id" element={<ViewAttempted />} />
           <Route path="/answers/:type/:id/:userid" element={<Answers />} />

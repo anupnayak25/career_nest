@@ -28,7 +28,7 @@ const QuestionManagementPage = () => {
               <p className="mt-2 text-gray-600">Manage and organize your {type} questions</p>
             </div>
             <button
-              onClick={() => navigate(`/dashboard/add-question/${type}`)}
+              onClick={() => navigate(`/add-question/${type}`)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center shadow-lg">
               <Plus className="mr-2" size={20} />
               Add Question

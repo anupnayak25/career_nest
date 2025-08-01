@@ -37,53 +37,31 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
     print('📊 [_loadCategories] Starting to load categories...');
 
     try {
-      print('📊 [_loadCategories] Fetching quiz assignments...');
-      final quizAssignments = await AssignmentService.fetchList<QuizList>(
-          'quiz', (json) => QuizList.fromJson(json));
       print(
-          '📊 [_loadCategories] Quiz assignments count: ${quizAssignments.length}');
+          '📊 [_loadCategories] Fetching all assignments and attempts in parallel...');
+      final results = await Future.wait([
+        AssignmentService.fetchList<QuizList>(
+            'quiz', (json) => QuizList.fromJson(json)),
+        AssignmentService.fetchAttempted('quiz'),
+        AssignmentService.fetchList<ProgramingList>(
+            'programming', (json) => ProgramingList.fromJson(json)),
+        AssignmentService.fetchAttempted('programming'),
+        AssignmentService.fetchList<HrModel>(
+            'hr', (json) => HrModel.fromJson(json)),
+        AssignmentService.fetchAttempted('hr'),
+        AssignmentService.fetchList<TechnicalItem>(
+            'technical', (json) => TechnicalItem.fromJson(json)),
+        AssignmentService.fetchAttempted('technical'),
+      ]);
 
-      print('📊 [_loadCategories] Fetching quiz attempted...');
-      final quizAttempted = await AssignmentService.fetchAttempted('quiz');
-      print('📊 [_loadCategories] Quiz attempted: $quizAttempted');
-
-      print('📊 [_loadCategories] Fetching programming assignments...');
-      final programmingAssignments =
-          await AssignmentService.fetchList<ProgramingList>(
-              'programming', (json) => ProgramingList.fromJson(json));
-      print(
-          '📊 [_loadCategories] Programming assignments count: ${programmingAssignments.length}');
-
-      print('📊 [_loadCategories] Fetching programming attempted...');
-      final programmingAttempted =
-          await AssignmentService.fetchAttempted('programming');
-      print(
-          '📊 [_loadCategories] Programming attempted: $programmingAttempted');
-
-      print('📊 [_loadCategories] Fetching HR assignments...');
-      final hrAssignments = await AssignmentService.fetchList<HrModel>(
-          'hr', (json) => HrModel.fromJson(json));
-      print(
-          '📊 [_loadCategories] HR assignments count: ${hrAssignments.length}');
-
-      print('📊 [_loadCategories] Fetching HR attempted...');
-      final hrAttempted = await AssignmentService.fetchAttempted('hr');
-      print(
-          '📊 [_loadCategories] ❗ HR attempted: $hrAttempted (This is the critical one!)');
-
-      print('📊 [_loadCategories] Fetching technical assignments...');
-      final technicalAssignments =
-          await AssignmentService.fetchList<TechnicalItem>(
-              'technical', (json) => TechnicalItem.fromJson(json));
-      print(
-          '📊 [_loadCategories] Technical assignments count: ${technicalAssignments.length}');
-
-      print('📊 [_loadCategories] Fetching technical attempted...');
-      final technicalAttempted =
-          await AssignmentService.fetchAttempted('technical');
-      print('📊 [_loadCategories] Technical attempted: $technicalAttempted');
-
-      print('📊 [_loadCategories] Technical attempted: $technicalAttempted');
+      final quizAssignments = results[0] as List<QuizList>;
+      final quizAttempted = results[1] as List;
+      final programmingAssignments = results[2] as List<ProgramingList>;
+      final programmingAttempted = results[3] as List;
+      final hrAssignments = results[4] as List<HrModel>;
+      final hrAttempted = results[5] as List;
+      final technicalAssignments = results[6] as List<TechnicalItem>;
+      final technicalAttempted = results[7] as List;
 
       final categories = [
         TestCategory(

@@ -8,7 +8,7 @@ import 'package:career_nest/student/models/programming_model.dart'
 import 'package:career_nest/student/models/quiz_model.dart' show QuizQuestion;
 import 'package:career_nest/student/common/success_screen.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+
 
 
 class AttemptPage<T> extends StatefulWidget {
@@ -45,19 +45,17 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
 void initState() {
   super.initState();
   WidgetsBinding.instance.addObserver(this);
-  _secureScreen(); // block screenshots
+  // _secureScreen(); // block screenshots (removed flutter_windowmanager)
   answers = widget.initialAnswers?.call() ?? {};
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 }
 
-Future<void> _secureScreen() async {
-  await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-}
+
 
 @override
 void dispose() {
   WidgetsBinding.instance.removeObserver(this);
-  FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   super.dispose();
 }

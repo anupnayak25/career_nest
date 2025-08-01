@@ -8,9 +8,9 @@ const QuestionCard = ({ id, type, title, description, dueDate, totalMarks, publi
   const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleEdit = () => {
-    navigate(`/dashboard/${type}/edit/${id}`);
-  };
+  // const handleEdit = () => {
+  //   navigate(`/dashboard/${type}/edit/${id}`);
+  // };
 
   const handleView = () => {
     navigate(`/answers/${type}/${id}`);
@@ -96,7 +96,7 @@ const QuestionCard = ({ id, type, title, description, dueDate, totalMarks, publi
             <div className="absolute inset-0 bg-blue-100 rounded-lg opacity-0 group-hover:opacity-30 transition-opacity duration-200"></div>
           </button>
 
-          <button
+          {/* <button
             className="group relative p-2.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
             onClick={(e) => {
               e.stopPropagation();
@@ -105,7 +105,7 @@ const QuestionCard = ({ id, type, title, description, dueDate, totalMarks, publi
             title="Edit Question">
             <Edit3 className="w-4 h-4 transition-transform group-hover:scale-110" />
             <div className="absolute inset-0 bg-indigo-100 rounded-lg opacity-0 group-hover:opacity-30 transition-opacity duration-200"></div>
-          </button>
+          </button> */}
 
           <button
             className={`group relative p-2.5 rounded-lg transition-all duration-200 shadow-sm ${

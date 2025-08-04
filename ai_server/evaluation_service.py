@@ -7,6 +7,6 @@ def evaluate_transcript(expected, student):
     embeddings = model.encode([expected, student])
     similarity = util.cos_sim(embeddings[0], embeddings[1]).item()
 
-    # Convert similarity (0 to 1) to marks out of 10
-    marks = similarity * 10
+    # Convert similarity (0 to 1) to marks out of 100
+    marks = similarity * 100
     return round(marks, 2)

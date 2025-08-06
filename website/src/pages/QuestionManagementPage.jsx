@@ -22,9 +22,12 @@ const QuestionManagementPage = () => {
     <div className="min-h-screen bg-gray-50 animate-fade-in">
       {/* Header Section */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-1 sm:px-2 lg:px-4 py-2">
-          <div className="flex justify-between items-center">
+        <div className=" mx-auto px-1 sm:px-2 lg:px-4 py-2">
+          <div className="flex justify-between items-center p-4">
             <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            {type.charAt(0).toUpperCase() + type.slice(1)} Questions
+          </h1>
               <p className="mt-2 text-gray-600">Manage and organize your {type} questions</p>
             </div>
             <button

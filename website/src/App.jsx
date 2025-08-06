@@ -4,7 +4,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 // Pages and Components
 import Dashboard from "./pages/Dashboard";
 import VideoPlayer from "./pages/VideoPlayer"; // ✅ Add this import
-
+import ProfilePage from "./pages/ProfilePage";
 import Signup from "./pages/Signup";
 import Signin from "./pages/Signin";
 import DashboardHome from "./pages/Home";
@@ -58,15 +58,15 @@ function AppContent() {
 function App() {
   const [serverUp, setServerUp] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [minimumLoadingTimePassed, setMinimumLoadingTimePassed] = useState(false);
+  const [minimumLoadingTimePassed, setMinimumLoadingTimePassed] = useState(true);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setMinimumLoadingTimePassed(true);
-    }, 15000); // 15 seconds
+  // // useEffect(() => {
+  // //   const timer = setTimeout(() => {
+  // //     setMinimumLoadingTimePassed(true);
+  // //   }, 15000); // 15 seconds
 
-    return () => clearTimeout(timer);
-  }, []);
+  //   return () => clearTimeout(timer);
+  // }, []);
 
   useEffect(() => {
     let intervalId;
@@ -101,7 +101,25 @@ function App() {
   return (
     <ToastProvider>
       <DataProvider>
-        <AppContent />
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />}>
+            <Route index element={<DashboardHome />} />
+            <Route path="video" element={<Video />} /> 
+            <Route path=":type" element={<QuestionManagementPage />} /> {/* Dynamic route for question management */}
+            <Route path="profile" element={<ProfilePage />} />
+          </Route>
+          <Route path="/add-question/:type" element={<CreateQuestion />} />
+          {/* Answers and Attempts */}
+          <Route path="/answers/:type/:id" element={<ViewAttempted />} />
+          <Route path="/answers/:type/:id/:userid" element={<Answers />} />
+
+          {/* Auth */}
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/signin" element={<Signin />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/video-player/:id" element={<VideoPlayer />} />
+        </Routes>
       </DataProvider>
     </ToastProvider>
   );

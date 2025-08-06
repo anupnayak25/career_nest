@@ -34,6 +34,7 @@ function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const pathname = location.pathname;
+  const UserName= sessionStorage.getItem("userName") || "Professor";
 
   // Match routes to tab IDs
   const pathToTab = (path) => {
@@ -98,8 +99,8 @@ function Dashboard() {
           </div>
         </div>
         {/* Sidebar Navigation */}
-        <nav className={`mt-6 flex-1 flex flex-col justify-between ${sidebarOpen ? "px-4" : "px-2"}`}>
-          <div>
+        <nav className={`flex-1 flex relative w-full flex-col ${sidebarOpen ? "px-4" : "px-2"} pb-6`}>
+          <div className="flex-1 mt-6">
             {menuItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -120,14 +121,34 @@ function Dashboard() {
               );
             })}
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full mt-4 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors duration-200 animate-fade-in"
-            style={{ marginTop: "auto" }}>
-            <LogOut size={20} className={sidebarOpen ? "mr-3" : ""} />
-            {sidebarOpen && <span>LogOut</span>}
-           
-          </button>
+          
+          {/* Bottom section with Profile and Logout - Fixed to bottom */}
+          <div className={`border-t fixed bottom-0 left-0 pb-2 border-gray-200 pt-4 ${
+            sidebarOpen ? "w-64 px-4" : "w-16 px-2"
+          }`}>
+            <button
+              onClick={() => navigate("/dashboard/profile")}
+              className={`w-full flex items-center mb-2 rounded-lg transition-all duration-200 group relative ${
+                sidebarOpen ? "px-4 py-3" : "px-2 py-3 justify-center"
+              } ${
+                activeTab === "profile"
+                  ? "bg-blue-50 text-blue-600 border-r-4 border-blue-600 animate-fade-in"
+                  : "hover:bg-gray-100 text-gray-700 animate-fade-in"
+              } animate-slide-up`}>
+             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center animate-fade-in">
+                  <span className="text-white text-sm font-medium">{UserName.split(" ")[0][0]+UserName.split(" ")[1][0]}</span>
+                </div>
+              {sidebarOpen && <span className="ml-3">Profile</span>}
+              </button>
+            <button
+              onClick={handleLogout}
+              className={`w-full flex items-center rounded-lg text-red-600 hover:bg-red-50 transition-colors duration-200 animate-fade-in ${
+                sidebarOpen ? "px-4 py-3" : "px-2 py-3 justify-center"
+              }`}>
+              <LogOut size={20} />
+              {sidebarOpen && <span className="ml-3">LogOut</span>}
+            </button>
+          </div>
         </nav>
       </div>
 
@@ -137,7 +158,7 @@ function Dashboard() {
           sidebarOpen ? "ml-64" : "ml-16"
         } flex-1 flex flex-col transition-all duration-300 ease-in-out animate-fade-in`}>
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 px-6 py-4 animate-fade-in">
+        {/* <header className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 px-6 py-4 animate-fade-in">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 capitalize animate-slide-up">
@@ -150,7 +171,7 @@ function Dashboard() {
               )}
             </div>
             <div className="flex items-center space-x-4">
-              <div className="relative">
+              {/* <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                 <input
                   type="text"
@@ -160,13 +181,13 @@ function Dashboard() {
               </div>
               <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200 animate-fade-in">
                 <Bell size={20} />
-              </button>
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center animate-fade-in">
-                <span className="text-white text-sm font-medium">T</span>
-              </div>
+              </button> */}
+              {/* <Link to="/dashboard/profile"><div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center animate-fade-in">
+                <span className="text-white text-sm font-medium">{UserName.split(" ")[0][0]+UserName.split(" ")[1][0]}</span>
+              </div></Link>
             </div>
           </div>
-        </header>
+        </header> */} 
         <main className="flex-1 p-1  animate-fade-in">
           <Outlet />
         </main>

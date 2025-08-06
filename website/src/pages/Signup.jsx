@@ -67,7 +67,7 @@ const Signup = () => {
       if (domain !== "nmamit" && domain !== "nitte") {
         return {
           valid: false,
-          message: "Please use an email provided by your college (nmamit or nitte).",
+          message: "Please use an email provided by your college .",
         };
       }
 

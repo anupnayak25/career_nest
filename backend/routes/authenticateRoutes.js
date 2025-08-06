@@ -359,4 +359,77 @@ router.get("/getusers", fetchUser, (req, res) => {
   });
 });
 
+// Update user details (name, email, etc.)
+router.put(
+  "/update-details",
+  fetchUser,
+  [
+    body("name", "Name is required").optional().notEmpty(),
+    body("email", "Invalid email").optional().isEmail(),
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { name, email } = req.body;
+    const userId = req.user.id;
+
+    connection.query(
+      "UPDATE user SET name = ?, email_id = ? WHERE id = ?",
+      [name || null, email || null, userId],
+      (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "User details updated successfully" });
+      }
+    );
+  }
+);
+
+// Update user password
+router.put(
+  "/update-password",
+  fetchUser,
+  [
+    body("oldPassword", "Old password is required").notEmpty(),
+    body("newPassword", "New password must be at least 8 characters").isLength({ min: 8 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    try {
+      const [results] = await connection.promise().query("SELECT password FROM user WHERE id = ?", [userId]);
+      if (results.length === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const isMatch = await bcrypt.compare(oldPassword, results[0].password);
+      if (!isMatch) {
+        return res.status(403).json({ error: "Old password is incorrect" });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      connection.query(
+        "UPDATE user SET password = ? WHERE id = ?",
+        [hashedPassword, userId],
+        (err, results) => {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({ message: "Password updated successfully" });
+        }
+      );
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+);
+
 module.exports = router;

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Trash2, X } from "lucide-react";
+import { Trash2, X, Video, FileText, AlertCircle, Play, Square, RotateCcw } from "lucide-react";
 import { uploadQuestions } from "../services/ApiService";
 import * as XLSX from "xlsx";
 import excel from "../assets/excel.png";
@@ -10,6 +10,9 @@ import { useToast } from "../ui/Toast";
 function CreateQuestion() {
   const { type } = useParams(); // 👈 get type from URL like /hr or /technical
   const [loading, setLoading] = useState(false);
+  const [recordingStates, setRecordingStates] = useState({});
+  const [mediaRecorders, setMediaRecorders] = useState({});
+  const videoRefs = React.useRef({});
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -21,7 +24,15 @@ function CreateQuestion() {
         ? { qno: 1, question: "", program_snippet: "", marks: "" }
         : type === "quiz"
         ? { qno: 1, question: "", options: ["", "", "", ""], correct_ans: "", marks: "" }
-        : { qno: 1, question: "", marks: "" },
+        : {
+            qno: 1,
+            question: "",
+            marks: "",
+            answer_type: "video", // Default to video
+            answer_url: "NA",
+            answer_transcript: "NA",
+            recorded_video: null,
+          },
     ],
   });
   const navigate = useNavigate();
@@ -47,7 +58,15 @@ function CreateQuestion() {
           ? { qno: 1, question: "", program_snippet: "", marks: "" }
           : type === "quiz"
           ? { qno: 1, question: "", options: ["", "", "", ""], correct_ans: "", marks: "" }
-          : { qno: 1, question: "", marks: "" },
+          : {
+              qno: 1,
+              question: "",
+              marks: "",
+              answer_type: "video",
+              answer_url: "NA",
+              answer_transcript: "NA",
+              recorded_video: null,
+            },
       ],
     });
   };
@@ -70,6 +89,8 @@ function CreateQuestion() {
           qno: index + 1,
           question: item.question,
           marks: parseInt(item.marks),
+          answer_url: item.answer_url || "NA",
+          answer_transcript: item.answer_transcript || "NA",
         })),
       };
     } else if (type === "programming") {
@@ -115,6 +136,8 @@ function CreateQuestion() {
           qno: index + 1,
           question: item.question,
           marks: parseInt(item.marks),
+          answer_url: item.answer_url || "NA",
+          answer_transcript: item.answer_transcript || "NA",
         })),
       };
     }
@@ -157,7 +180,15 @@ function CreateQuestion() {
               correct_ans: "",
               marks: "",
             }
-          : { qno: formData.questionItems.length + 1, question: "", marks: "" },
+          : {
+              qno: formData.questionItems.length + 1,
+              question: "",
+              marks: "",
+              answer_type: "video",
+              answer_url: "NA",
+              answer_transcript: "NA",
+              recorded_video: null,
+            },
       ],
     });
   };
@@ -174,10 +205,88 @@ function CreateQuestion() {
     const updated = [...formData.questionItems];
     if (type === "quiz" && field === "options") {
       updated[index].options = value;
+    } else if ((type === "hr" || type === "technical") && field === "answer_type") {
+      updated[index].answer_type = value;
+      // Reset the other fields based on selection
+      if (value === "video") {
+        updated[index].answer_transcript = "NA";
+      } else if (value === "transcript") {
+        updated[index].answer_url = "NA";
+        updated[index].recorded_video = null;
+      }
     } else {
       updated[index][field] = value;
     }
     setFormData({ ...formData, questionItems: updated });
+  };
+
+  // Video recording functionality
+  const startRecording = async (questionIndex) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
+
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "video/webm" });
+        const videoUrl = URL.createObjectURL(blob);
+        updateQuestionItem(questionIndex, "recorded_video", videoUrl);
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      setMediaRecorders((prev) => ({ ...prev, [questionIndex]: mediaRecorder }));
+      setRecordingStates((prev) => ({ ...prev, [questionIndex]: "recording" }));
+
+      // Show preview
+      if (videoRefs.current[questionIndex]) {
+        videoRefs.current[questionIndex].srcObject = stream;
+      }
+
+      mediaRecorder.start();
+      showToast("Recording started!", "success");
+    } catch (error) {
+      console.error("Error accessing media devices:", error);
+      showToast("Failed to access camera/microphone!", "error");
+    }
+  };
+
+  const stopRecording = (questionIndex) => {
+    const mediaRecorder = mediaRecorders[questionIndex];
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+      setRecordingStates((prev) => ({ ...prev, [questionIndex]: "stopped" }));
+      showToast("Recording stopped!", "success");
+    }
+  };
+
+  const resetRecording = (questionIndex) => {
+    const mediaRecorder = mediaRecorders[questionIndex];
+    if (mediaRecorder) {
+      if (mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+      }
+    }
+
+    // Clear the recorded video
+    updateQuestionItem(questionIndex, "recorded_video", null);
+    setRecordingStates((prev) => ({ ...prev, [questionIndex]: "idle" }));
+
+    // Clear video preview
+    if (videoRefs.current[questionIndex]) {
+      videoRefs.current[questionIndex].srcObject = null;
+    }
+
+    showToast("Recording reset!", "info");
   };
 
   const openExcelFormat = () => setExcelModalOpen(true);
@@ -252,208 +361,462 @@ function CreateQuestion() {
   };
 
   return (
-    <div className=" mx-auto bg-white rounded-lg shadow p-6">
-      {/* Excel Upload Modal */}
-      {excelModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-80 relative">
-            <button className="absolute top-2 right-2 text-gray-500" onClick={closeExcelModal}>
-              <X />
-            </button>
-            <h3 className="text-lg font-bold mb-4">Upload Excel File</h3>
-            <input type="file" accept=".xlsx,.xls" onChange={handleExcelFile} className="mb-2" />
-            <div className="text-xs text-gray-500">Expected columns: Question, Marks</div>
-            <button
-              className="text-sm px-3 py-1 flex text-green-100 bg-green-700 rounded hover:bg-green-800"
-              onClick={viewExample}>
-              view example
-            </button>
-            {excelError && <div className="text-red-600 text-sm mb-2">{excelError}</div>}
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-white capitalize">Create New {type} Assessment</h2>
+              <button
+                onClick={() => navigate(`/dashboard/${type}`)}
+                className="text-white hover:text-gray-200 transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-      <div className="flex justify-between">
-        <h2 className="text-2xl font-bold mb-6 capitalize">Create New {type} Attempt</h2>
-        <X onClick={() => navigate(`/dashboard/${type}`)} />
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Question Details */}
-        <div>
-          <label className="block font-medium">Title</label>
-          <input
-            type="text"
-            className="w-full px-3 py-2 border rounded-lg"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium">Description</label>
-          <textarea
-            rows="3"
-            className="w-full px-3 py-2 border rounded-lg"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block font-medium">Publish Date & Time</label>
-            <input
-              type="datetime-local"
-              className="w-full px-3 py-2 border rounded-lg"
-              value={formData.publish_date_time}
-              onChange={(e) => setFormData({ ...formData, publish_date_time: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <label className="block font-medium">Total Marks</label>
-            <input
-              type="number"
-              className="w-full px-3 py-2 border rounded-lg"
-              value={formData.total_marks}
-              onChange={(e) => setFormData({ ...formData, total_marks: e.target.value })}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block font-medium">Due Date & Time</label>
-            <input
-              type="datetime-local"
-              className="w-full px-3 py-2 border rounded-lg"
-              value={formData.due_date_time}
-              onChange={(e) => setFormData({ ...formData, due_date_time: e.target.value })}
-              required
-            />
-          </div>
-        </div>
-
-        {/* Question Items */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Questions</h3>
-            <button
-              type="button"
-              onClick={openExcelFormat}
-              className="text-sm px-3 py-1 flex text-green-100 bg-green-700 rounded hover:bg-green-800">
-              Select Excel Format <img className="h-4 m-1" src={excel} alt="excel" />
-            </button>
-          </div>
-
-          {formData.questionItems.map((item, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
-              <div className="flex justify-between items-center">
-                <h4 className="font-medium">Question {item.qno}</h4>
-                {formData.questionItems.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeQuestionItem(index)}
-                    className="text-red-600 hover:text-red-800">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Question</label>
-                <textarea
-                  className="w-full px-3 py-2 border rounded-lg"
-                  rows="2"
-                  value={item.question}
-                  onChange={(e) => updateQuestionItem(index, "question", e.target.value)}
-                  required
-                />
-              </div>
-
-              {type === "programming" && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">Starter Code (optional)</label>
-                  <textarea
-                    className="w-full px-3 py-2 border rounded-lg"
-                    rows="2"
-                    value={item.program_snippet}
-                    onChange={(e) => updateQuestionItem(index, "program_snippet", e.target.value)}
-                  />
+          {/* Excel Upload Modal */}
+          {excelModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-xl shadow-xl w-96 max-w-md mx-4 relative">
+                <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={closeExcelModal}>
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="flex items-center mb-4">
+                  <img src={excel} alt="Excel" className="h-8 w-8 mr-3" />
+                  <h3 className="text-lg font-semibold text-gray-900">Upload Excel File</h3>
                 </div>
-              )}
-
-              {type === "quiz" && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Options</label>
-                    {[0, 1, 2, 3].map((optIdx) => (
-                      <input
-                        key={optIdx}
-                        type="text"
-                        className="w-full px-3 py-2 border rounded-lg mb-1"
-                        placeholder={`Option ${optIdx + 1}`}
-                        value={item.options[optIdx]}
-                        onChange={(e) => {
-                          const newOptions = [...item.options];
-                          newOptions[optIdx] = e.target.value;
-                          updateQuestionItem(index, "options", newOptions);
-                        }}
-                        required
-                      />
-                    ))}
+                <div className="space-y-4">
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleExcelFile}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                    <AlertCircle className="w-4 h-4 inline mr-2" />
+                    Expected columns: Question, Marks
                   </div>
+                  <button
+                    className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center"
+                    onClick={viewExample}>
+                    <FileText className="w-4 h-4 mr-2" />
+                    Download Example Format
+                  </button>
+                  {excelError && (
+                    <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
+                      {excelError}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Form Content */}
+          <div className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Basic Information */}
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
+                  Basic Information
+                </h3>
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Correct Answer (enter option text)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Assessment Title *</label>
                     <input
                       type="text"
-                      className="w-full px-3 py-2 border rounded-lg"
-                      value={item.correct_ans}
-                      onChange={(e) => updateQuestionItem(index, "correct_ans", e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="Enter assessment title"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                       required
                     />
                   </div>
-                </>
-              )}
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Marks</label>
-                <input
-                  type="number"
-                  className="w-full px-3 py-2 border rounded-lg"
-                  value={item.marks}
-                  onChange={(e) => updateQuestionItem(index, "marks", e.target.value)}
-                  required
-                />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                    <textarea
+                      rows="4"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                      placeholder="Provide a detailed description of the assessment"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Publish Date & Time *</label>
+                      <input
+                        type="datetime-local"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        value={formData.publish_date_time}
+                        onChange={(e) => setFormData({ ...formData, publish_date_time: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Date & Time *</label>
+                      <input
+                        type="datetime-local"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        value={formData.due_date_time}
+                        onChange={(e) => setFormData({ ...formData, due_date_time: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="max-w-xs">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Marks *</label>
+                    <input
+                      type="number"
+                      min="1"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="100"
+                      value={formData.total_marks}
+                      onChange={(e) => setFormData({ ...formData, total_marks: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-          <div className="flex justify-center">
-            <button
-              type="button"
-              onClick={addQuestionItem}
-              className="text-sm px-3 w-1/2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
-              + Add Questions
-            </button>
+
+              {/* Questions Section */}
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
+                    Questions ({formData.questionItems.length})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={openExcelFormat}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center text-sm">
+                    <img className="h-4 w-4 mr-2" src={excel} alt="excel" />
+                    Import from Excel
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  {formData.questionItems.map((item, index) => (
+                    <div
+                      key={index}
+                      className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="text-lg font-medium text-gray-900 flex items-center">
+                          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold mr-3">
+                            Q{item.qno}
+                          </span>
+                          Question {item.qno}
+                        </h4>
+                        {formData.questionItems.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeQuestionItem(index)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                            title="Remove question">
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Question Text *</label>
+                          <textarea
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                            rows="3"
+                            placeholder="Enter your question here..."
+                            value={item.question}
+                            onChange={(e) => updateQuestionItem(index, "question", e.target.value)}
+                            required
+                          />
+                        </div>
+
+                        {type === "programming" && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Starter Code (Optional)
+                            </label>
+                            <textarea
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono text-sm resize-none"
+                              rows="4"
+                              placeholder="// Write your starter code here..."
+                              value={item.program_snippet}
+                              onChange={(e) => updateQuestionItem(index, "program_snippet", e.target.value)}
+                            />
+                          </div>
+                        )}
+
+                        {type === "quiz" && (
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-3">Answer Options *</label>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {[0, 1, 2, 3].map((optIdx) => (
+                                  <div key={optIdx} className="relative">
+                                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium">
+                                      {String.fromCharCode(65 + optIdx)}
+                                    </div>
+                                    <input
+                                      type="text"
+                                      className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                      placeholder={`Option ${optIdx + 1}`}
+                                      value={item.options[optIdx]}
+                                      onChange={(e) => {
+                                        const newOptions = [...item.options];
+                                        newOptions[optIdx] = e.target.value;
+                                        updateQuestionItem(index, "options", newOptions);
+                                      }}
+                                      required
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Correct Answer *</label>
+                              <input
+                                type="text"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                placeholder="Enter the exact text of the correct option"
+                                value={item.correct_ans}
+                                onChange={(e) => updateQuestionItem(index, "correct_ans", e.target.value)}
+                                required
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {(type === "hr" || type === "technical") && (
+                          <div className="bg-blue-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-3">Answer Format</label>
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label className="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                  <input
+                                    type="radio"
+                                    name={`answer_type_${index}`}
+                                    value="video"
+                                    checked={item.answer_type === "video"}
+                                    onChange={(e) => updateQuestionItem(index, "answer_type", e.target.value)}
+                                    className="mr-3 text-blue-600"
+                                  />
+                                  <div className="flex items-center">
+                                    <Video className="w-4 h-4 mr-2 text-blue-600" />
+                                    <div>
+                                      <div className="font-medium text-gray-900">Video Answer</div>
+                                      <div className="text-xs text-gray-500">Record response</div>
+                                    </div>
+                                  </div>
+                                </label>
+                                <label className="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                  <input
+                                    type="radio"
+                                    name={`answer_type_${index}`}
+                                    value="transcript"
+                                    checked={item.answer_type === "transcript"}
+                                    onChange={(e) => updateQuestionItem(index, "answer_type", e.target.value)}
+                                    className="mr-3 text-blue-600"
+                                  />
+                                  <div className="flex items-center">
+                                    <FileText className="w-4 h-4 mr-2 text-green-600" />
+                                    <div>
+                                      <div className="font-medium text-gray-900">Text Answer</div>
+                                      <div className="text-xs text-gray-500">Written response</div>
+                                    </div>
+                                  </div>
+                                </label>
+                              </div>
+
+                              {item.answer_type === "video" && (
+                                <div className="space-y-4">
+                                  <div className="bg-white p-4 rounded-lg border border-gray-200">
+                                    <h4 className="text-sm font-medium text-gray-700 mb-3">Record Sample Answer</h4>
+
+                                    {/* Video Preview */}
+                                    <div
+                                      className="relative bg-gray-900 rounded-lg overflow-hidden mb-4"
+                                      style={{ aspectRatio: "16/9" }}>
+                                      <video
+                                        ref={(el) => {
+                                          if (!videoRefs.current) videoRefs.current = {};
+                                          videoRefs.current[index] = el;
+                                        }}
+                                        className="w-full h-full object-cover"
+                                        autoPlay
+                                        muted
+                                        playsInline
+                                      />
+                                      {!recordingStates[index] && !item.recorded_video && (
+                                        <div className="absolute inset-0 flex items-center justify-center text-white">
+                                          <div className="text-center">
+                                            <Video className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                            <p className="text-sm opacity-75">Click record to start</p>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {recordingStates[index] === "recording" && (
+                                        <div className="absolute top-4 right-4 bg-red-600 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                                          <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></div>
+                                          REC
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Recording Controls */}
+                                    <div className="flex gap-2">
+                                      {(!recordingStates[index] || recordingStates[index] === "idle") && (
+                                        <button
+                                          type="button"
+                                          onClick={() => startRecording(index)}
+                                          className="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium">
+                                          <Play className="w-4 h-4 mr-2" />
+                                          Start Recording
+                                        </button>
+                                      )}
+
+                                      {recordingStates[index] === "recording" && (
+                                        <button
+                                          type="button"
+                                          onClick={() => stopRecording(index)}
+                                          className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium">
+                                          <Square className="w-4 h-4 mr-2" />
+                                          Stop Recording
+                                        </button>
+                                      )}
+
+                                      {(recordingStates[index] === "stopped" || item.recorded_video) && (
+                                        <button
+                                          type="button"
+                                          onClick={() => resetRecording(index)}
+                                          className="flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors text-sm font-medium">
+                                          <RotateCcw className="w-4 h-4 mr-2" />
+                                          Reset
+                                        </button>
+                                      )}
+                                    </div>
+
+                                    {item.recorded_video && (
+                                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                        <p className="text-sm text-green-800 flex items-center">
+                                          ✓ Sample answer recorded successfully
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Alternative Video URL (Optional)
+                                    </label>
+                                    <input
+                                      type="url"
+                                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                      placeholder="https://example.com/sample-video.mp4"
+                                      value={item.answer_url === "NA" ? "" : item.answer_url}
+                                      onChange={(e) => updateQuestionItem(index, "answer_url", e.target.value || "NA")}
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      You can provide a video URL instead of recording
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {item.answer_type === "transcript" && (
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Sample Answer/Transcript (Optional)
+                                  </label>
+                                  <textarea
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                                    rows="4"
+                                    placeholder="Provide a sample answer or key points to look for..."
+                                    value={item.answer_transcript === "NA" ? "" : item.answer_transcript}
+                                    onChange={(e) =>
+                                      updateQuestionItem(index, "answer_transcript", e.target.value || "NA")
+                                    }
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="max-w-xs">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Marks *</label>
+                          <input
+                            type="number"
+                            min="1"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                            placeholder="10"
+                            value={item.marks}
+                            onChange={(e) => updateQuestionItem(index, "marks", e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-center mt-6">
+                  <button
+                    type="button"
+                    onClick={addQuestionItem}
+                    className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-6 py-3 rounded-lg transition-colors flex items-center font-medium">
+                    + Add Another Question
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="px-6 py-3 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors font-medium min-w-[140px]">
+                  {loading ? (
+                    <span className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Submitting...
+                    </span>
+                  ) : (
+                    "Create Assessment"
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={resetForm}
-            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
-            Cancel
-          </button>
-          <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            {loading ? "Submitting..." : "Submit Question"}
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }

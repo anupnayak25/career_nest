@@ -4,7 +4,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 // Pages and Components
 import Dashboard from "./pages/Dashboard";
 import VideoPlayer from "./pages/VideoPlayer"; // ✅ Add this import
-
+import ProfilePage from "./pages/ProfilePage";
 import Signup from "./pages/Signup";
 import Signin from "./pages/Signin";
 import DashboardHome from "./pages/Home"; 
@@ -23,15 +23,15 @@ import { ToastProvider } from "./ui/Toast";
 function App() {
   const [serverUp, setServerUp] = useState(false);
   const [checking, setChecking] = useState(true);
-   const [minimumLoadingTimePassed, setMinimumLoadingTimePassed] = useState(false);
+   const [minimumLoadingTimePassed, setMinimumLoadingTimePassed] = useState(true);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setMinimumLoadingTimePassed(true);
-    }, 15000); // 15 seconds
+  // // useEffect(() => {
+  // //   const timer = setTimeout(() => {
+  // //     setMinimumLoadingTimePassed(true);
+  // //   }, 15000); // 15 seconds
 
-    return () => clearTimeout(timer);
-  }, []);
+  //   return () => clearTimeout(timer);
+  // }, []);
 
   useEffect(() => {
     let intervalId;
@@ -72,6 +72,7 @@ function App() {
             <Route index element={<DashboardHome />} />
             <Route path="video" element={<Video />} /> 
             <Route path=":type" element={<QuestionManagementPage />} /> {/* Dynamic route for question management */}
+            <Route path="profile" element={<ProfilePage />} />
           </Route>
           <Route path="/add-question/:type" element={<CreateQuestion />} />
           {/* Answers and Attempts */}

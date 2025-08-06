@@ -80,7 +80,7 @@ const DashboardHome = () => {
   if (loading) {
     return (
       <div className="space-y-6 animate-fade-in">
-        <div className="bg-white rounded-xl shadow-lg p-6 animate-slide-up">
+        <div className="bg-white rounded-xl shadow-lg p-6 animate-slide-up h-screen align-middle">
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
@@ -91,6 +91,20 @@ const DashboardHome = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+        {/* Header Section */}
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className=" mx-auto px-1 sm:px-2 lg:px-4 py-2">
+          <div className="flex justify-between items-center p-4">
+            <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Dashboard
+          </h1>
+              <p className="mt-2 text-gray-600">Welcome back, Professor! Here's what's happening today.</p>
+            </div>
+        
+          </div>
+        </div>
+      </div>
       {/* Video Content */}
       <div className="bg-white rounded-xl shadow-lg p-6 animate-slide-up">
         <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6 animate-fade-in">

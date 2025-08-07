@@ -5,6 +5,10 @@ import utils
 
 app = Flask(__name__)
 
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({"message": "Welcome to the Video Transcription and Evaluation API!-- Its just a server for now"})           
+
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
     data = request.json
@@ -42,4 +46,4 @@ def evaluate():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=7860)

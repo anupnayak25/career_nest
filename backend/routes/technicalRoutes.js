@@ -21,6 +21,7 @@ router.post("/", (req, res) => {
 
       connection.query(insertQuestionsQuery, [values], (err2) => {
         if (err2) return res.status(500).json({ error: err2.message });
+        transcribe(technicalId, "technical"); // Call transcribe function for the technical set
         res
           .status(201)
           .json({
@@ -148,7 +149,7 @@ router.post("/answers", (req, res) => {
 // Get users who submitted answers for a technical set
 router.get("/answers/:id", (req, res) => {
   const technical_question_id = req.params.id;
-  const query = `SELECT DISTINCT user_id FROM technical_answers WHERE technical_question_id = ?`;
+  const query = `SELECT DISTINCT user_id FROM technical_answers WHERE technical_id = ?`;
   const user_query = "SELECT id, name, email_id FROM user WHERE id IN (?)";
 
   connection.query(query, [technical_question_id], (err, results) => {

@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const connection = require("../db"); // Assuming you have a db.js file for database connection
+const { transcribe } = require("./evaluateRoutes");
 //const fetchUser = require('../middlewares/fetchUser');
-
 router.get("/", (req, res) => {
   connection.query("SELECT * FROM hr_questions", async (err, sets) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -69,6 +69,7 @@ router.post("/", (req, res) => {
       // Convert each item insert into a Promise
       const insertItemPromises = hrQuestionItems.map(({ qno, question, marks }) => {
         return new Promise((resolve, reject) => {
+          // Call transcribe function for each question
           connection.query(queryInsertItem, [hr_question_id, qno, question, marks], (err, result) => {
             if (err) return reject(err);
             resolve(result);
@@ -76,9 +77,11 @@ router.post("/", (req, res) => {
         });
       });
 
+      
       // Wait for all inserts to finish
       Promise.all(insertItemPromises)
         .then(() => {
+           transcribe(hr_question_id, "hr");
           res.status(201).json({
             message: "questions uploaded successfully",
             id: hr_question_id,

@@ -92,6 +92,7 @@ app.get("/api/logs", (req, res) => {
   res.sendFile(logFilePath);
 });
 
+
 // ======= Protected Routes (require fetchUser middleware) =======
 app.use(fetchUser); // protect all below
 app.use("/api/technical", require("./routes/technicalRoutes"));
@@ -100,7 +101,7 @@ app.use("/api/programming", require("./routes/programmingRoutes"));
 app.use("/api/hr", require("./routes/hrRoutes"));
 app.use("/api/notification", require("./routes/notificationRoutes"));
 app.use("/api/videos", require("./routes/videoRoutes")); // ✅ Video API route
-
+app.use("/api/evaluate",require("./routes/evaluateRoutes"))
 // ======= Start Server =======
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);

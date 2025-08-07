@@ -136,7 +136,19 @@ function Dashboard() {
                   : "hover:bg-gray-100 text-gray-700 animate-fade-in"
               } animate-slide-up`}>
              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center animate-fade-in">
-                  <span className="text-white text-sm font-medium">{UserName.split(" ")[0][0]+UserName.split(" ")[1][0]}</span>
+                  <span className="text-white text-sm font-medium">
+                    {UserName ? 
+                      (() => {
+                        const nameParts = UserName.split(" ");
+                        if (nameParts.length >= 2) {
+                          return nameParts[0][0] + nameParts[1][0];
+                        } else {
+                          return nameParts[0][0] + (nameParts[0][1] || "");
+                        }
+                      })()
+                      : "U"
+                    }
+                  </span>
                 </div>
               {sidebarOpen && <span className="ml-3">Profile</span>}
               </button>
@@ -183,7 +195,19 @@ function Dashboard() {
                 <Bell size={20} />
               </button> */}
               {/* <Link to="/dashboard/profile"><div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center animate-fade-in">
-                <span className="text-white text-sm font-medium">{UserName.split(" ")[0][0]+UserName.split(" ")[1][0]}</span>
+                <span className="text-white text-sm font-medium">
+                  {UserName ? 
+                    (() => {
+                      const nameParts = UserName.split(" ");
+                      if (nameParts.length >= 2) {
+                        return nameParts[0][0] + nameParts[1][0];
+                      } else {
+                        return nameParts[0][0] + (nameParts[0][1] || "");
+                      }
+                    })()
+                    : "U"
+                  }
+                </span>
               </div></Link>
             </div>
           </div>

@@ -9,19 +9,19 @@ const NavBar = () => {
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50 w-full">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div>
+        <div className="flex justify-start space-x-12 items-center h-16">
           <div className="flex items-center">
             <Link
               to="/dashboard"
-              className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-300">
-              Career Nest
+               className="text-2xl ms-5 font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent animate-slide-up">
+                  CarrierNest
             </Link>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex  justify-between items-center space-x-4">
             <button
               onClick={handleHomeClick}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+              className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Home
             </button>
           </div>

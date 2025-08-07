@@ -369,6 +369,19 @@ export const getUserVideos = async () => {
   return await res.json();
 };
 
+export const getVideos = async () => {
+  refresh();
+  if (!authToken) throw new Error("Auth token not found in sessionStorage");
+  const res = await fetch(`${apiUrl}/api/videos`, {
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+};
+
 export const deleteVideo = async (videoId) => {
   refresh();
   if (!authToken) throw new Error("Auth token not found in sessionStorage");

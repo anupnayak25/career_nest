@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, Trophy, Play, Upload, Eye } from "lucide-react";
-import { getUserVideos } from "../services/ApiService";
+import { getVideos } from "../services/ApiService";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../ui/Toast";
+import VideoCard from "../components/VideoCard";
 
 const DashboardHome = () => {
   const [dashboardTab, setDashboardTab] = useState("events");
@@ -18,7 +19,7 @@ const DashboardHome = () => {
   const loadVideos = async () => {
     try {
       setLoading(true);
-      const res = await getUserVideos();
+      const res = await getVideos();
       if (res.success && res.data) {
         setVideos(res.data);
       } else {
@@ -37,45 +38,6 @@ const DashboardHome = () => {
   const placementsVideos = videos.filter((video) => video.category === "Placement");
 
   const currentVideos = dashboardTab === "events" ? eventsVideos : placementsVideos;
-
-  const openVideoModal = (video) => {
-    // Navigate to video player or open modal
-    navigate(`/video-player/${video.id}`);
-  };
-
-  const VideoCard = ({ video }) => (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-      <div className="relative">
-        <video
-          controls={false}
-          className="w-full h-48 object-cover cursor-pointer"
-          onClick={() => openVideoModal(video)}
-        >
-          <source src={`${import.meta.env.VITE_API_URL}/videos/${video.url}`} type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
-          <Play className="text-white opacity-0 hover:opacity-100 transition-opacity duration-300" size={48} />
-        </div>
-        <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-sm">
-          5:42
-        </div>
-      </div>
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{video.title}</h3>
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{video.description || 'No description provided'}</p>
-        <div className="flex justify-between items-center text-sm text-gray-600">
-          <span className={`px-2 py-1 rounded text-xs font-medium ${
-            video.category === 'Placement' 
-              ? 'bg-green-100 text-green-700' 
-              : 'bg-blue-100 text-blue-700'
-          }`}>
-            {video.category}
-          </span>
-          <span>{new Date(video.publish_date).toLocaleDateString()}</span>
-        </div>
-      </div>
-    </div>
-  );
 
   if (loading) {
     return (

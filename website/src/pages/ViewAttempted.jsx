@@ -4,6 +4,7 @@ import { getSubmittedUsers } from "../services/ApiService";
 import { useNavigate, useParams } from "react-router-dom";
 import { useData } from "../context/DataContext";
 import StudentCard from "../components/StudentCard";
+import * as XLSX from "xlsx";
 
 function ViewAttempted() {
   const navigate = useNavigate();
@@ -45,16 +46,71 @@ function ViewAttempted() {
     navigate(`/answers/${type}/${id}/${userId}`);
   };
 
+  const downloadExcel = () => {
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      alert("No data available to download");
+      return;
+    }
+
+    // Prepare data for Excel
+    const excelData = data.map((user, index) => ({
+      'Sr. No.': index + 1,
+      'Student Name': user.name || 'N/A',
+      'Email': user.email_id || 'N/A',
+      'Submitted At': user.submittedAt ? new Date(user.submittedAt).toLocaleString() : 'N/A',
+      'Status': user.status || 'Submitted'
+    }));
+
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths
+    const columnWidths = [
+      { wch: 8 },   // Sr. No.
+      { wch: 20 },  // Student Name
+      { wch: 25 },  // Email
+      { wch: 20 },  // Submitted At
+      { wch: 12 }   // Status
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Attempted Students');
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const filename = `${type}_${id}_attempted_students_${timestamp}.xlsx`;
+
+    // Download the file
+    XLSX.writeFile(workbook, filename);
+  };
+
   return (
     <div className="max-w-full mx-auto bg-white rounded-xl shadow-lg px-4 mt-8 animate-fade-in">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-blue-800 flex items-center gap-3 animate-slide-up">
-          <span role="img" aria-label="students">👨‍🎓</span> 
-          Attempted Students
-        </h1>
-        <p className="text-gray-600 mt-2">
-          {type?.toUpperCase()} ID: {id}
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-blue-800 flex items-center gap-3 animate-slide-up">
+              <span role="img" aria-label="students">👨‍🎓</span> 
+              Attempted Students
+            </h1>
+            <p className="text-gray-600 mt-2">
+              {type?.toUpperCase()} ID: {id}
+            </p>
+          </div>
+          {!loading && !error && data && Array.isArray(data) && data.length > 0 && (
+            <button
+              onClick={downloadExcel}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 shadow-md hover:shadow-lg"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download Excel
+            </button>
+          )}
+        </div>
       </div>
 
       {loading && (
@@ -87,11 +143,25 @@ function ViewAttempted() {
             </div>
           ) : (
             <div className="animate-fade-in">
-              <div className="mb-4 flex items-center justify-between">
-                <p className="text-gray-600">
-                  <span className="font-semibold text-blue-800">{data.length}</span> 
-                  {data.length === 1 ? ' student has' : ' students have'} attempted this {type}
-                </p>
+              <div className="mb-6 flex items-center justify-between bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-600 text-white rounded-full p-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-blue-800 font-semibold text-lg">
+                      {data.length} {data.length === 1 ? 'Student' : 'Students'} Attempted
+                    </p>
+                    <p className="text-blue-600 text-sm">
+                      {type?.toUpperCase()} Assessment Results
+                    </p>
+                  </div>
+                </div>
+                <div className="text-blue-600 text-2xl">
+                  📊
+                </div>
               </div>
               <StudentCard 
                 users={data} 

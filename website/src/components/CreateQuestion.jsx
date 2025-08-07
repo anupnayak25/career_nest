@@ -336,14 +336,39 @@ function CreateQuestion() {
     reader.readAsArrayBuffer(file);
   };
 
-  // Download example Excel file
+  // Download example Excel file (dynamic columns based on type)
   const viewExample = (e) => {
     e.preventDefault();
-    const ws = XLSX.utils.aoa_to_sheet([
-      ["Question", "Marks"],
-      ["What is React?", 5],
-      ["Explain useState hook.", 10],
-    ]);
+    let data = [];
+    let filename = "question_format_example.xlsx";
+    if (type === "quiz") {
+      data = [
+        ["Question", "Option 1", "Option 2", "Option 3", "Option 4", "Correct Answer", "Marks"],
+        ["What is React?", "A library", "A framework", "A language", "A database", "A library", 5],
+        ["What is useState?", "A hook", "A prop", "A component", "A reducer", "A hook", 10],
+      ];
+      filename = "quiz_format_example.xlsx";
+    } else if (type === "programming") {
+      data = [
+        ["Question", "Starter Code", "Marks"],
+        ["Write a function to add two numbers.", "def add(a, b):\n    return a + b", 10],
+        ["Reverse a string.", "def reverse(s):\n    return s[::-1]", 15],
+      ];
+      filename = "programming_format_example.xlsx";
+    } else if (type === "hr" || type === "technical") {
+      data = [
+        ["Question", "Marks", "Answer Type", "Sample Answer/URL"],
+        ["Tell us about yourself.", 10, "video", "NA"],
+        ["Describe a challenge you faced.", 15, "transcript", "Sample transcript here"],
+      ];
+      filename = `${type}_format_example.xlsx`;
+    } else {
+      data = [
+        ["Question", "Marks"],
+        ["Sample question?", 5],
+      ];
+    }
+    const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Questions");
     const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
@@ -351,7 +376,7 @@ function CreateQuestion() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "question_format_example.xlsx";
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {
@@ -422,8 +447,8 @@ function CreateQuestion() {
                   <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
                   Basic Information
                 </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="lg:col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="md:col-span-2 lg:col-span-3">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Assessment Title *</label>
                     <input
                       type="text"
@@ -435,7 +460,7 @@ function CreateQuestion() {
                     />
                   </div>
 
-                  <div className="lg:col-span-2">
+                  <div className="md:col-span-2 lg:col-span-3">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
                     <textarea
                       rows="4"
@@ -447,7 +472,7 @@ function CreateQuestion() {
                     />
                   </div>
 
-                  <div>
+                  <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Publish Date & Time *</label>
                     <input
                       type="datetime-local"
@@ -457,7 +482,8 @@ function CreateQuestion() {
                       required
                     />
                   </div>
-                  <div>
+                  
+                  <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Due Date & Time *</label>
                     <input
                       type="datetime-local"
@@ -468,7 +494,7 @@ function CreateQuestion() {
                     />
                   </div>
 
-                  <div>
+                  <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Total Marks *</label>
                     <input
                       type="number"
@@ -504,22 +530,36 @@ function CreateQuestion() {
                     <div
                       key={index}
                       className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-lg font-medium text-gray-900 flex items-center">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6">
+                        <h4 className="text-lg font-medium text-gray-900 flex items-center mb-4 sm:mb-0">
                           <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold mr-3">
                             Q{item.qno}
                           </span>
                           Question {item.qno}
                         </h4>
-                        {formData.questionItems.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeQuestionItem(index)}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                            title="Remove question">
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        )}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-end space-y-3 sm:space-y-0 sm:space-x-4">
+                          <div className="w-full sm:w-32">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Marks *</label>
+                            <input
+                              type="number"
+                              min="1"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-center"
+                              placeholder="10"
+                              value={item.marks}
+                              onChange={(e) => updateQuestionItem(index, "marks", e.target.value)}
+                              required
+                            />
+                          </div>
+                          {formData.questionItems.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeQuestionItem(index)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 mb-2 rounded-lg transition-colors self-end"
+                              title="Remove question">
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       <div className="space-y-4">
@@ -554,10 +594,10 @@ function CreateQuestion() {
                           <div className="space-y-4">
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-3">Answer Options *</label>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {[0, 1, 2, 3].map((optIdx) => (
                                   <div key={optIdx} className="relative">
-                                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium">
+                                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold z-10">
                                       {String.fromCharCode(65 + optIdx)}
                                     </div>
                                     <input
@@ -578,61 +618,68 @@ function CreateQuestion() {
                             </div>
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">Correct Answer *</label>
-                              <input
-                                type="text"
+                              <select
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                placeholder="Enter the exact text of the correct option"
                                 value={item.correct_ans}
                                 onChange={(e) => updateQuestionItem(index, "correct_ans", e.target.value)}
-                                required
-                              />
+                                required>
+                                <option value="">Select the correct answer</option>
+                                {item.options.map((option, optIdx) => (
+                                  <option key={optIdx} value={option} disabled={!option.trim()}>
+                                    {String.fromCharCode(65 + optIdx)}: {option || `Option ${optIdx + 1} (empty)`}
+                                  </option>
+                                ))}
+                              </select>
+                              <p className="text-xs text-gray-500 mt-2">
+                                Select the correct option from the dropdown above
+                              </p>
                             </div>
                           </div>
                         )}
 
                         {(type === "hr" || type === "technical") && (
-                          <div className="bg-blue-50 p-6 rounded-lg">
+                          <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
                             <label className="block text-sm font-medium text-gray-700 mb-4">Answer Format</label>
                             <div className="space-y-6">
-                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                <label className="flex items-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:bg-white hover:border-blue-300 cursor-pointer transition-all duration-200 group">
                                   <input
                                     type="radio"
                                     name={`answer_type_${index}`}
                                     value="video"
                                     checked={item.answer_type === "video"}
                                     onChange={(e) => updateQuestionItem(index, "answer_type", e.target.value)}
-                                    className="mr-3 text-blue-600"
+                                    className="mr-3 text-blue-600 focus:ring-blue-500"
                                   />
                                   <div className="flex items-center">
-                                    <Video className="w-5 h-5 mr-3 text-blue-600" />
+                                    <Video className="w-5 h-5 mr-3 text-blue-600 group-hover:text-blue-700" />
                                     <div>
-                                      <div className="font-medium text-gray-900">Video Answer</div>
-                                      <div className="text-xs text-gray-500">Record response</div>
+                                      <div className="font-medium text-gray-900 group-hover:text-gray-800">Video Answer</div>
+                                      <div className="text-xs text-gray-500">Record or upload video response</div>
                                     </div>
                                   </div>
                                 </label>
-                                <label className="flex items-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:bg-white hover:border-green-300 cursor-pointer transition-all duration-200 group">
                                   <input
                                     type="radio"
                                     name={`answer_type_${index}`}
                                     value="transcript"
                                     checked={item.answer_type === "transcript"}
                                     onChange={(e) => updateQuestionItem(index, "answer_type", e.target.value)}
-                                    className="mr-3 text-blue-600"
+                                    className="mr-3 text-green-600 focus:ring-green-500"
                                   />
                                   <div className="flex items-center">
-                                    <FileText className="w-5 h-5 mr-3 text-green-600" />
+                                    <FileText className="w-5 h-5 mr-3 text-green-600 group-hover:text-green-700" />
                                     <div>
-                                      <div className="font-medium text-gray-900">Text Answer</div>
-                                      <div className="text-xs text-gray-500">Written response</div>
+                                      <div className="font-medium text-gray-900 group-hover:text-gray-800">Text Answer</div>
+                                      <div className="text-xs text-gray-500">Written or typed response</div>
                                     </div>
                                   </div>
                                 </label>
                               </div>
 
                               {item.answer_type === "video" && (
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div className="space-y-6">
                                   <div className="bg-white p-6 rounded-lg border border-gray-200">
                                     <h4 className="text-sm font-medium text-gray-700 mb-4">Record Sample Answer</h4>
 
@@ -659,15 +706,15 @@ function CreateQuestion() {
                                         </div>
                                       )}
                                       {recordingStates[index] === "recording" && (
-                                        <div className="absolute top-4 right-4 bg-red-600 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
-                                          <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></div>
+                                        <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center">
+                                          <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
                                           REC
                                         </div>
                                       )}
                                     </div>
 
                                     {/* Recording Controls */}
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-3">
                                       {(!recordingStates[index] || recordingStates[index] === "idle") && (
                                         <button
                                           type="button"
@@ -702,7 +749,8 @@ function CreateQuestion() {
                                     {item.recorded_video && (
                                       <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                                         <p className="text-sm text-green-800 flex items-center">
-                                          ✓ Sample answer recorded successfully
+                                          <span className="text-green-600 mr-2">✓</span>
+                                          Sample answer recorded successfully
                                         </p>
                                       </div>
                                     )}
@@ -746,49 +794,42 @@ function CreateQuestion() {
                           </div>
                         )}
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Marks *</label>
-                            <input
-                              type="number"
-                              min="1"
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                              placeholder="10"
-                              value={item.marks}
-                              onChange={(e) => updateQuestionItem(index, "marks", e.target.value)}
-                              required
-                            />
-                          </div>
-                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="flex justify-center mt-6">
+                <div className="flex justify-center mt-8">
                   <button
                     type="button"
                     onClick={addQuestionItem}
-                    className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-6 py-3 rounded-lg transition-colors flex items-center font-medium">
-                    + Add Another Question
+                    className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-8 py-3 rounded-lg transition-colors flex items-center font-medium border border-blue-200 hover:border-blue-300">
+                    <span className="text-xl mr-2">+</span>
+                    Add Another Question
                   </button>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-6 py-3 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                  className="w-full sm:w-auto px-6 py-3 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors font-medium">
+                  Clear Form
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/dashboard/${type}`)}
+                  className="w-full sm:w-auto px-6 py-3 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors font-medium">
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors font-medium min-w-[140px]">
+                  className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors font-medium min-w-[160px] flex items-center justify-center">
                   {loading ? (
-                    <span className="flex items-center justify-center">
+                    <>
                       <svg
                         className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                         xmlns="http://www.w3.org/2000/svg"
@@ -806,8 +847,8 @@ function CreateQuestion() {
                           fill="currentColor"
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Submitting...
-                    </span>
+                      Creating...
+                    </>
                   ) : (
                     "Create Assessment"
                   )}

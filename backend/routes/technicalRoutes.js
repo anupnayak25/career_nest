@@ -149,7 +149,7 @@ router.post("/answers", (req, res) => {
 // Get users who submitted answers for a technical set
 router.get("/answers/:id", (req, res) => {
   const technical_question_id = req.params.id;
-  const query = `SELECT DISTINCT user_id FROM technical_answers WHERE technical_question_id = ?`;
+  const query = `SELECT DISTINCT user_id FROM technical_answers WHERE technical_id = ?`;
   const user_query = "SELECT id, name, email_id FROM user WHERE id IN (?)";
 
   connection.query(query, [technical_question_id], (err, results) => {

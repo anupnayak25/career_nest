@@ -92,6 +92,7 @@ app.get("/api/logs", (req, res) => {
   res.sendFile(logFilePath);
 });
 
+
 // ======= Protected Routes (require fetchUser middleware) =======
 app.use(fetchUser); // protect all below
 app.use("/api/technical", require("./routes/technicalRoutes"));

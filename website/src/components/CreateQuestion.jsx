@@ -362,7 +362,7 @@ function CreateQuestion() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
@@ -414,16 +414,16 @@ function CreateQuestion() {
           )}
 
           {/* Form Content */}
-          <div className="p-6">
+          <div className="p-8">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Basic Information */}
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="bg-gray-50 p-8 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
                   <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
                   Basic Information
                 </h3>
-                <div className="space-y-4">
-                  <div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="lg:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Assessment Title *</label>
                     <input
                       type="text"
@@ -435,7 +435,7 @@ function CreateQuestion() {
                     />
                   </div>
 
-                  <div>
+                  <div className="lg:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
                     <textarea
                       rows="4"
@@ -447,30 +447,28 @@ function CreateQuestion() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Publish Date & Time *</label>
-                      <input
-                        type="datetime-local"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                        value={formData.publish_date_time}
-                        onChange={(e) => setFormData({ ...formData, publish_date_time: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Date & Time *</label>
-                      <input
-                        type="datetime-local"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                        value={formData.due_date_time}
-                        onChange={(e) => setFormData({ ...formData, due_date_time: e.target.value })}
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Publish Date & Time *</label>
+                    <input
+                      type="datetime-local"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      value={formData.publish_date_time}
+                      onChange={(e) => setFormData({ ...formData, publish_date_time: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date & Time *</label>
+                    <input
+                      type="datetime-local"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      value={formData.due_date_time}
+                      onChange={(e) => setFormData({ ...formData, due_date_time: e.target.value })}
+                      required
+                    />
                   </div>
 
-                  <div className="max-w-xs">
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Total Marks *</label>
                     <input
                       type="number"
@@ -593,11 +591,11 @@ function CreateQuestion() {
                         )}
 
                         {(type === "hr" || type === "technical") && (
-                          <div className="bg-blue-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-3">Answer Format</label>
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <label className="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                          <div className="bg-blue-50 p-6 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-4">Answer Format</label>
+                            <div className="space-y-6">
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                <label className="flex items-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                                   <input
                                     type="radio"
                                     name={`answer_type_${index}`}
@@ -607,14 +605,14 @@ function CreateQuestion() {
                                     className="mr-3 text-blue-600"
                                   />
                                   <div className="flex items-center">
-                                    <Video className="w-4 h-4 mr-2 text-blue-600" />
+                                    <Video className="w-5 h-5 mr-3 text-blue-600" />
                                     <div>
                                       <div className="font-medium text-gray-900">Video Answer</div>
                                       <div className="text-xs text-gray-500">Record response</div>
                                     </div>
                                   </div>
                                 </label>
-                                <label className="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                <label className="flex items-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                                   <input
                                     type="radio"
                                     name={`answer_type_${index}`}
@@ -624,7 +622,7 @@ function CreateQuestion() {
                                     className="mr-3 text-blue-600"
                                   />
                                   <div className="flex items-center">
-                                    <FileText className="w-4 h-4 mr-2 text-green-600" />
+                                    <FileText className="w-5 h-5 mr-3 text-green-600" />
                                     <div>
                                       <div className="font-medium text-gray-900">Text Answer</div>
                                       <div className="text-xs text-gray-500">Written response</div>
@@ -634,9 +632,9 @@ function CreateQuestion() {
                               </div>
 
                               {item.answer_type === "video" && (
-                                <div className="space-y-4">
-                                  <div className="bg-white p-4 rounded-lg border border-gray-200">
-                                    <h4 className="text-sm font-medium text-gray-700 mb-3">Record Sample Answer</h4>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                  <div className="bg-white p-6 rounded-lg border border-gray-200">
+                                    <h4 className="text-sm font-medium text-gray-700 mb-4">Record Sample Answer</h4>
 
                                     {/* Video Preview */}
                                     <div
@@ -669,7 +667,7 @@ function CreateQuestion() {
                                     </div>
 
                                     {/* Recording Controls */}
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-wrap gap-2">
                                       {(!recordingStates[index] || recordingStates[index] === "idle") && (
                                         <button
                                           type="button"
@@ -711,7 +709,7 @@ function CreateQuestion() {
                                   </div>
 
                                   <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-3">
                                       Alternative Video URL (Optional)
                                     </label>
                                     <input
@@ -721,7 +719,7 @@ function CreateQuestion() {
                                       value={item.answer_url === "NA" ? "" : item.answer_url}
                                       onChange={(e) => updateQuestionItem(index, "answer_url", e.target.value || "NA")}
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">
+                                    <p className="text-xs text-gray-500 mt-2">
                                       You can provide a video URL instead of recording
                                     </p>
                                   </div>
@@ -730,12 +728,12 @@ function CreateQuestion() {
 
                               {item.answer_type === "transcript" && (
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  <label className="block text-sm font-medium text-gray-700 mb-3">
                                     Sample Answer/Transcript (Optional)
                                   </label>
                                   <textarea
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
-                                    rows="4"
+                                    rows="6"
                                     placeholder="Provide a sample answer or key points to look for..."
                                     value={item.answer_transcript === "NA" ? "" : item.answer_transcript}
                                     onChange={(e) =>
@@ -748,17 +746,19 @@ function CreateQuestion() {
                           </div>
                         )}
 
-                        <div className="max-w-xs">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Marks *</label>
-                          <input
-                            type="number"
-                            min="1"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                            placeholder="10"
-                            value={item.marks}
-                            onChange={(e) => updateQuestionItem(index, "marks", e.target.value)}
-                            required
-                          />
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Marks *</label>
+                            <input
+                              type="number"
+                              min="1"
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                              placeholder="10"
+                              value={item.marks}
+                              onChange={(e) => updateQuestionItem(index, "marks", e.target.value)}
+                              required
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>

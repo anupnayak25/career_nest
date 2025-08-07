@@ -1,7 +1,5 @@
 import "./App.css";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-
-// Pages and Components
 import Dashboard from "./pages/Dashboard";
 import VideoPlayer from "./pages/VideoPlayer"; // ✅ Add this import
 import ProfilePage from "./pages/ProfilePage";
@@ -15,7 +13,6 @@ import Video from "./pages/Video"; // 👈 Fixed typo
 import Loading from "./components/Loading";
 import QuestionManagementPage from "./pages/QuestionManagementPage"; // Import the new component
 import NavBar from "./components/NavBar"; // Add NavBar import
-
 import { useEffect, useState } from "react";
 import { checkServerHealth } from "./services/ApiService";
 import { DataProvider } from "./context/DataContext";
@@ -103,7 +100,7 @@ function App() {
       <DataProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />}>
+            <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<DashboardHome />} />
             <Route path="video" element={<Video />} /> 
             <Route path=":type" element={<QuestionManagementPage />} /> {/* Dynamic route for question management */}

@@ -79,7 +79,7 @@ router.get("/user/:id", (req, res) => {
 router.get("/:id", (req, res) => {
   const id = req.params.id;
   const setQuery = `SELECT * FROM technical_questions WHERE id = ?`;
-  const questionsQuery = `SELECT qno, question, marks FROM technical_question_items WHERE technical_question_id = ?`;
+  const questionsQuery = `SELECT qno, question, marks FROM technical_question_items WHERE technical_id = ?`;
 
   connection.query(setQuery, [id], (err, setResults) => {
     if (err) return res.status(500).json({ error: err.message });

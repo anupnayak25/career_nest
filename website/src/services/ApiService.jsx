@@ -1,3 +1,15 @@
+// Fetch questions for a given type and id
+export const getQuestionsById = async (type, id) => {
+  refresh();
+  if (!authToken) throw new Error("Auth token not found in sessionStorage");
+  const res = await fetch(`${apiUrl}/api/${type}/${id}`, {
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+};
 // --- Health Check ---
 export const checkServerHealth = async () => {
   try {

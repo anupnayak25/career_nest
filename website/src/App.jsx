@@ -1,7 +1,7 @@
 import "./App.css";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
-import VideoPlayer from "./pages/VideoPlayer"; // ✅ Add this import
+import VideoPlayer from "./pages/VideoDetail"; // ✅ Add this import
 import ProfilePage from "./pages/ProfilePage";
 import Signup from "./pages/Signup";
 import Signin from "./pages/Signin";
@@ -39,7 +39,7 @@ function App() {
       setServerUp(up);
       setChecking(false);
       if (!up) {
-        intervalId = setTimeout(check, 3000);
+        intervalId = setTimeout(check, 1000);
       }
     };
     check();

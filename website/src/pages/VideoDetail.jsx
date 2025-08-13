@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Eye, Tag, ThumbsUp, Share2, Download } from 'lucide-react';
+import VideoPlayer from '../components/VideoPlayer';
 
-const VideoPlayer = () => {
+const VideoDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [video, setVideo] = useState(null);
@@ -108,17 +109,7 @@ const VideoPlayer = () => {
           {/* Main Video Player Section */}
           <div className="lg:col-span-2">
             {/* Video Player */}
-            <div className="bg-black rounded-xl overflow-hidden shadow-xl mb-6">
-              <video 
-                controls 
-                className="w-full aspect-video"
-                poster="/path/to/video-poster.jpg"
-              >
-                <source src={`${import.meta.env.VITE_API_URL}/videos/${video.url}`} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            </div>
-
+          <VideoPlayer url={video.url} />
             {/* Video Info */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4 leading-tight">
@@ -209,4 +200,4 @@ const VideoPlayer = () => {
   );
 };
 
-export default VideoPlayer;
+export default VideoDetail;

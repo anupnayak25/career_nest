@@ -1,7 +1,7 @@
 // Answers.jsx
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getUserAnswers, updateUserMarks } from "../services/ApiService";
+import { getUserAnswers, updateUserMarks, getQuestionsById } from "../services/ApiService";
 
 function Answers() {
   const { type, id, userid } = useParams();
@@ -11,6 +11,23 @@ function Answers() {
   const [error, setError] = useState(null);
   const [marksInputs, setMarksInputs] = useState({});
   const [saving, setSaving] = useState(false);
+  const [videoErrors, setVideoErrors] = useState({});
+
+  // Helper function to check if a string is a video URL
+  const isVideoUrl = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    // Check for common video URL patterns
+    return url.includes('http') || url.includes('blob:') || url.includes('data:video') || 
+           url.match(/\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)(\?|$)/i);
+  };
+
+  // Handle video loading errors
+  const handleVideoError = (questionNo) => {
+    setVideoErrors(prev => ({
+      ...prev,
+      [questionNo]: true
+    }));
+  };
 
   useEffect(() => {
     fetchAnswers();
@@ -22,26 +39,19 @@ function Answers() {
       // Fetch answers for the specific user
       const answersData = await getUserAnswers(type, id);
       setAnswers(answersData);
+      console .log("Fetched answers:", answersData);
 
       // Fetch questions to get max marks for each question
-      const questionsResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/${type}/${id}`, {
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("auth_token")}`,
-        },
+      const questionsData = await getQuestionsById(type, id);
+      const questionsList = questionsData.questions || questionsData;
+      setQuestions(questionsList);
+
+      // Initialize marks inputs with current marks or 0
+      const initialMarks = {};
+      answersData.forEach((answer) => {
+        initialMarks[answer.qno] = answer.marks_awarded || 0;
       });
-
-      if (questionsResponse.ok) {
-        const questionsData = await questionsResponse.json();
-        const questionsList = questionsData.questions || questionsData;
-        setQuestions(questionsList);
-
-        // Initialize marks inputs with current marks or 0
-        const initialMarks = {};
-        answersData.forEach((answer) => {
-          initialMarks[answer.qno] = answer.marks_awarded || 0;
-        });
-        setMarksInputs(initialMarks);
-      }
+      setMarksInputs(initialMarks);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -147,13 +157,47 @@ function Answers() {
                 <p className="text-gray-800 bg-gray-50 p-3 rounded">{getQuestionText(answer.qno)}</p>
               </div>
 
-              <div className="mb-3">
+                            <div className="mb-3">
                 <p className="text-sm font-medium text-gray-700 mb-1">Student's Answer:</p>
                 <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
                   {type === "programming" ? (
                     <pre className="whitespace-pre-wrap text-sm font-mono text-gray-800">
                       {answer.submitted_code || answer.answer}
                     </pre>
+                  ) : (type === "technical" || type === "hr") && isVideoUrl(answer.answer) ? (
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600 font-medium">Video Response:</p>
+                      {videoErrors[answer.qno] ? (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                          <p className="text-red-600 font-medium mb-2">⚠️ Video could not be loaded</p>
+                          <p className="text-sm text-red-500 mb-2">
+                            There was an error loading the video. This could be due to:
+                          </p>
+                          <ul className="text-sm text-red-500 list-disc list-inside mb-3">
+                            <li>Invalid video URL</li>
+                            <li>Unsupported video format</li>
+                            <li>Network connectivity issues</li>
+                            <li>CORS restrictions</li>
+                          </ul>
+                          <details className="text-xs text-gray-600">
+                            <summary className="cursor-pointer hover:text-gray-800">Show video URL</summary>
+                            <p className="mt-1 break-all bg-gray-100 p-2 rounded">
+                              {answer.video_url || answer.answer}
+                            </p>
+                          </details>
+                        </div>
+                      ) : (
+                        <VideoPlayer url={answer.video_url || answer.answer} onError={() => handleVideoError(answer.qno)} />
+                      )}
+                      {!videoErrors[answer.qno] && (
+                        <details className="text-xs text-gray-500">
+                          <summary className="cursor-pointer hover:text-gray-700">Show video URL</summary>
+                          <p className="mt-1 break-all bg-gray-100 p-2 rounded">
+                            {answer.video_url || answer.answer}
+                          </p>
+                        </details>
+                      )}
+                    </div>
                   ) : (
                     <p className="text-gray-800">{answer.answer || answer.selected_ans}</p>
                   )}

@@ -28,7 +28,7 @@ router.get("/", (req, res) => {
 });
 
 // Get a specific quiz's questions
-router.get("/student/:id", (req, res) => {
+router.get("/:id", (req, res) => {
   const id = req.params.id;
   connection.query(
     "SELECT id, quiz_id, qno, question, options, marks FROM quiz_questions WHERE quiz_id = ?",

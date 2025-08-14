@@ -1,10 +1,17 @@
 // Answers.jsx
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getUserAnswers, updateUserMarks, getQuestionsById } from "../services/ApiService";
+import {
+  getUserAnswers,
+  updateUserMarks,
+  getQuestionsById,
+} from "../services/ApiService";
+import VideoPlayer from "./VideoPlayer";
+import { useToast } from "../ui/Toast";
 
 function Answers() {
   const { type, id, userid } = useParams();
+  const { showToast } = useToast();
   const [answers, setAnswers] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,19 +22,28 @@ function Answers() {
 
   // Helper function to check if a string is a video URL
   const isVideoUrl = (url) => {
-    if (!url || typeof url !== 'string') return false;
+    if (!url || typeof url !== "string") return false;
     // Check for common video URL patterns
-    return url.includes('http') || url.includes('blob:') || url.includes('data:video') || 
-           url.match(/\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)(\?|$)/i);
+    return (
+      url.includes("http") ||
+      url.includes("blob:") ||
+      url.includes("data:video") ||
+      url.match(/\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)(\?|$)/i)
+    );
   };
 
   // Handle video loading errors
   const handleVideoError = (questionNo) => {
-    setVideoErrors(prev => ({
+    setVideoErrors((prev) => ({
       ...prev,
-      [questionNo]: true
+      [questionNo]: true,
     }));
   };
+
+  const isVideoFile = (filename) => {
+  if (!filename || typeof filename !== 'string') return false;
+  return filename.match(/\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)$/i);
+};
 
   useEffect(() => {
     fetchAnswers();
@@ -37,9 +53,9 @@ function Answers() {
     try {
       setLoading(true);
       // Fetch answers for the specific user
-      const answersData = await getUserAnswers(type, id);
+      const answersData = await getUserAnswers(type, id, userid);
       setAnswers(answersData);
-      console .log("Fetched answers:", answersData);
+      console.log("Fetched answers:", answersData);
 
       // Fetch questions to get max marks for each question
       const questionsData = await getQuestionsById(type, id);
@@ -80,10 +96,10 @@ function Answers() {
 
       // Refresh answers to show updated marks
       await fetchAnswers();
-      alert("Marks saved successfully!");
+      showToast("Marks saved successfully!", "success");
     } catch (err) {
       setError(err.message);
-      alert("Failed to save marks: " + err.message);
+      showToast("Failed to save marks: " + err.message, "error");
     } finally {
       setSaving(false);
     }
@@ -100,23 +116,32 @@ function Answers() {
   };
 
   const calculateTotalMarks = () => {
-    return Object.values(marksInputs).reduce((sum, marks) => sum + (marks || 0), 0);
+    return Object.values(marksInputs).reduce(
+      (sum, marks) => sum + (marks || 0),
+      0
+    );
   };
 
   const getTotalMaxMarks = () => {
     return questions.reduce((sum, q) => sum + (q.marks || 0), 0);
   };
 
-  if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-64">Loading...</div>
+    );
   if (error) return <div className="text-red-500 p-4">Error: {error}</div>;
-  if (!answers || answers.length === 0) return <div className="p-4">No answers available for this user.</div>;
+  if (!answers || answers.length === 0)
+    return <div className="p-4">No answers available for this user.</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Answers Review - {type.toUpperCase()}</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              Answers Review - {type.toUpperCase()}
+            </h2>
             <p className="text-gray-600">User ID: {userid}</p>
             <p className="text-gray-600">Question Set ID: {id}</p>
           </div>
@@ -127,7 +152,8 @@ function Answers() {
             <button
               onClick={saveMarks}
               disabled={saving}
-              className="mt-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+              className="mt-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+            >
               {saving ? "Saving..." : "Save Marks"}
             </button>
           </div>
@@ -137,15 +163,21 @@ function Answers() {
           {answers.map((answer, index) => (
             <div key={index} className="border border-gray-200 rounded-lg p-4">
               <div className="flex justify-between items-start mb-3">
-                <h3 className="text-lg font-semibold text-gray-800">Question {answer.qno}</h3>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Question {answer.qno}
+                </h3>
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">Max: {getMaxMarks(answer.qno)} marks</span>
+                  <span className="text-sm text-gray-500">
+                    Max: {getMaxMarks(answer.qno)} marks
+                  </span>
                   <input
                     type="number"
                     min="0"
                     max={getMaxMarks(answer.qno)}
                     value={marksInputs[answer.qno] || 0}
-                    onChange={(e) => handleMarksChange(answer.qno, e.target.value)}
+                    onChange={(e) =>
+                      handleMarksChange(answer.qno, e.target.value)
+                    }
                     className="w-20 px-2 py-1 border border-gray-300 rounded text-center"
                     placeholder="0"
                   />
@@ -153,60 +185,83 @@ function Answers() {
               </div>
 
               <div className="mb-3">
-                <p className="text-sm font-medium text-gray-700 mb-1">Question:</p>
-                <p className="text-gray-800 bg-gray-50 p-3 rounded">{getQuestionText(answer.qno)}</p>
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  Question:
+                </p>
+                <p className="text-gray-800 bg-gray-50 p-3 rounded">
+                  {getQuestionText(answer.qno)}
+                </p>
               </div>
 
-                            <div className="mb-3">
-                <p className="text-sm font-medium text-gray-700 mb-1">Student's Answer:</p>
+              <div className="mb-3">
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  Student's Answer:
+                </p>
                 <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
                   {type === "programming" ? (
                     <pre className="whitespace-pre-wrap text-sm font-mono text-gray-800">
                       {answer.submitted_code || answer.answer}
                     </pre>
-                  ) : (type === "technical" || type === "hr") && isVideoUrl(answer.answer) ? (
+                  ) : (type === "technical" || type === "hr") &&
+                    isVideoFile(answer.answer) ? (
                     <div className="space-y-3">
-                      <p className="text-sm text-gray-600 font-medium">Video Response:</p>
+                      <p className="text-sm text-gray-600 font-medium">
+                        Video Response:
+                      </p>
                       {videoErrors[answer.qno] ? (
                         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                          <p className="text-red-600 font-medium mb-2">⚠️ Video could not be loaded</p>
+                          <p className="text-red-600 font-medium mb-2">
+                            ⚠️ Video could not be loaded
+                          </p>
                           <p className="text-sm text-red-500 mb-2">
-                            There was an error loading the video. This could be due to:
+                            There was an error loading the video. This could be
+                            due to:
                           </p>
                           <ul className="text-sm text-red-500 list-disc list-inside mb-3">
-                            <li>Invalid video URL</li>
+                            <li>Invalid video file</li>
                             <li>Unsupported video format</li>
                             <li>Network connectivity issues</li>
                             <li>CORS restrictions</li>
                           </ul>
                           <details className="text-xs text-gray-600">
-                            <summary className="cursor-pointer hover:text-gray-800">Show video URL</summary>
+                            <summary className="cursor-pointer hover:text-gray-800">
+                              Show video filename
+                            </summary>
                             <p className="mt-1 break-all bg-gray-100 p-2 rounded">
-                              {answer.video_url || answer.answer}
+                              {answer.answer}
                             </p>
                           </details>
                         </div>
                       ) : (
-                        <VideoPlayer url={answer.video_url || answer.answer} onError={() => handleVideoError(answer.qno)} />
+                        <VideoPlayer
+                          url={answer.answer}
+                          onError={() => handleVideoError(answer.qno)}
+                        />
                       )}
                       {!videoErrors[answer.qno] && (
                         <details className="text-xs text-gray-500">
-                          <summary className="cursor-pointer hover:text-gray-700">Show video URL</summary>
+                          <summary className="cursor-pointer hover:text-gray-700">
+                            Show video filename
+                          </summary>
                           <p className="mt-1 break-all bg-gray-100 p-2 rounded">
-                            {answer.video_url || answer.answer}
+                            {answer.answer}
                           </p>
                         </details>
                       )}
                     </div>
                   ) : (
-                    <p className="text-gray-800">{answer.answer || answer.selected_ans}</p>
+                    <p className="text-gray-800">
+                      {answer.answer || answer.selected_ans}
+                    </p>
                   )}
                 </div>
               </div>
 
               {type === "quiz" && (
                 <div className="mb-3">
-                  <p className="text-sm font-medium text-gray-700 mb-1">Correct Answer:</p>
+                  <p className="text-sm font-medium text-gray-700 mb-1">
+                    Correct Answer:
+                  </p>
                   <p className="text-gray-800 bg-green-50 p-3 rounded border-l-4 border-green-400">
                     {answer.correct_ans || "Not available"}
                   </p>
@@ -215,7 +270,12 @@ function Answers() {
 
               <div className="flex justify-between items-center text-sm text-gray-600">
                 <span>Previous Marks: {answer.marks_awarded || 0}</span>
-                <span>{answer.submitted_at && `Submitted: ${new Date(answer.submitted_at).toLocaleString()}`}</span>
+                <span>
+                  {answer.submitted_at &&
+                    `Submitted: ${new Date(
+                      answer.submitted_at
+                    ).toLocaleString()}`}
+                </span>
               </div>
             </div>
           ))}
@@ -227,7 +287,11 @@ function Answers() {
               Final Score: {calculateTotalMarks()} / {getTotalMaxMarks()}
             </div>
             <div className="text-lg font-semibold text-gray-800">
-              Percentage: {getTotalMaxMarks() > 0 ? Math.round((calculateTotalMarks() / getTotalMaxMarks()) * 100) : 0}%
+              Percentage:{" "}
+              {getTotalMaxMarks() > 0
+                ? Math.round((calculateTotalMarks() / getTotalMaxMarks()) * 100)
+                : 0}
+              %
             </div>
           </div>
         </div>

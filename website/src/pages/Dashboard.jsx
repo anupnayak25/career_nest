@@ -24,13 +24,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  useEffect(() => {
-    const isLoggedIn = sessionStorage.getItem("isLoggedIn");
-    if (!isLoggedIn || isLoggedIn !== "true") {
-      console.warn("🔐 Not logged in, redirecting to login...");
-      navigate("/signin");
-    }
-  }, [navigate]);
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const pathname = location.pathname;

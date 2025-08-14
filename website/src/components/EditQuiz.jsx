@@ -21,11 +21,30 @@ function EditQuiz() {
       .then((res) => res.json())
       .then(({ quiz, questions }) => {
         const q = quiz[0];
+        // Ensure due_date is in 'YYYY-MM-DDTHH:MM' format for datetime-local input
+        let dueDateValue = q.due_date;
+        if (dueDateValue) {
+          // Try to parse as Date and format as required
+          const dateObj = new Date(dueDateValue);
+          if (!isNaN(dateObj.getTime())) {
+            // Pad month, day, hour, minute
+            const pad = (n) => n.toString().padStart(2, '0');
+            const yyyy = dateObj.getFullYear();
+            const mm = pad(dateObj.getMonth() + 1);
+            const dd = pad(dateObj.getDate());
+            const hh = pad(dateObj.getHours());
+            const min = pad(dateObj.getMinutes());
+            dueDateValue = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+          } else {
+            // fallback: try to slice if string is long enough
+            dueDateValue = dueDateValue.slice(0, 16);
+          }
+        }
         setFormData({
           id: q.id,
           title: q.title,
           description: q.description,
-          due_date: q.due_date.slice(0, 16),
+          due_date: dueDateValue,
           quizQuestions: questions.map((item) => ({
             id: item.id,
             question: item.question,

@@ -9,20 +9,35 @@ const QuestionManagementPage = () => {
   const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const loadQuestions = useCallback(async () => {
     if (!type) return;
-    
+    setErrorMsg("");
     console.log('Loading questions for type:', type);
     setLoading(true);
     setQuestions([]); // Clear existing questions immediately
     try {
       const data = await getUserQuestions(type);
       console.log('Loaded questions:', data);
-      setQuestions(data || []);
+      if (Array.isArray(data) && data.length === 0) {
+        setQuestions([]);
+        setErrorMsg("You have no questions yet. You might be a new user or have deleted all previous questions.");
+      } else if (data && data.error) {
+        setQuestions([]);
+        setErrorMsg(data.error);
+      } else {
+        setQuestions(data || []);
+      }
     } catch (error) {
       console.error('Error loading questions:', error);
       setQuestions([]);
+      // Show a user-friendly message for 404 or empty
+      if (error.message && (error.message.includes('not found') || error.message.includes('404'))) {
+        setErrorMsg("You have no questions yet. You might be a new user or have deleted all previous questions.");
+      } else {
+        setErrorMsg("Failed to load questions. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }
@@ -67,7 +82,7 @@ const QuestionManagementPage = () => {
               <p className="text-gray-500">Please wait while we fetch your questions</p>
             </div>
           </div>
-        ) : questions.length > 0 ? (
+  ) : questions.length > 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             {/* Table Header */}
             <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
@@ -107,7 +122,9 @@ const QuestionManagementPage = () => {
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Plus className="w-8 h-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No {type} questions yet</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {errorMsg ? errorMsg : `No ${type} questions yet`}
+              </h3>
               <p className="text-gray-500 mb-6">Get started by creating your first {type} question</p>
               <button
                 onClick={() => navigate(`/add-question/${type}`)}

@@ -92,7 +92,7 @@ const VideoDetail = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with back button */}
-      <div className="bg-white shadow-sm border-b">
+      {/* <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <button
             onClick={handleGoBack}
@@ -102,9 +102,9 @@ const VideoDetail = () => {
             Back to Videos
           </button>
         </div>
-      </div>
+      </div> */}
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className=" mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Video Player Section */}
           <div className="lg:col-span-2">
@@ -131,7 +131,7 @@ const VideoDetail = () => {
               </div>
 
               {/* Action buttons */}
-              <div className="flex flex-wrap gap-3 mb-6">
+              {/*  <div className="flex flex-wrap gap-3 mb-6">
                 <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-gray-700">
                   <ThumbsUp size={18} />
                   Like
@@ -144,7 +144,8 @@ const VideoDetail = () => {
                   <Download size={18} />
                   Download
                 </button>
-              </div>
+              </div>*/}
+              
 
               {/* Description */}
               <div className="border-t pt-6">
@@ -181,7 +182,7 @@ const VideoDetail = () => {
               </div>
 
               {/* Related videos or additional info could go here */}
-              <div className="mt-8 pt-6 border-t">
+              {/* <div className="mt-8 pt-6 border-t">
                 <h4 className="text-md font-semibold text-gray-900 mb-3">More Actions</h4>
                 <div className="space-y-2">
                   <button className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
@@ -191,7 +192,7 @@ const VideoDetail = () => {
                     Add to Playlist
                   </button>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

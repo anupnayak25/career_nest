@@ -1,31 +1,4 @@
-// Fetch questions for a given type and id
-export const getQuestionsById = async (type, id) => {
-  refresh();
-  if (!authToken) throw new Error("Auth token not found in sessionStorage");
-  const res = await fetch(`${apiUrl}/api/${type}/${id}`, {
-    headers: {
-      Authorization: `Bearer ${authToken}`,
-    },
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return await res.json();
-};
-// --- Health Check ---
-export const checkServerHealth = async () => {
-  try {
-    const res = await fetch(`${apiUrl}/`, {
-      method: "GET",
-    });
-    // Accept any 2xx as up
-    if (res.status >= 200 && res.status < 300) return true;
-    // If status is 200 but response is HTML/text, still treat as up
-    if (res.status === 200) return true;
-    return false;
-  } catch (e) {
-    console.log(e);
-    return false;
-  }
-};
+
 const apiUrl = import.meta.env.VITE_API_URL;
 
 // --- Cached Auth State ---
@@ -51,6 +24,36 @@ const getHeaders = (json = true) => {
 };
 
 // --- Question APIs ---
+
+// Fetch questions for a given type and id
+export const getQuestionsById = async (type, id) => {
+  refresh();
+  if (!authToken) throw new Error("Auth token not found in sessionStorage");
+  const res = await fetch(`${apiUrl}/api/${type}/${id}`, {
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+};
+
+// --- Health Check ---
+export const checkServerHealth = async () => {
+  try {
+    const res = await fetch(`${apiUrl}/`, {
+      method: "GET",
+    });
+    // Accept any 2xx as up
+    if (res.status >= 200 && res.status < 300) return true;
+    // If status is 200 but response is HTML/text, still treat as up
+    if (res.status === 200) return true;
+    return false;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+};
 
 export const uploadQuestions = async (type, data) => {
   refresh();
@@ -118,11 +121,9 @@ export const getSubmittedUsers = async (type, id) => {
   }
 };
 
-export const getUserAnswers = async (type, questionId) => {
-  refresh();
-  if (!userId) throw new Error("User ID not found in sessionStorage");
+export const getUserAnswers = async (type, questionId, studentId) => {
 
-  const res = await fetch(buildUrl(type, `/answers/${questionId}/${userId}`), {
+  const res = await fetch(buildUrl(type, `/answers/${questionId}/${studentId}`), {
     headers: getHeaders(false),
   });
   if (!res.ok) throw new Error(await res.text());
@@ -430,6 +431,32 @@ export const updateVideo = async (videoId, updateData) => {
     return data;
   } catch (err) {
     console.error("Update video error:", err.message);
+    return { success: false, message: err.message };
+  }
+};
+
+export const evaluate = async (id, type) => {
+  refresh();
+  if (!authToken) throw new Error("Auth token not found in sessionStorage");
+  try {
+    const res = await fetch(`${apiUrl}/api/evaluate/${id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ type }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Failed to evaluate");
+    }
+
+    return data;
+  } catch (err) {
+    console.error("Evaluate error:", err.message);
     return { success: false, message: err.message };
   }
 };

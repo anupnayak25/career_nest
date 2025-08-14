@@ -236,6 +236,23 @@ router.put("/answers/:technical_id/:user_id/marks", (req, res) => {
     });
 });
 
+router.get("/evaluate", (req, res) => {
+  const { hr_question_id } = req.query;
+
+  if (!hr_question_id) {
+    return res.status(400).json({ error: "hr_question_id is required" });
+  }
+
+  evaluate(hr_question_id, "technical")
+    .then(() => {
+      res.json({ message: "Evaluation started successfully" });
+    })
+    .catch((error) => {
+      console.error("Error during evaluation:", error);
+      res.status(500).json({ error: "Failed to start evaluation" });
+    });
+});
+
 // Get all posts by the logged-in user
 
 module.exports = router;

@@ -51,7 +51,7 @@ async function evaluate(question_id, type) {
   }
   
   connection.query(
-    "SELECT answer_url FROM ?? WHERE id = ? and answer_url != 'NA'",
+    "SELECT answer FROM ?? WHERE id = ? and answer != 'NA'",
     [tableName, question_id],
     async (err, results) => {
       if (err) {

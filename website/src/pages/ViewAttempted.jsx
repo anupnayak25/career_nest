@@ -1,6 +1,6 @@
 // ViewAttempted.jsx - Enhanced UI with table layout
 import React, { useEffect, useState } from "react";
-import { getSubmittedUsers } from "../services/ApiService";
+import { evaluate, getSubmittedUsers } from "../services/ApiService";
 import { useNavigate, useParams } from "react-router-dom";
 import { useData } from "../context/DataContext";
 import StudentCard from "../components/StudentCard";
@@ -31,7 +31,16 @@ function ViewAttempted() {
           }));
         }
       } catch (err) {
-        setError("Failed to load attempted data");
+        // If 404 or "No answers yet", show a friendly message instead of error
+        if (err.message && (err.message.includes("404") || err.message.includes("No answers yet"))) {
+          setAttemptedData((prev) => ({
+            ...prev,
+            [`${type}_${id}`]: [],
+          }));
+          setError("");
+        } else {
+          setError("Failed to load attempted data");
+        }
         console.error("Failed to load attempted data", err);
       } finally {
         setLoading(false);
@@ -160,7 +169,11 @@ function ViewAttempted() {
                   </div>
                 </div>
                 <div className="text-blue-600 text-2xl">
-                  📊
+                 {(type === "technical" || type === "hr") && (
+                   <button onClick={() => evaluate(id, type)} className="p-2 px-5 bg-blue-800 text-sm text-white rounded-lg">
+                     Auto Analyse
+                   </button>
+                 )} 📊
                 </div>
               </div>
               <StudentCard 

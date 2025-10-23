@@ -21,7 +21,9 @@
   },
   "scripts": {
     "dev": "concurrently \"nodemon server.js\" \"node auto-fetcher.js\"",
-    "server": "nodemon server.js"
+    "server": "nodemon server.js",
+    "eval:run": "node scripts/run-evaluation.js",
+    "db:ping": "node scripts/db-ping.js"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

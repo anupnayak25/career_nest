@@ -21,7 +21,6 @@ router.post("/", (req, res) => {
 
       connection.query(insertQuestionsQuery, [values], (err2) => {
         if (err2) return res.status(500).json({ error: err2.message });
-        transcribe(technicalId, "technical"); // Call transcribe function for the technical set
         res
           .status(201)
           .json({

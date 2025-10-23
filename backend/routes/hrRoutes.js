@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const connection = require("../db"); // Assuming you have a db.js file for database connection
-const { transcribe, evaluate } = require("./evaluateRoutes");
 //const fetchUser = require('../middlewares/fetchUser');
 router.get("/", (req, res) => {
   connection.query("SELECT * FROM hr_questions", async (err, sets) => {
@@ -81,7 +80,6 @@ router.post("/", (req, res) => {
       // Wait for all inserts to finish
       Promise.all(insertItemPromises)
         .then(() => {
-           transcribe(hr_question_id, "hr");
           res.status(201).json({
             message: "questions uploaded successfully",
             id: hr_question_id,
@@ -303,23 +301,6 @@ router.put("/answers/:hr_question_id/:user_id/marks", (req, res) => {
     })
     .catch((error) => {
       res.status(500).json({ error: error.message });
-    });
-});
-
-router.get("/evaluate/:id", (req, res) => {
-  const { id } = req.params;
-
-  if (!id) {
-    return res.status(400).json({ error: "hr_question_id is required" });
-  }
-
-  evaluate(id, "hr")
-    .then(() => {
-      res.json({ message: "Evaluation started successfully" });
-    })
-    .catch((error) => {
-      console.error("Error during evaluation:", error);
-      res.status(500).json({ error: "Failed to start evaluation" });
     });
 });
 

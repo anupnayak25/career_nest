@@ -1,70 +1,46 @@
-// Example Express handler to call Flask /transcribe
-// filepath: c:\Users\Anup Nayak\Desktop\career_nest\backend\routes\evaluateRoutes.js
+const express = require('express');
+const router = express.Router();
+const { evaluateHrSet, evaluateTechnicalSet } = require('../services/evaluationService');
+const { ping, AI_SERVER_URL } = require('../services/aiClient');
 
-const axios = require('axios');
-const connection = require("../db");
+// POST /api/evaluate/batch
+// Body: { type: 'hr'|'technical', setId: number, userIds: number[] }
+router.post('/batch', async (req, res) => {
+  const { type, setId, userIds } = req.body;
 
-async function transcribe(question_id,type) {
-    let tableName = "";
-    if(type== "hr"){
-        tableName = "hr_question_items";
-    }else if(type == "technical"){
-        tableName = "technical_question_items";
-    }
-  // 1. Get videoUrl from DB for the given hr_question_id
-  connection.query(
-    "SELECT id,answer_url FROM ?? WHERE id = ? and answer_url != 'NA'",
-    [tableName, question_id],
-    async (err, results) => {
-      if (err) {
-        console.error("DB error:", err);
-        return;
-      }
-      if (!results.length) {
-        console.error("No video_url found for id", hr_question_id);
-        return;
-      }
-      const videoUrl = results[0].video_url;
-
-      // 2. Call Flask /transcribe endpoint
-      try {
-        const response = await axios.post('https://lh3bvwkx-7860.inc1.devtunnels.ms/', {
-          videoUrl: videoUrl
-        });
-        const transcript = response.data.transcript;
-        // You can now use the transcript (e.g., save to DB, log, etc.)
-        console.log("Transcript:", transcript);
-      } catch (error) {
-        console.error("Error calling AI server:", error.message);
-      }
-    }
-  );
-}
-
-async function evaluate(question_id, type) {
-  // 1. Get videoUrl from DB for the given question_id
-  let tableName = "";
-  if(type == "hr"){
-    tableName = "hr_question_items";
-  }else if(type == "technical"){
-    tableName = "technical_question_items";
+  if (!type || !['hr', 'technical'].includes(type)) {
+    return res.status(400).json({ error: 'type must be hr or technical' });
   }
-  
-  connection.query(
-    "SELECT answer FROM ?? WHERE id = ? and answer != 'NA'",
-    [tableName, question_id],
-    async (err, results) => {
-      if (err) {
-        console.error("DB error:", err);
-        return;
-      }
-      if (!results.length) {
-        console.error("No video_url found for id", question_id);
-        return;
-      }
-      const videoUrl = results[0].answer_url;                                                                                       
-    
-})
-}
+  if (!setId) {
+    return res.status(400).json({ error: 'setId is required' });
+  }
+  if (!Array.isArray(userIds) || userIds.length === 0) {
+    return res.status(400).json({ error: 'userIds must be a non-empty array' });
+  }
 
-module.exports = { transcribe, evaluate };
+  const summary = [];
+  for (const userId of userIds) {
+    try {
+      const result = type === 'hr'
+        ? await evaluateHrSet(setId, userId)
+        : await evaluateTechnicalSet(setId, userId);
+      summary.push({ userId, ok: true, ...result });
+    } catch (e) {
+      summary.push({ userId, ok: false, error: e.message });
+    }
+  }
+
+  res.json({ type, setId, total: summary.length, summary });
+});
+
+// GET /api/evaluate/health
+router.get('/health', async (req, res) => {
+  try {
+    const data = await ping();
+    res.json({ ok: true, aiServer: AI_SERVER_URL, data });
+  } catch (e) {
+    res.status(500).json({ ok: false, aiServer: AI_SERVER_URL, error: e.message });
+  }
+});
+
+module.exports = router;

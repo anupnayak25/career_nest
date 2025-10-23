@@ -45,5 +45,23 @@ def evaluate():
     })
 
 
+@app.route('/score', methods=['POST'])
+def score_texts():
+    data = request.json
+    expected_transcript = data.get('expectedTranscript')
+    student_transcript = data.get('studentTranscript')
+
+    if not expected_transcript or not student_transcript:
+        return jsonify({"error": "Missing expectedTranscript or studentTranscript"}), 400
+
+    try:
+        score = evaluate_transcript(expected_transcript, student_transcript)
+        return jsonify({
+            "score": score
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=7860)

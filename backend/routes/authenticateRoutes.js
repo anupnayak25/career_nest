@@ -37,9 +37,7 @@ const otpStore = {};
 const verifiedEmails = new Set();
 
 router.post("/otp", [body("email", "Invalid email").isEmail()], async (req, res) => {
-  console.log("Hey");
-  console.log(req);
-  console.log("Hey");
+  console.log("OTP request received for email:", req.body.email);
  
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -146,23 +144,37 @@ router.post(
       //   return res.status(409).json({ message: "User already exists" });
       // }
       // Hash password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      const id = uuidv4();
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
 
-      // Extract name and type from email
+      // Extract year from email
+      // let year = null;
+      // if (userType === 'student') {
+      //   // Extract year from email pattern like nnm24mc014@nmamit.in
+      //   const emailMatch = email.match(/nnm(\d{2})/i);
+      //   if (emailMatch) {
+      //     const yearSuffix = parseInt(emailMatch[1]);
+      //     // Convert 24 to 2024, 25 to 2025, etc.
+      //     year = yearSuffix < 50 ? 2000 + yearSuffix : 1900 + yearSuffix;
+      //   }
+      // }
+      // For faculty or if year extraction fails, year remains null
 
       // Insert user into database
       connection.query(
         "INSERT INTO user (name, email_id, password, type) VALUES (?, ?, ?, ?)",
         [name, email, hashedPassword, userType],
-        (err, results) => {
+  (err, results) => {
           if (err) {
             // Duplicate entry error (email already exists)
             if (err.code === "ER_DUP_ENTRY") {
               console.error("Duplicate entry for email:", email);
-              verifiedEmails.remove(email);
-              return res.status(409).json({ error: "User already exists" }); // 409 Conflict
+              // Clean up OTP/verification state and respond with conflict
+              delete otpStore[email];
+              verifiedEmails.delete(email);
+              return res
+                .status(409)
+                .json({ error: "User already exists", message: "User already exists" }); // 409 Conflict
             }
 
             console.error("Error inserting user:", err);
@@ -172,10 +184,11 @@ router.post(
           // Remove used OTP
           delete otpStore[email];
           verifiedEmails.delete(email);
-          // Generate auth token
+          // Generate auth token with DB user id
+          const userId = results.insertId; // auto-increment id from DB
           const payload = {
             user: {
-              id: id,
+              id: userId,
             },
           };
           const authToken = jwt.sign(payload, JWT_SECRET);
@@ -187,7 +200,7 @@ router.post(
             name,
             email,
             type: userType,
-            id,
+            id: userId,
           });
         }
       );

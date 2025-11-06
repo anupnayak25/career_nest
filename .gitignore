@@ -9,3 +9,4 @@ backend/.env
 website/.env
 ai_server/__pycache__/
 backend/.env
+backend/.env

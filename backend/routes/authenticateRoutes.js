@@ -385,7 +385,6 @@ router.put(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-
     const { name, email } = req.body;
     const userId = req.user.id;
 

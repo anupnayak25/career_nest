@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:career_nest/common/theme.dart';
 
-class AnimatedCurvedAppBar extends StatefulWidget implements PreferredSizeWidget {
+class AnimatedCurvedAppBar extends StatefulWidget
+    implements PreferredSizeWidget {
   final String title;
   final TabController? tabController;
 
@@ -66,7 +68,7 @@ class _AnimatedCurvedAppBarState extends State<AnimatedCurvedAppBar>
               style: const TextStyle(color: Colors.white),
             ),
             automaticallyImplyLeading: false,
-            backgroundColor: Colors.blue,
+            backgroundColor: AppColors.primary,
             elevation: 0,
             bottom: widget.tabController != null
                 ? TabBar(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import '../common/video_service.dart';
+import '../common/theme.dart';
 
 class VideoManagerPage extends StatefulWidget {
   const VideoManagerPage({super.key});
@@ -95,7 +96,7 @@ class _VideoManagerPageState extends State<VideoManagerPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Video Manager'),
-        backgroundColor: const Color(0xFF2563EB),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -105,11 +106,15 @@ class _VideoManagerPageState extends State<VideoManagerPage> {
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFEBF4FF), Colors.white, Color(0xFFF0F4FF)],
+            colors: [
+              AppColors.background,
+              Colors.white,
+              AppColors.background,
+            ],
           ),
         ),
         child: Column(
@@ -231,7 +236,7 @@ class _VideoManagerPageState extends State<VideoManagerPage> {
                                             ),
                                             IconButton(
                                               icon: const Icon(Icons.delete),
-                                              color: Colors.red,
+                                              color: AppColors.error,
                                               onPressed: () {
                                                 showDialog(
                                                   context: context,
@@ -256,11 +261,11 @@ class _VideoManagerPageState extends State<VideoManagerPage> {
                                                           _deleteVideo(
                                                               video['id']);
                                                         },
-                                                        child: const Text(
+                                                        child: Text(
                                                           'Delete',
                                                           style: TextStyle(
-                                                              color:
-                                                                  Colors.red),
+                                                              color: AppColors
+                                                                  .error),
                                                         ),
                                                       ),
                                                     ],
@@ -484,7 +489,7 @@ class _VideoUploadModalState extends State<VideoUploadModal> {
                 ElevatedButton(
                   onPressed: _isUploading ? null : _uploadVideo,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                   ),
                   child: _isUploading

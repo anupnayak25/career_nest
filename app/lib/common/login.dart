@@ -343,27 +343,27 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                           decoration: InputDecoration(
                             hintText: "Enter your email",
                             prefixIcon: Icon(Icons.email_outlined,
-                                color: Colors.grey[600]),
+                                color: AppColors.textSecondary),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
                               borderSide: BorderSide(
-                                  color: Colors.blue[600]!, width: 2),
+                                  color: AppColors.primary, width: 2),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
                               borderSide:
-                                  BorderSide(color: Colors.red[600]!, width: 2),
+                                  BorderSide(color: AppColors.error, width: 2),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: AppColors.background,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 16,
@@ -395,13 +395,13 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                           decoration: InputDecoration(
                             hintText: "Enter your password",
                             prefixIcon: Icon(Icons.lock_outlined,
-                                color: Colors.grey[600]),
+                                color: AppColors.textSecondary),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 isPasswordHidden
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: Colors.grey[600],
+                                color: AppColors.textSecondary,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -411,24 +411,24 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
                               borderSide: BorderSide(
-                                  color: Colors.blue[600]!, width: 2),
+                                  color: AppColors.primary, width: 2),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
                               borderSide:
-                                  BorderSide(color: Colors.red[600]!, width: 2),
+                                  BorderSide(color: AppColors.error, width: 2),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: AppColors.background,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 16,
@@ -519,7 +519,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   "Sign Up",
                                   style:
                                       AppTextStyles.bodyLarge(context).copyWith(
-                                    color: Colors.blue[600],
+                                    color: AppColors.primary,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),

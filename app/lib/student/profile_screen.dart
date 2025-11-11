@@ -1,6 +1,7 @@
 // StatelessWidget for the Account screen, displaying user profile information and options.
 import 'package:career_nest/common/animated_appbar.dart';
 import 'package:career_nest/common/login.dart';
+import 'package:career_nest/common/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -34,11 +35,18 @@ class _AccountPageState extends State<AccountPage> {
             Center(
               child: Column(
                 children: [
-                  const CircleAvatar(radius: 40, backgroundColor: Colors.blue),
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppColors.primary,
+                    child: Icon(
+                      Icons.person,
+                      size: 40,
+                      color: Colors.white,
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   Text(widget.userName,
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold)),
+                      style: AppTextStyles.titleLarge(context)),
                 ],
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:career_nest/common/animated_appbar.dart';
+import 'package:career_nest/common/theme.dart';
 import 'package:flutter/material.dart';
 import '../common/responsive_text.dart';
 
@@ -18,7 +19,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       type: 'achievement',
       isRead: false,
       icon: Icons.celebration,
-      color: Colors.green,
+      color: AppColors.success,
     ),
     NotificationItem(
       title: 'Your course has been updated',
@@ -26,7 +27,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       type: 'update',
       isRead: false,
       icon: Icons.update,
-      color: Colors.blue,
+      color: AppColors.primary,
     ),
     NotificationItem(
       title: 'You have a new message',
@@ -34,7 +35,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       type: 'message',
       isRead: true,
       icon: Icons.message,
-      color: Colors.purple,
+      color: AppColors.secondary,
     ),
     NotificationItem(
       title: 'Reminder: Test deadline approaching',
@@ -42,7 +43,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       type: 'reminder',
       isRead: true,
       icon: Icons.schedule,
-      color: Colors.orange,
+      color: AppColors.accent,
     ),
     NotificationItem(
       title: 'New course available in Mathematics',
@@ -50,7 +51,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       type: 'course',
       isRead: true,
       icon: Icons.school,
-      color: Colors.teal,
+      color: AppColors.success,
     ),
   ];
 
@@ -73,7 +74,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.background,
       appBar: AnimatedCurvedAppBar(
         title: "Notifications",
       ),

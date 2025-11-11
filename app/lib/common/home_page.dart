@@ -1,5 +1,6 @@
 //home_page.dart
 import 'package:career_nest/common/animated_appbar.dart';
+import 'package:career_nest/common/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:career_nest/common/video_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -48,7 +49,7 @@ class _HomePageState extends State<HomePage>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to fetch videos. Please try again later.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
         ),
       );
     }
@@ -84,7 +85,9 @@ class _HomePageState extends State<HomePage>
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            CircularProgressIndicator(),
+                            CircularProgressIndicator(
+                              color: AppColors.primary,
+                            ),
                             SizedBox(height: 16),
                             Text(
                               'Loading videos...',
@@ -115,7 +118,7 @@ class _HomePageState extends State<HomePage>
                   ),
           ),
           SizedBox(
-            height: 120,
+            height: 140,
             child: AnimatedCurvedAppBar(
               title: "Career Nest",
               tabController: _tabController,
@@ -231,7 +234,7 @@ class YouTubeVideoGrid extends StatelessWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Video URL not available.'),
-                          backgroundColor: Colors.red,
+                          backgroundColor: AppColors.error,
                         ),
                       );
                     }
@@ -247,7 +250,7 @@ class YouTubeVideoGrid extends StatelessWidget {
                           height: 200,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            color: Colors.grey[900],
+                            color: AppColors.textPrimary,
                           ),
                           child: Stack(
                             children: [
@@ -261,15 +264,15 @@ class YouTubeVideoGrid extends StatelessWidget {
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                     colors: [
-                                      Colors.red.withOpacity(0.3),
-                                      Colors.blue.withOpacity(0.3),
+                                      AppColors.primary.withOpacity(0.3),
+                                      AppColors.secondary.withOpacity(0.3),
                                     ],
                                   ),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.play_circle_outline,
                                   size: 60,
-                                  color: Colors.black,
+                                  color: Colors.white,
                                 ),
                               ),
                               Positioned(
@@ -287,7 +290,7 @@ class YouTubeVideoGrid extends StatelessWidget {
                                   child: Text(
                                     _formatDuration(video['duration']),
                                     style: const TextStyle(
-                                      color: Colors.black,
+                                      color: Colors.white,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -305,11 +308,11 @@ class YouTubeVideoGrid extends StatelessWidget {
                             // ...existing code for avatar and details...
                             CircleAvatar(
                               radius: 18,
-                              backgroundColor: Colors.red,
+                              backgroundColor: AppColors.primary,
                               child: Text(
                                 'CN',
                                 style: const TextStyle(
-                                  color: Colors.black,
+                                  color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                 ),
@@ -323,9 +326,8 @@ class YouTubeVideoGrid extends StatelessWidget {
                                   // ...existing code for title, channel, views, upload time, description...
                                   Text(
                                     video['title'] ?? 'No Title',
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16,
+                                    style: AppTextStyles.bodyLarge(context)
+                                        .copyWith(
                                       fontWeight: FontWeight.w500,
                                       height: 1.3,
                                     ),
@@ -335,10 +337,7 @@ class YouTubeVideoGrid extends StatelessWidget {
                                   const SizedBox(height: 4),
                                   Text(
                                     'Career Nest',
-                                    style: TextStyle(
-                                      color: Colors.grey[400],
-                                      fontSize: 14,
-                                    ),
+                                    style: AppTextStyles.bodySmall(context),
                                   ),
                                   const SizedBox(height: 2),
                                   Row(

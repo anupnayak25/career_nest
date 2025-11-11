@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:career_nest/common/theme.dart';
 import 'dart:async';
 
 class SuccessScreen extends StatefulWidget {
@@ -156,8 +157,6 @@ class _SuccessScreenState extends State<SuccessScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: Container(
@@ -166,9 +165,9 @@ class _SuccessScreenState extends State<SuccessScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF2563EB).withOpacity(0.05),
+              AppColors.primary.withOpacity(0.05),
               Colors.white,
-              const Color(0xFF10B981).withOpacity(0.05),
+              AppColors.success.withOpacity(0.05),
             ],
           ),
         ),
@@ -190,7 +189,7 @@ class _SuccessScreenState extends State<SuccessScreen>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF10B981).withOpacity(0.3),
+                          color: AppColors.success.withOpacity(0.3),
                           blurRadius: 30,
                           spreadRadius: 10,
                         ),
@@ -213,10 +212,10 @@ class _SuccessScreenState extends State<SuccessScreen>
                   opacity: _fadeAnimation,
                   child: Text(
                     widget.title ?? 'Test Completed Successfully!',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
+                      color: AppColors.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -234,7 +233,7 @@ class _SuccessScreenState extends State<SuccessScreen>
                           'Your answers have been submitted successfully.\nYou will be redirected to the tests page shortly.',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.grey[600],
+                        color: AppColors.textSecondary,
                         height: 1.5,
                       ),
                       textAlign: TextAlign.center,
@@ -253,7 +252,7 @@ class _SuccessScreenState extends State<SuccessScreen>
                         'Redirecting in $_countdown seconds',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[500],
+                          color: AppColors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -266,7 +265,7 @@ class _SuccessScreenState extends State<SuccessScreen>
                             height: 4,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(2),
-                              color: Colors.grey[200],
+                              color: AppColors.border,
                             ),
                             child: FractionallySizedBox(
                               alignment: Alignment.centerLeft,
@@ -274,11 +273,8 @@ class _SuccessScreenState extends State<SuccessScreen>
                               child: Container(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(2),
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF2563EB),
-                                      Color(0xFF10B981),
-                                    ],
+                                  gradient: LinearGradient(
+                                    colors: AppColors.mainGradient,
                                   ),
                                 ),
                               ),
@@ -306,11 +302,10 @@ class _SuccessScreenState extends State<SuccessScreen>
                             height: 56,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF2563EB),
+                                backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.white,
                                 elevation: 8,
-                                shadowColor:
-                                    const Color(0xFF2563EB).withOpacity(0.4),
+                                shadowColor: AppColors.primary.withOpacity(0.4),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
@@ -341,7 +336,7 @@ class _SuccessScreenState extends State<SuccessScreen>
                             height: 48,
                             child: TextButton(
                               style: TextButton.styleFrom(
-                                foregroundColor: Colors.grey[600],
+                                foregroundColor: AppColors.textSecondary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),

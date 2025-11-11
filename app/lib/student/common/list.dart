@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:career_nest/common/theme.dart';
 import 'package:career_nest/student/common/attempt.dart';
 import 'package:career_nest/student/common/result.dart';
 import 'package:career_nest/student/common/service.dart';
@@ -85,14 +86,14 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.inbox,
-                          size: 64, color: Colors.blueGrey.shade200),
+                          size: 64, color: AppColors.textSecondary),
                       const SizedBox(height: 16),
                       Text(
                         'No assignments available',
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blueGrey.shade400,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -100,7 +101,7 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                         'Check back later or contact your instructor.',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.blueGrey.shade300,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -123,7 +124,7 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                     margin: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
-                      side: const BorderSide(color: Colors.blue, width: 2),
+                      side: BorderSide(color: AppColors.primary, width: 2),
                     ),
                     elevation: 4,
                     child: Padding(
@@ -216,8 +217,8 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                                             : 'Not Attempted'),
                                     style: TextStyle(
                                         color: isDone
-                                            ? Colors.green
-                                            : Colors.orange,
+                                            ? AppColors.success
+                                            : AppColors.accent,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 13),
                                   ),

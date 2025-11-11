@@ -86,7 +86,7 @@ class _DashboardPageState extends State<DashboardPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.background,
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
@@ -137,7 +137,7 @@ class _DashboardPageState extends State<DashboardPage>
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? item.color.withOpacity(0.15)
+                        ? AppColors.primary.withOpacity(0.15)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -146,7 +146,7 @@ class _DashboardPageState extends State<DashboardPage>
                     child: Icon(
                       isSelected ? item.activeIcon : item.icon,
                       key: ValueKey(isSelected),
-                      color: isSelected ? item.color : Colors.grey[600],
+                      color: isSelected ? AppColors.primary : Colors.grey[600],
                       size: isSelected ? 26 : 24,
                     ),
                   ),
@@ -155,18 +155,18 @@ class _DashboardPageState extends State<DashboardPage>
                 activeIcon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: item.color.withOpacity(0.15),
+                    color: AppColors.primary.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     item.activeIcon,
-                    color: item.color,
+                    color: AppColors.primary,
                     size: 26,
                   ),
                 ),
               );
             }).toList(),
-            selectedItemColor: _navItems[_selectedIndex].color,
+            selectedItemColor: AppColors.primary,
             unselectedItemColor: Colors.grey[600],
           ),
         ),
@@ -203,7 +203,6 @@ class NavigationItem {
   final IconData icon;
   final IconData activeIcon;
   final String label;
-  final Color color = Colors.blue; // Default color, can be customized
 
   NavigationItem({
     required this.icon,

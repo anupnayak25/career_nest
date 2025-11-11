@@ -2,6 +2,7 @@ import 'package:career_nest/student/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:career_nest/student/common/service.dart';
+import 'package:career_nest/common/theme.dart';
 import '../admin/dashboard.dart';
 import 'login.dart';
 
@@ -74,19 +75,19 @@ class _SplashScreenState extends State<SplashScreen>
   void _startLoadingSequence() async {
     // Start progress animation
     _progressController.forward();
-    
+
     // Animate through loading messages
     for (int i = 0; i < _loadingMessages.length; i++) {
       if (!mounted) return;
-      
+
       setState(() {
         _statusText = _loadingMessages[i];
         _progress = (i + 1) / _loadingMessages.length * 0.8; // 80% for messages
       });
-      
+
       _textController.reset();
       _textController.forward();
-      
+
       await Future.delayed(const Duration(milliseconds: 800));
     }
 
@@ -102,7 +103,7 @@ class _SplashScreenState extends State<SplashScreen>
       });
 
       await AssignmentService.pingServer();
-      
+
       setState(() {
         _statusText = 'Connected! Loading...';
         _progress = 1.0;
@@ -110,7 +111,6 @@ class _SplashScreenState extends State<SplashScreen>
 
       await Future.delayed(const Duration(milliseconds: 500));
       await _navigateToNextScreen();
-
     } catch (e) {
       _retryCount++;
       setState(() {
@@ -188,7 +188,7 @@ class _SplashScreenState extends State<SplashScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(flex: 2),
-              
+
               // Animated Logo
               AnimatedBuilder(
                 animation: _logoAnimation,
@@ -200,7 +200,7 @@ class _SplashScreenState extends State<SplashScreen>
                         borderRadius: BorderRadius.circular(75),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blue.withOpacity(0.3),
+                            color: AppColors.primary.withOpacity(0.3),
                             blurRadius: 20,
                             spreadRadius: 5,
                           ),
@@ -223,12 +223,12 @@ class _SplashScreenState extends State<SplashScreen>
                 builder: (context, child) {
                   return Opacity(
                     opacity: _textAnimation.value,
-                    child: const Text(
+                    child: Text(
                       'CareerNest',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: AppColors.primary,
                       ),
                     ),
                   );
@@ -245,9 +245,9 @@ class _SplashScreenState extends State<SplashScreen>
                     children: [
                       LinearProgressIndicator(
                         value: _progress,
-                        backgroundColor: Colors.grey[300],
+                        backgroundColor: AppColors.border,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.blue,
+                          AppColors.primary,
                         ),
                         minHeight: 6,
                       ),
@@ -259,10 +259,10 @@ class _SplashScreenState extends State<SplashScreen>
                             opacity: _textAnimation.value,
                             child: Text(
                               _statusText,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.grey,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           );
@@ -280,15 +280,15 @@ class _SplashScreenState extends State<SplashScreen>
                     Icon(
                       Icons.cloud_off,
                       size: 64,
-                      color: Colors.red[300],
+                      color: AppColors.error.withOpacity(0.7),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       _statusText,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Colors.red,
+                        color: AppColors.error,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -301,7 +301,7 @@ class _SplashScreenState extends State<SplashScreen>
                           icon: const Icon(Icons.refresh),
                           label: Text('Retry ($_retryCount)'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
+                            backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24,
@@ -314,7 +314,7 @@ class _SplashScreenState extends State<SplashScreen>
                           icon: const Icon(Icons.skip_next),
                           label: const Text('Skip'),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.blue,
+                            foregroundColor: AppColors.primary,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24,
                               vertical: 12,

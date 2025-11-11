@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:career_nest/common/video_recoredr_screen.dart';
 import 'package:career_nest/common/video_service.dart';
+import 'package:career_nest/common/theme.dart';
 import 'package:career_nest/student/models/hr_model.dart' show Question;
 import 'package:career_nest/student/models/programming_model.dart'
     show ProgrammingQuestion;
 import 'package:career_nest/student/models/quiz_model.dart' show QuizQuestion;
 import 'package:career_nest/student/common/success_screen.dart';
 import 'package:flutter/services.dart';
-
-
 
 class AttemptPage<T> extends StatefulWidget {
   final String title;
@@ -40,26 +39,22 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
   bool isSubmitting = false;
   List<int> uploadingQuestions = [];
 
- 
   @override
-void initState() {
-  super.initState();
-  WidgetsBinding.instance.addObserver(this);
-  // _secureScreen(); // block screenshots (removed flutter_windowmanager)
-  answers = widget.initialAnswers?.call() ?? {};
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-}
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // _secureScreen(); // block screenshots (removed flutter_windowmanager)
+    answers = widget.initialAnswers?.call() ?? {};
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
 
-
-@override
-void dispose() {
-  WidgetsBinding.instance.removeObserver(this);
-
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  super.dispose();
-}
-
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    super.dispose();
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -76,17 +71,15 @@ void dispose() {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      backgroundColor: isVideoType ? Colors.white : Colors.grey[50],
+      backgroundColor: isVideoType ? Colors.white : AppColors.background,
       appBar: AppBar(
         title: Text(
           widget.title,
           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
         ),
-        backgroundColor: isVideoType ? Colors.white : theme.primaryColor,
-        foregroundColor: isVideoType ? Colors.black : Colors.white,
+        backgroundColor: isVideoType ? Colors.white : AppColors.primary,
+        foregroundColor: isVideoType ? AppColors.textPrimary : Colors.white,
         elevation: isVideoType ? 0 : 2,
         centerTitle: true,
         actions: [
@@ -208,15 +201,14 @@ void dispose() {
                   style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Theme.of(context).primaryColor)),
+                      color: AppColors.primary)),
             ],
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: progress,
-            backgroundColor: Colors.grey[200],
-            valueColor:
-                AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+            backgroundColor: AppColors.border,
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
             minHeight: 6,
           ),
         ],
@@ -265,7 +257,7 @@ void dispose() {
                 decoration: InputDecoration(
                   hintText: 'Enter your code here...',
                   filled: true,
-                  fillColor: Colors.grey[100],
+                  fillColor: AppColors.background,
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
@@ -286,10 +278,9 @@ void dispose() {
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: (isBlueType
-            ? Theme.of(context).primaryColor.withOpacity(0.12)
-            : Colors.white),
-        shadowColor: Theme.of(context).primaryColor.withOpacity(0.08),
+        color:
+            (isBlueType ? AppColors.primary.withOpacity(0.12) : Colors.white),
+        shadowColor: AppColors.primary.withOpacity(0.08),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -319,8 +310,8 @@ void dispose() {
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: Theme.of(context).primaryColor.withOpacity(0.12),
-        shadowColor: Theme.of(context).primaryColor.withOpacity(0.08),
+        color: AppColors.primary.withOpacity(0.12),
+        shadowColor: AppColors.primary.withOpacity(0.08),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -376,13 +367,13 @@ void dispose() {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB).withOpacity(0.1),
+                  color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   "Question ${q.qno}",
-                  style: const TextStyle(
-                    color: Color(0xFF2563EB),
+                  style: TextStyle(
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
                   ),
@@ -394,18 +385,19 @@ void dispose() {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
+                    color: AppColors.success.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green, size: 16),
+                      Icon(Icons.check_circle,
+                          color: AppColors.success, size: 16),
                       const SizedBox(width: 4),
                       Text(
                         "Completed",
                         style: TextStyle(
-                          color: Colors.green,
+                          color: AppColors.success,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -418,11 +410,11 @@ void dispose() {
           const SizedBox(height: 16),
           Text(
             q.question,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
               height: 1.4,
-              color: Color(0xFF1F2937),
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 20),
@@ -432,15 +424,15 @@ void dispose() {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: uploaded
-                      ? [Colors.green, Colors.green.shade600]
-                      : [const Color(0xFF2563EB), const Color(0xFF1D4ED8)],
+                      ? [AppColors.success, AppColors.success]
+                      : AppColors.mainGradient,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(
-                    color: (uploaded ? Colors.green : const Color(0xFF2563EB))
+                    color: (uploaded ? AppColors.success : AppColors.primary)
                         .withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
@@ -500,19 +492,19 @@ void dispose() {
               padding: const EdgeInsets.all(12),
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
-                border: Border.all(color: Colors.blue[200]!),
+                color: AppColors.accent.withOpacity(0.1),
+                border: Border.all(color: AppColors.accent.withOpacity(0.3)),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.blue[600], size: 20),
+                  Icon(Icons.info_outline, color: AppColors.accent, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       '$missingAnswers question${missingAnswers == 1 ? '' : 's'} remaining (Optional - you can submit partial answers)',
                       style: TextStyle(
-                          color: Colors.blue[700],
+                          color: AppColors.accent,
                           fontWeight: FontWeight.w500,
                           fontSize: 14),
                     ),
@@ -526,9 +518,9 @@ void dispose() {
             child: ElevatedButton(
               onPressed: canSubmit ? _submitAnswers : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: Colors.grey[300],
+                disabledBackgroundColor: AppColors.border,
                 elevation: canSubmit ? 2 : 0,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -595,7 +587,8 @@ void dispose() {
               content: Text(url != null
                   ? 'Video uploaded successfully for Q${index + 1}'
                   : 'Failed to upload video for Q${index + 1}'),
-              backgroundColor: url != null ? Colors.green : Colors.red,
+              backgroundColor:
+                  url != null ? AppColors.success : AppColors.error,
               duration: const Duration(seconds: 3),
             ),
           );
@@ -611,7 +604,7 @@ void dispose() {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error recording video: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -650,7 +643,7 @@ void dispose() {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Please select an option for question ${i + 1}.'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
           return;
@@ -694,7 +687,7 @@ void dispose() {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Please select an option for question ${i + 1}.'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
           return;

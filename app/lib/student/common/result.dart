@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:career_nest/common/theme.dart';
 
 class ResultPage<T> extends StatelessWidget {
   final String title;
@@ -25,7 +26,7 @@ class ResultPage<T> extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('$title - Results'),
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -38,13 +39,14 @@ class ResultPage<T> extends StatelessWidget {
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.blue.shade400, Colors.blue.shade600],
+                  colors: AppColors.mainGradient,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(
+                    color: AppColors.primary.withOpacity(0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),

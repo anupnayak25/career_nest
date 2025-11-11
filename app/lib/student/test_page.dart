@@ -7,6 +7,7 @@ import 'package:career_nest/student/models/programming_model.dart';
 import 'package:career_nest/student/models/hr_model.dart';
 import 'package:career_nest/student/models/technical_model.dart';
 import 'package:career_nest/student/common/service.dart';
+import 'package:career_nest/common/theme.dart';
 
 class TestsPage extends StatefulWidget {
   const TestsPage({super.key});
@@ -69,7 +70,6 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
           subtitle: '${quizAssignments.length} Tests Available',
           completed: quizAttempted.length,
           icon: Icons.quiz,
-          color: const Color(0xFFE1BEE7),
           page: const QuizAssignmentListPage(),
         ),
         TestCategory(
@@ -77,7 +77,6 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
           subtitle: '${programmingAssignments.length} Challenges',
           completed: programmingAttempted.length,
           icon: Icons.code,
-          color: const Color(0xFFBBDEFB),
           page: const ProgrammingAssignmentListPage(),
         ),
         TestCategory(
@@ -85,7 +84,6 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
           subtitle: '${hrAssignments.length} Sessions',
           completed: hrAttempted.length,
           icon: Icons.people,
-          color: const Color(0xFFFFF9C4),
           page: const HrAssignmentListPage(),
         ),
         TestCategory(
@@ -93,7 +91,6 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
           subtitle: '${technicalAssignments.length} Topics',
           completed: technicalAttempted.length,
           icon: Icons.engineering,
-          color: const Color(0xFFC8E6C9),
           page: const TechnicalAssignmentListPage(),
         ),
       ];
@@ -120,7 +117,7 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.background,
       appBar: const AnimatedCurvedAppBar(title: 'Tests'),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -275,10 +272,11 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: category.color,
+              // Using withValues instead of deprecated withOpacity; 191 ≈ 0.75 * 255
+              color: Colors.white60,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: theme.cardColor.withOpacity(0.3),
+                color: AppColors.primary.withOpacity(0.3),
                 width: 1,
               ),
             ),
@@ -289,12 +287,12 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: theme.cardColor.withOpacity(0.3),
+                    color: AppColors.primary.withValues(alpha: 204),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     category.icon,
-                    color: _getIconColor(category.color),
+                    color: AppColors.primary,
                     size: 28,
                   ),
                 ),
@@ -304,14 +302,16 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        category.title,
-                        style: theme.textTheme.titleLarge,
-                      ),
+                      Text(category.title,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: AppColors.primary,
+                          )),
                       const SizedBox(height: 4),
                       Text(
                         category.subtitle,
-                        style: theme.textTheme.bodyMedium,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.primary,
+                        ),
                       ),
                     ],
                   ),
@@ -323,7 +323,7 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
                     Text(
                       '${category.completed} Completed',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.black.withOpacity(0.7),
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -331,13 +331,13 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: theme.cardColor.withOpacity(0.4),
+                        color: AppColors.primary.withValues(alpha: 204),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: Colors.black54,
+                        color: AppColors.primary,
                       ),
                     ),
                   ],
@@ -422,7 +422,6 @@ class TestCategory {
   final String subtitle;
   final int completed;
   final IconData icon;
-  final Color color;
   final Widget page;
 
   TestCategory({
@@ -430,7 +429,6 @@ class TestCategory {
     required this.subtitle,
     required this.completed,
     required this.icon,
-    required this.color,
     required this.page,
   });
 }

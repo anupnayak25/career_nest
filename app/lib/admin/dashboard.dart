@@ -1,4 +1,5 @@
 import 'package:career_nest/common/login.dart';
+import 'package:career_nest/common/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../common/home_page.dart'; // Adjust the import path as needed
@@ -21,14 +22,23 @@ class AdminDashboardPage extends StatelessWidget {
     return Scaffold(
       drawer: Drawer(
         child: Container(
-          color: Colors.blue,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: AppColors.mainGradient,
+            ),
+          ),
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
               const DrawerHeader(
                 child: Text(
                   'Admin Panel',
-                  style: TextStyle(color: Colors.white, fontSize: 24),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
               ...menuItems.map(
@@ -65,24 +75,24 @@ class AdminDashboardPage extends StatelessWidget {
       ),
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        actions: const [
+        actions: [
           Padding(
             padding: EdgeInsets.only(right: 16.0),
             child: CircleAvatar(
               backgroundColor: Colors.white,
-              child: Icon(Icons.admin_panel_settings, color: Colors.blue),
+              child: Icon(Icons.admin_panel_settings, color: AppColors.primary),
             ),
           ),
         ],
       ),
-      
       body: const HomePage(userName: "Admin"),
     );
   }

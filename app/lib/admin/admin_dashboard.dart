@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:career_nest/common/theme.dart';
 import 'video_manager_page.dart';
 
 class AdminDashboard extends StatelessWidget {
@@ -9,15 +10,19 @@ class AdminDashboard extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
-        backgroundColor: const Color(0xFF2563EB),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFEBF4FF), Colors.white, Color(0xFFF0F4FF)],
+            colors: [
+              AppColors.background,
+              Colors.white,
+              AppColors.background,
+            ],
           ),
         ),
         child: Padding(
@@ -32,7 +37,7 @@ class AdminDashboard extends StatelessWidget {
                 'Video Manager',
                 'Upload, manage, and organize videos',
                 Icons.video_library,
-                Colors.blue,
+                AppColors.primary,
                 () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -45,7 +50,7 @@ class AdminDashboard extends StatelessWidget {
                 'User Management',
                 'Manage users and permissions',
                 Icons.people,
-                Colors.green,
+                AppColors.success,
                 () {
                   // TODO: Navigate to user management
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -60,7 +65,7 @@ class AdminDashboard extends StatelessWidget {
                 'Analytics',
                 'View usage statistics and reports',
                 Icons.analytics,
-                Colors.purple,
+                AppColors.secondary,
                 () {
                   // TODO: Navigate to analytics
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -73,7 +78,7 @@ class AdminDashboard extends StatelessWidget {
                 'Settings',
                 'Configure app settings',
                 Icons.settings,
-                Colors.orange,
+                AppColors.accent,
                 () {
                   // TODO: Navigate to settings
                   ScaffoldMessenger.of(context).showSnackBar(

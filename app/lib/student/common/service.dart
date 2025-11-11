@@ -86,7 +86,7 @@ class AssignmentService {
       'answers': answers
           .map((answer) => {
                 'qno': answer['id'],
-                'answer': answer['answer'],
+                isQuiz ? 'selected_ans' : 'answer': answer['answer'],
               })
           .toList(),
     });

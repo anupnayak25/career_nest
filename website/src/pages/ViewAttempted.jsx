@@ -1,6 +1,6 @@
 // ViewAttempted.jsx - Enhanced UI with table layout
 import React, { useEffect, useState } from "react";
-import { evaluate, getSubmittedUsers } from "../services/ApiService";
+import { evaluate, getSubmittedUsers, getAnalysisStatus } from "../services/ApiService";
 import { useNavigate, useParams } from "react-router-dom";
 import { useData } from "../context/DataContext";
 import StudentCard from "../components/StudentCard";
@@ -12,6 +12,8 @@ function ViewAttempted() {
   const { attemptedData, setAttemptedData } = useData();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [analysisStatus, setAnalysisStatus] = useState("not_analysed");
+  const [polling, setPolling] = useState(false);
 
   useEffect(() => {
     const fetchAttemptedData = async () => {
@@ -50,6 +52,49 @@ function ViewAttempted() {
   }, [type, id, setAttemptedData]);
 
   const data = attemptedData[`${type}_${id}`];
+
+  // Initial status fetch on mount
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await getAnalysisStatus(id, type);
+        if (mounted && res && res.success) setAnalysisStatus(res.status);
+  } catch { /* ignore */ }
+    })();
+    return () => { mounted = false; };
+  }, [id, type]);
+
+  // Poll analysis status if undergoing
+  useEffect(() => {
+    let interval;
+    const fetchStatus = async () => {
+      try {
+        const res = await getAnalysisStatus(id, type);
+        if (res && res.success) {
+          setAnalysisStatus(res.status);
+          if (res.status === 'completed') {
+            setPolling(false);
+            clearInterval(interval);
+          }
+        }
+      } catch {
+        // silent fail
+      }
+    };
+    if (polling) {
+      fetchStatus(); // immediate
+      interval = setInterval(fetchStatus, 3000);
+    }
+    return () => interval && clearInterval(interval);
+  }, [polling, id, type]);
+
+  const triggerEvaluate = async () => {
+    setPolling(true);
+    setAnalysisStatus('undergoing');
+    await evaluate(id, type);
+    // evaluation route will eventually set completed; polling loop will capture it
+  };
 
   const handleViewAnswers = (userId) => {
     navigate(`/answers/${type}/${id}/${userId}`);
@@ -168,12 +213,20 @@ function ViewAttempted() {
                     </p>
                   </div>
                 </div>
-                <div className="text-blue-600 text-2xl">
-                 {(type === "technical" || type === "hr") && (
-                   <button onClick={() => evaluate(id, type)} className="p-2 px-5 bg-blue-800 text-sm text-white rounded-lg">
-                     Auto Analyse
-                   </button>
-                 )} 📊
+                <div className="flex flex-col items-end gap-2 text-blue-600">
+                  {(type === "technical" || type === "hr") && (
+                    <button
+                      onClick={triggerEvaluate}
+                      disabled={analysisStatus === 'undergoing'}
+                      className={`p-2 px-5 text-sm rounded-lg transition-colors ${analysisStatus === 'undergoing' ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-800 hover:bg-blue-900 text-white'}`}
+                    >
+                      {analysisStatus === 'undergoing' ? 'Analysing...' : analysisStatus === 'completed' ? 'Re-Analyse' : 'Auto Analyse'}
+                    </button>
+                  )}
+                  <div className="text-xs font-medium text-blue-700 flex items-center gap-1">
+                    <span className={`inline-block w-2 h-2 rounded-full ${analysisStatus === 'completed' ? 'bg-green-500' : analysisStatus === 'undergoing' ? 'bg-yellow-500 animate-pulse' : 'bg-gray-400'}`}></span>
+                    Status: {analysisStatus.replace('_', ' ')}
+                  </div>
                 </div>
               </div>
               <StudentCard 

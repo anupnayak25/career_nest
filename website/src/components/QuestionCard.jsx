@@ -152,7 +152,7 @@ const QuestionCard = ({ id, type, title, description, dueDate, totalMarks, publi
         }}
       />
 
-      <style jsx>{`
+      <style>{`
         .line-clamp-1 {
           display: -webkit-box;
           -webkit-line-clamp: 1;

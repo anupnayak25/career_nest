@@ -36,11 +36,11 @@ dependencies:
 
   provider: ^6.0.0
   file_picker: ^10.2.0
-  video_player: ^2.7.0
+  video_player: ^2.10.0
   fluttertoast: ^8.2.4
 
   camera: ^0.10.5+9
-  path_provider: ^2.1.2
+  path_provider: ^2.1.5
   path: ^1.9.0
 
   # The following adds the Cupertino Icons font to your application.
@@ -55,6 +55,7 @@ dependencies:
   firebase_messaging: ^15.2.10
   lottie: ^3.1.2
   focus_detector: ^2.0.1
+  video_thumbnail: ^0.5.6
 
 
 dev_dependencies:

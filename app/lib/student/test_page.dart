@@ -121,78 +121,102 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
       appBar: const AnimatedCurvedAppBar(title: 'Tests'),
       body: RefreshIndicator(
         onRefresh: () async {
+          // Ensure the indicator stays visible until data is fetched
+          final data = await _loadCategories(isManualRefresh: true);
+          if (!mounted) return;
           setState(() {
-            _categoriesFuture = _loadCategories(isManualRefresh: true);
+            // Immediately provide the fetched data to the FutureBuilder
+            _categoriesFuture = Future.value(data);
           });
         },
         child: FutureBuilder<List<TestCategory>>(
           future: _categoriesFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
+              // Keep it scrollable so pull-to-refresh works even when loading
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  SizedBox(height: 200),
+                  Center(child: CircularProgressIndicator()),
+                  SizedBox(height: 200),
+                ],
               );
             }
 
             if (snapshot.hasError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.grey[400],
+              // Wrap in a scrollable so pull-to-refresh is enabled on error
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error loading tests',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Pull down to refresh',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Error loading tests',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Pull down to refresh',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[500],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               );
             }
 
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.assignment_outlined,
-                      size: 64,
-                      color: Colors.grey[400],
+              // Wrap in a scrollable so pull-to-refresh is enabled when empty
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.assignment_outlined,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No tests available',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Pull down to refresh',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No tests available',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Pull down to refresh',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[500],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               );
             }
             final categories = snapshot.data!;
@@ -232,6 +256,7 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
             return Padding(
               padding: const EdgeInsets.all(16.0),
               child: ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
                   return SlideTransition(
@@ -348,12 +373,6 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
         ),
       ),
     );
-  }
-
-  Color _getIconColor(Color backgroundColor) {
-    // Return darker shade of the background color for the icon
-    final hsl = HSLColor.fromColor(backgroundColor);
-    return hsl.withLightness(0.3).toColor();
   }
 
   void _navigateToTest(BuildContext context, TestCategory category) async {

@@ -14,15 +14,40 @@ class AccountPage extends StatefulWidget {
 }
 
 class _AccountPageState extends State<AccountPage> {
+  // Local state populated from SharedPreferences
+  String? _name;
+  String? _email;
+  String? _userType;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileDetails();
+  }
+
+  Future<void> _loadProfileDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Keys set at login across the app
+    final name = prefs.getString('userName');
+    final email = prefs.getString('userEmail');
+    final type = prefs.getString('userType');
+    if (!mounted) return;
+    setState(() {
+      _name = name?.trim().isNotEmpty == true ? name : widget.userName;
+      _email = email;
+      _userType = type;
+      _loading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Example list of account options.
+    // Account options (Favourite and Help removed per request)
     final List<String> options = [
-      'Favourite',
       'Edit Account',
       'Settings and Privacy',
-      'Help',
-      'Logout'
+      'Logout',
     ];
 
     return Scaffold(
@@ -45,8 +70,48 @@ class _AccountPageState extends State<AccountPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text(widget.userName,
-                      style: AppTextStyles.titleLarge(context)),
+                  if (_loading)
+                    const SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else
+                    Column(
+                      children: [
+                        Text(
+                          _name ?? widget.userName,
+                          style: AppTextStyles.titleLarge(context),
+                          textAlign: TextAlign.center,
+                        ),
+                        if (_email != null && _email!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6.0),
+                            child: Text(
+                              _email!,
+                              style: AppTextStyles.bodyMedium(context)
+                                  .copyWith(color: Colors.grey[700]),
+                            ),
+                          ),
+                        if (_userType != null && _userType!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2.0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 4, horizontal: 10),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                _userType!,
+                                style: AppTextStyles.bodySmall(context)
+                                    .copyWith(color: AppColors.primary),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -80,8 +145,35 @@ class _AccountPageState extends State<AccountPage> {
               MaterialPageRoute(builder: (_) => const LoginPage()),
               (Route<dynamic> route) => false,
             );
-          } else
-            print('$title tapped');
+          } else if (title == "Edit Account") {
+            // Placeholder: later wire this to a screen calling /authenticate/update-details
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Edit Account coming soon')),
+              );
+            }
+          } else if (title == "Settings and Privacy") {
+            if (context.mounted) {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Privacy'),
+                  content: const Text(
+                    'Your basic profile details are stored locally after sign-in. You can log out to clear them.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          } else {
+            // Fallback
+            debugPrint('$title tapped');
+          }
         },
       ),
     );

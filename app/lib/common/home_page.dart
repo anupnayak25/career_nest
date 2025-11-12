@@ -1,9 +1,17 @@
 //home_page.dart
+import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:career_nest/common/animated_appbar.dart';
 import 'package:career_nest/common/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:career_nest/common/video_service.dart';
-import 'package:url_launcher/url_launcher.dart';
+// import 'package:url_launcher/url_launcher.dart'; // no longer needed here
+import 'package:career_nest/common/display_video.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class HomePage extends StatefulWidget {
   final String userName;
@@ -130,7 +138,7 @@ class _HomePageState extends State<HomePage>
   }
 }
 
-class YouTubeVideoGrid extends StatelessWidget {
+class YouTubeVideoGrid extends StatefulWidget {
   final List<Map<String, dynamic>> videos;
   final String type;
   final Future<void> Function()? onRefresh;
@@ -142,10 +150,74 @@ class YouTubeVideoGrid extends StatelessWidget {
     this.onRefresh,
   });
 
-  Future<void> _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri)) {
-      throw Exception('Could not launch $url');
+  @override
+  State<YouTubeVideoGrid> createState() => _YouTubeVideoGridState();
+}
+
+class _YouTubeVideoGridState extends State<YouTubeVideoGrid> {
+  final Map<String, String?> _thumbnails = {};
+
+  String _buildFullUrl(String? rawUrl) {
+    final base =
+        (dotenv.maybeGet('API_URL') ?? dotenv.env['API_URL'] ?? '').trim();
+    if (rawUrl == null || rawUrl.isEmpty) return '';
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+      return rawUrl;
+    }
+    if (base.isEmpty) return rawUrl; // fallback if env not set
+    final normalizedBase =
+        base.endsWith('/') ? base.substring(0, base.length - 1) : base;
+    return '$normalizedBase/videos/$rawUrl';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _generateThumbnails();
+  }
+
+  @override
+  void didUpdateWidget(covariant YouTubeVideoGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.videos != oldWidget.videos) {
+      _generateThumbnails();
+    }
+  }
+
+  Future<void> _generateThumbnails() async {
+    for (final video in widget.videos) {
+      final raw = video['url'] as String?;
+      final fullUrl = _buildFullUrl(raw);
+      if (fullUrl.isNotEmpty && _thumbnails[fullUrl] == null) {
+        final thumbnailPath = await _getThumbnail(fullUrl);
+        if (mounted) {
+          setState(() {
+            _thumbnails[fullUrl] = thumbnailPath;
+          });
+        }
+      }
+    }
+  }
+
+  Future<String?> _getThumbnail(String videoUrl) async {
+    try {
+      // Prefer in-memory generation to avoid platform file method issues
+      final Uint8List? bytes = await VideoThumbnail.thumbnailData(
+        video: videoUrl,
+        imageFormat: ImageFormat.WEBP,
+        maxHeight: 200,
+        quality: 75,
+      );
+      if (bytes == null) return null;
+      final dir = await getTemporaryDirectory();
+      final safe = base64Url.encode(utf8.encode(videoUrl)).replaceAll('=', '');
+      final filePath = '${dir.path}/thumb_$safe.webp';
+      final file = File(filePath);
+      await file.writeAsBytes(bytes, flush: true);
+      return file.path;
+    } catch (e) {
+      print('Error generating thumbnail for $videoUrl: $e');
+      return null;
     }
   }
 
@@ -185,8 +257,8 @@ class YouTubeVideoGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: onRefresh ?? () async {},
-      child: videos.isEmpty
+      onRefresh: widget.onRefresh ?? () async {},
+      child: widget.videos.isEmpty
           ? ListView(
               children: [
                 SizedBox(height: 120),
@@ -195,13 +267,15 @@ class YouTubeVideoGrid extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        type == 'Events' ? Icons.event_busy : Icons.work_off,
+                        widget.type == 'Events'
+                            ? Icons.event_busy
+                            : Icons.work_off,
                         size: 80,
                         color: Colors.grey[600],
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No $type videos yet',
+                        'No ${widget.type} videos yet',
                         style: TextStyle(
                           color: Colors.grey[400],
                           fontSize: 18,
@@ -223,24 +297,22 @@ class YouTubeVideoGrid extends StatelessWidget {
             )
           : ListView.builder(
               padding: const EdgeInsets.all(12),
-              itemCount: videos.length,
+              itemCount: widget.videos.length,
               itemBuilder: (context, index) {
-                final video = videos[index];
+                final video = widget.videos[index];
+                final fullUrl = _buildFullUrl(video['url'] as String?);
+                final thumbnailUrl = _thumbnails[fullUrl];
                 return GestureDetector(
                   onTap: () {
-                    if (video['url'] != null) {
-                      _launchURL(video['url']);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Video URL not available.'),
-                          backgroundColor: AppColors.error,
-                        ),
-                      );
-                    }
+                    // Navigate to the display video page with full details
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => DisplayVideoPage(video: video),
+                      ),
+                    );
                   },
                   child: Container(
-                    margin: const EdgeInsets.only(bottom: 20),
+                    margin: const EdgeInsets.only(bottom: 20, top: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -254,27 +326,21 @@ class YouTubeVideoGrid extends StatelessWidget {
                           ),
                           child: Stack(
                             children: [
-                              // ...existing code for thumbnail and duration...
-                              Container(
-                                width: double.infinity,
-                                height: double.infinity,
-                                decoration: BoxDecoration(
+                              if (thumbnailUrl != null)
+                                ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      AppColors.primary.withOpacity(0.3),
-                                      AppColors.secondary.withOpacity(0.3),
-                                    ],
+                                  child: Image.file(
+                                    File(thumbnailUrl),
+                                    width: double.infinity,
+                                    height: 200,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            _buildPlaceholder(),
                                   ),
-                                ),
-                                child: Icon(
-                                  Icons.play_circle_outline,
-                                  size: 60,
-                                  color: Colors.white,
-                                ),
-                              ),
+                                )
+                              else
+                                _buildPlaceholder(),
                               Positioned(
                                 bottom: 8,
                                 right: 8,
@@ -402,6 +468,29 @@ class YouTubeVideoGrid extends StatelessWidget {
                 );
               },
             ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withOpacity(0.3),
+            AppColors.secondary.withOpacity(0.3),
+          ],
+        ),
+      ),
+      child: const Icon(
+        Icons.play_circle_outline,
+        size: 60,
+        color: Colors.white,
+      ),
     );
   }
 }

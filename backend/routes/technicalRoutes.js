@@ -133,15 +133,15 @@ router.delete("/:id", (req, res) => {
 
 // Submit answers
 router.post("/answers", (req, res) => {
-  const { technical_id, answers } = req.body;
+  const { technical_question_id, answers } = req.body;
   const user_id = req.user.id; // assuming req.user.id is set after auth middleware
 
   const insertAnswerQuery = `INSERT INTO technical_answers (technical_id, user_id, qno, answer) VALUES ?`;
-  const values = answers.map(({ qno, answer }) => [technical_id, user_id, qno, answer]);
+  const values = answers.map(({ qno, answer }) => [technical_question_id, user_id, qno, answer]);
 
   connection.query(insertAnswerQuery, [values], (err) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.status(201).json({ message: "Answers submitted successfully", technical_id });
+    res.status(201).json({ message: "Answers submitted successfully", technical_question_id });
   });
 });
 

@@ -42,6 +42,29 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
   late Future<List<T>> assignmentsFuture;
   late Future<List<int>> attemptedFuture;
 
+  DateTime? _parseDateLoose(String raw) {
+    if (raw.isEmpty) return null;
+    // Try full parse first
+    final direct = DateTime.tryParse(raw);
+    if (direct != null) return direct;
+    // Fallback: parse just the date part if present
+    if (raw.length >= 10) {
+      final dateOnly = raw.substring(0, 10);
+      final date = DateTime.tryParse(dateOnly);
+      if (date != null) {
+        // Consider due at end of day if time not provided
+        return DateTime(date.year, date.month, date.day, 23, 59, 59);
+      }
+    }
+    return null;
+  }
+
+  bool _isOverdue(String dueRaw) {
+    final dueAt = _parseDateLoose(dueRaw);
+    if (dueAt == null) return false; // if unknown, don't block attempts
+    return DateTime.now().isAfter(dueAt);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -120,6 +143,8 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                   final displayResult =
                       (assignment as dynamic).displayResult == true ||
                           (assignment as dynamic).displayResult == 1;
+                  final dueRaw = widget.getDueDate(assignment);
+                  final overdue = !isDone && _isOverdue(dueRaw);
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(
@@ -214,11 +239,15 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                                     'Status: ' +
                                         (isDone
                                             ? 'Attempted'
-                                            : 'Not Attempted'),
+                                            : (overdue
+                                                ? 'Not Attempted (Overdue)'
+                                                : 'Not Attempted')),
                                     style: TextStyle(
                                         color: isDone
-                                            ? AppColors.success
-                                            : AppColors.accent,
+                                            ? AppColors.secondary
+                                            : (overdue
+                                                ? Colors.red
+                                                : AppColors.secondary),
                                         fontWeight: FontWeight.w600,
                                         fontSize: 13),
                                   ),
@@ -231,33 +260,37 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                             width: double.infinity,
                             child: !isDone
                                 ? ElevatedButton(
-                                    onPressed: () async {
-                                      final result = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => AttemptPage<Q>(
-                                            title: widget.getTitle(assignment),
-                                            questions: questions,
-                                            questionBuilder:
-                                                widget.questionBuilder,
-                                            onSubmit: (answers) async {
-                                              return AssignmentService
-                                                  .submitAnswers(
-                                                type: widget.type,
-                                                assignmentId:
-                                                    widget.getId(assignment),
-                                                answers: answers,
-                                              );
-                                            },
-                                            type: widget.type,
-                                          ),
-                                        ),
-                                      );
-                                      if (result == true) setState(() {});
-                                    },
+                                    onPressed: overdue
+                                        ? null
+                                        : () async {
+                                            final result = await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => AttemptPage<Q>(
+                                                  title: widget
+                                                      .getTitle(assignment),
+                                                  questions: questions,
+                                                  questionBuilder:
+                                                      widget.questionBuilder,
+                                                  onSubmit: (answers) async {
+                                                    return AssignmentService
+                                                        .submitAnswers(
+                                                      type: widget.type,
+                                                      assignmentId: widget
+                                                          .getId(assignment),
+                                                      answers: answers,
+                                                    );
+                                                  },
+                                                  type: widget.type,
+                                                ),
+                                              ),
+                                            );
+                                            if (result == true) setState(() {});
+                                          },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          isDone ? Colors.red : Colors.blue,
+                                      backgroundColor: overdue
+                                          ? Colors.grey
+                                          : AppColors.primary,
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(30),
@@ -268,7 +301,7 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold),
                                     ),
-                                    child: Text(isDone ? 'Done' : 'Attempt'),
+                                    child: const Text('Attempt'),
                                   )
                                 : ElevatedButton(
                                     onPressed: displayResult
@@ -282,13 +315,14 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                                             int obtainedMarks = 0;
                                             num totalMarks = 0;
                                             for (final question in questions) {
-                                              if (question is dynamic &&
-                                                  question.marks != null) {
-                                                totalMarks += question.marks
-                                                        is int
-                                                    ? question.marks
-                                                    : (question.marks as num)
-                                                        .toInt();
+                                              final dynamic q = question;
+                                              if (q.marks != null) {
+                                                final m = q.marks;
+                                                if (m is int) {
+                                                  totalMarks += m;
+                                                } else if (m is num) {
+                                                  totalMarks += m.toInt();
+                                                }
                                               }
                                               final match = results.firstWhere(
                                                 (ans) =>
@@ -318,15 +352,9 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                                                   results: results,
                                                   questionResultBuilder: widget
                                                       .questionResultBuilder,
-                                                  obtainedMarks: obtainedMarks
-                                                          is int
-                                                      ? obtainedMarks
-                                                      : (obtainedMarks as num)
-                                                          .toInt(),
-                                                  totalMarks: totalMarks is int
-                                                      ? totalMarks
-                                                      : (totalMarks as num)
-                                                          .toInt(),
+                                                  obtainedMarks: obtainedMarks,
+                                                  totalMarks:
+                                                      totalMarks.toInt(),
                                                   percentage: percentage,
                                                 ),
                                               ),
@@ -335,7 +363,7 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
                                         : null,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: displayResult
-                                          ? Colors.red
+                                          ? AppColors.secondary
                                           : Colors.grey,
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(

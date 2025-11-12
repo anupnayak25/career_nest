@@ -9,7 +9,6 @@ if (!fs.existsSync(logDir)) {
 
 // Create a write stream
 const logFile = fs.createWriteStream(path.join(logDir, 'app.log'), { flags: 'a' });
-
 // Override console methods
 const originalLog = console.log;
 const originalError = console.error;

@@ -7,6 +7,7 @@ import 'package:career_nest/student/models/hr_model.dart' show Question;
 import 'package:career_nest/student/models/programming_model.dart'
     show ProgrammingQuestion;
 import 'package:career_nest/student/models/quiz_model.dart' show QuizQuestion;
+// Removed unused TechnicalQuestion import; video questions handled dynamically.
 import 'package:career_nest/student/common/success_screen.dart';
 import 'package:flutter/services.dart';
 
@@ -341,8 +342,27 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
   }
 
   Widget _buildVideoQuestionCard(T question, int index) {
-    final q = question as Question;
-    final uploaded = answers[q.qno] != null;
+    final dynamic q = question; // duck-typed: expects q.qno & q.question
+    int displayQno;
+    try {
+      final raw = q.qno;
+      if (raw is int) {
+        displayQno = raw;
+      } else {
+        displayQno = int.tryParse(raw.toString()) ?? index + 1;
+      }
+    } catch (_) {
+      displayQno = index + 1;
+    }
+
+    final bool uploaded = answers[index] != null;
+    final bool isUploading = uploadingQuestions.contains(index);
+    String questionText;
+    try {
+      questionText = q.question?.toString() ?? '';
+    } catch (_) {
+      questionText = '';
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -371,7 +391,7 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  "Question ${q.qno}",
+                  "Question $displayQno",
                   style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
@@ -385,19 +405,19 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
+                    color: AppColors.secondary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.check_circle,
-                          color: AppColors.success, size: 16),
+                          color: AppColors.secondary, size: 16),
                       const SizedBox(width: 4),
                       Text(
                         "Completed",
                         style: TextStyle(
-                          color: AppColors.success,
+                          color: AppColors.secondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -409,7 +429,7 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
           ),
           const SizedBox(height: 16),
           Text(
-            q.question,
+            questionText,
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
@@ -418,48 +438,79 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
             ),
           ),
           const SizedBox(height: 20),
-          GestureDetector(
-            onTap: () => _recordVideo(q.qno),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: uploaded
-                      ? [AppColors.success, AppColors.success]
-                      : AppColors.mainGradient,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: (uploaded ? AppColors.success : AppColors.primary)
-                        .withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
+          AbsorbPointer(
+            absorbing: isUploading,
+            child: GestureDetector(
+              onTap: () => _recordVideo(index),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isUploading
+                        ? [Colors.grey.shade400, Colors.grey.shade500]
+                        : (uploaded
+                            ? [AppColors.secondary, AppColors.secondary]
+                            : AppColors.mainGradient),
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    uploaded ? Icons.check_circle : Icons.videocam,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    uploaded
-                        ? "Video Recorded Successfully"
-                        : "Record Your Answer",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (isUploading
+                              ? Colors.grey
+                              : (uploaded
+                                  ? AppColors.secondary
+                                  : AppColors.primary))
+                          .withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (isUploading) ...[
+                      const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        "Uploading...",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ] else ...[
+                      Icon(
+                        uploaded ? Icons.check_circle : Icons.videocam,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        uploaded
+                            ? "Video Recorded Successfully"
+                            : "Record Your Answer",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -588,7 +639,7 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
                   ? 'Video uploaded successfully for Q${index + 1}'
                   : 'Failed to upload video for Q${index + 1}'),
               backgroundColor:
-                  url != null ? AppColors.success : AppColors.error,
+                  url != null ? AppColors.secondary : AppColors.error,
               duration: const Duration(seconds: 3),
             ),
           );

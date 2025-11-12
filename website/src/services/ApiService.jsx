@@ -1,4 +1,3 @@
-
 const apiUrl = import.meta.env.VITE_API_URL;
 
 // --- Cached Auth State ---
@@ -122,7 +121,6 @@ export const getSubmittedUsers = async (type, id) => {
 };
 
 export const getUserAnswers = async (type, questionId, studentId) => {
-
   const res = await fetch(buildUrl(type, `/answers/${questionId}/${studentId}`), {
     headers: getHeaders(false),
   });
@@ -448,10 +446,23 @@ export const evaluate = async (id, type) => {
       body: JSON.stringify({ type }),
     });
 
-    const data = await res.json();
+    // Read as text first to detect HTML or non-JSON
+    const text = await res.text();
+    if (!text) {
+      throw new Error("Empty response from server");
+    }
+    if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
+      throw new Error("Server returned HTML instead of JSON. Check API_URL, route, and authentication.");
+    }
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      throw new Error(`Invalid JSON from server:${e.message} ` + text.substring(0, 120));
+    }
 
     if (!res.ok || !data.success) {
-      throw new Error(data.message || "Failed to evaluate");
+      throw new Error(data.message || `Failed to evaluate (status ${res.status})`);
     }
 
     return data;
@@ -459,4 +470,31 @@ export const evaluate = async (id, type) => {
     console.error("Evaluate error:", err.message);
     return { success: false, message: err.message };
   }
+};
+
+// Poll analysis status for a given set/question id
+export const getAnalysisStatus = async (id, type) => {
+  refresh();
+  if (!authToken) throw new Error("Auth token not found in sessionStorage");
+  if (!type) throw new Error("type required (hr|technical)");
+  const res = await fetch(`${apiUrl}/api/evaluate/${id}/status?type=${type}`, {
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+  const text = await res.text();
+  if (!text) throw new Error("Empty response from server");
+  if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
+    throw new Error("Server returned HTML instead of JSON.");
+  }
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    throw new Error("Invalid JSON: " + e.message);
+  }
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || `Failed to get status (status ${res.status})`);
+  }
+  return data; // { success: true, status }
 };

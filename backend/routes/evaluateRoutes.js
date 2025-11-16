@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { evaluateHrSet, evaluateTechnicalSet } = require('../services/evaluationService');
-const db = require('../db');
+const { evaluateHrSet, evaluateTechnicalSet } = require("../services/evaluationService");
+const db = require("../db");
 
 function query(sql, params) {
   return new Promise((resolve, reject) => {
@@ -11,39 +11,47 @@ function query(sql, params) {
     });
   });
 }
-const { ping, AI_SERVER_URL } = require('../services/aiClient');
+const { ping, AI_SERVER_URL } = require("../services/aiClient");
 
 async function setAnalysisStatus(type, setId, status) {
-  const table = type === 'hr' ? 'hr_questions' : 'technical_questions';
+  const table = type === "hr" ? "hr_questions" : "technical_questions";
   try {
     await query(`UPDATE ${table} SET analysis_status=? WHERE id=?`, [status, Number(setId)]);
   } catch (e) {
     // Column might not exist yet; log and continue without failing the request
-    console.warn('analysis_status update failed:', e.message);
+    console.warn("analysis_status update failed:", e.message);
   }
 }
 
 // POST /api/evaluate/batch
 // Body: { type: 'hr'|'technical', setId: number, userIds: number[] }
-router.post('/batch', async (req, res) => {
+router.post("/batch", async (req, res) => {
   const { type, setId, userIds } = req.body;
 
-  if (!type || !['hr', 'technical'].includes(type)) {
-    return res.status(400).json({ error: 'type must be hr or technical' });
+  // Ensure AI server is reachable before starting
+  try {
+    await ping();
+  } catch (e) {
+    return res.status(503).json({ error: `AI server unavailable at ${AI_SERVER_URL}: ${e.message}` });
+  }
+
+  if (!type || !["hr", "technical"].includes(type)) {
+    return res.status(400).json({ error: "type must be hr or technical" });
   }
   if (!setId) {
-    return res.status(400).json({ error: 'setId is required' });
+    return res.status(400).json({ error: "setId is required" });
   }
   if (!Array.isArray(userIds) || userIds.length === 0) {
-    return res.status(400).json({ error: 'userIds must be a non-empty array' });
+    return res.status(400).json({ error: "userIds must be a non-empty array" });
   }
 
   const summary = [];
+  console.log(
+    `[EVAL][BATCH] type=${type} setId=${setId} users=${Array.isArray(userIds) ? userIds.join(",") : userIds}`
+  );
   for (const userId of userIds) {
     try {
-      const result = type === 'hr'
-        ? await evaluateHrSet(setId, userId)
-        : await evaluateTechnicalSet(setId, userId);
+      const result = type === "hr" ? await evaluateHrSet(setId, userId) : await evaluateTechnicalSet(setId, userId);
       summary.push({ userId, ok: true, ...result });
     } catch (e) {
       summary.push({ userId, ok: false, error: e.message });
@@ -57,72 +65,83 @@ router.post('/batch', async (req, res) => {
 // Body: { type: 'hr'|'technical', userId?: number }
 // If userId provided, evaluates only that user's answers for the given set/question id.
 // Otherwise, evaluates all users who have submitted answers for that set/question id.
-router.post('/:id', async (req, res) => {
+router.post("/:id", async (req, res) => {
   const { id } = req.params;
   const { type, userId } = req.body || {};
 
-  if (!type || !['hr', 'technical'].includes(type)) {
-    return res.status(400).json({ success: false, message: 'type must be hr or technical' });
+  if (!type || !["hr", "technical"].includes(type)) {
+    return res.status(400).json({ success: false, message: "type must be hr or technical" });
   }
   if (!id) {
-    return res.status(400).json({ success: false, message: 'id is required' });
+    return res.status(400).json({ success: false, message: "id is required" });
   }
 
   try {
-    await setAnalysisStatus(type, id, 'undergoing');
+    // Ensure AI server is reachable before starting
+    try {
+      await ping();
+    } catch (e) {
+      return res
+        .status(503)
+        .json({ success: false, message: `AI server unavailable at ${AI_SERVER_URL}: ${e.message}` });
+    }
+
+    await setAnalysisStatus(type, id, "undergoing");
     let userIds = [];
     if (userId) {
       userIds = [Number(userId)];
     } else {
-      if (type === 'hr') {
-        const rows = await query('SELECT DISTINCT user_id FROM hr_answers WHERE hr_question_id = ?', [id]);
-        userIds = rows.map(r => r.user_id);
+      if (type === "hr") {
+        const rows = await query("SELECT DISTINCT user_id FROM hr_answers WHERE hr_question_id = ?", [id]);
+        userIds = rows.map((r) => r.user_id);
       } else {
-        const rows = await query('SELECT DISTINCT user_id FROM technical_answers WHERE technical_id = ?', [id]);
-        userIds = rows.map(r => r.user_id);
+        const rows = await query("SELECT DISTINCT user_id FROM technical_answers WHERE technical_id = ?", [id]);
+        userIds = rows.map((r) => r.user_id);
       }
     }
 
+    console.log(`[EVAL] type=${type} setId=${id} foundUsers=${userIds.length} [${userIds.join(",")}]`);
     if (!Array.isArray(userIds) || userIds.length === 0) {
-      await setAnalysisStatus(type, id, 'completed');
+      await setAnalysisStatus(type, id, "completed");
       return res.json({ success: true, type, setId: Number(id), total: 0, summary: [] });
     }
 
     const summary = [];
     for (const uid of userIds) {
       try {
-        const result = type === 'hr'
-          ? await evaluateHrSet(Number(id), uid)
-          : await evaluateTechnicalSet(Number(id), uid);
+        console.log(`[EVAL] start user=${uid} set=${id} type=${type}`);
+        const result =
+          type === "hr" ? await evaluateHrSet(Number(id), uid) : await evaluateTechnicalSet(Number(id), uid);
         summary.push({ userId: uid, ok: true, ...result });
       } catch (e) {
         summary.push({ userId: uid, ok: false, error: e.message });
+        console.error(`[EVAL] user=${uid} set=${id} error:`, e.message);
       }
     }
 
-    await setAnalysisStatus(type, id, 'completed');
+    await setAnalysisStatus(type, id, "completed");
     return res.json({ success: true, type, setId: Number(id), total: summary.length, summary });
   } catch (e) {
-    console.error('Evaluate route error:', e);
-    await setAnalysisStatus(type, id, 'not_analysed');
+    console.error("Evaluate route error:", e);
+    await setAnalysisStatus(type, id, "not_analysed");
     return res.status(500).json({ success: false, message: e.message });
   }
 });
 
 // GET /api/evaluate/:id/status?type=hr|technical
-router.get('/:id/status', async (req, res) => {
+router.get("/:id/status", async (req, res) => {
   const { id } = req.params;
   const { type } = req.query;
-  if (!type || !['hr', 'technical'].includes(type)) {
-    return res.status(400).json({ success: false, message: 'type must be hr or technical' });
+  if (!type || !["hr", "technical"].includes(type)) {
+    return res.status(400).json({ success: false, message: "type must be hr or technical" });
   }
-  const table = type === 'hr' ? 'hr_questions' : 'technical_questions';
+  const table = type === "hr" ? "hr_questions" : "technical_questions";
   try {
     const rows = await query(`SELECT analysis_status FROM ${table} WHERE id = ?`, [Number(id)]);
     if (!rows || rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'set not found' });
+      return res.status(404).json({ success: false, message: "set not found" });
     }
-    const status = rows[0].analysis_status || 'not_analysed';
+    const status = rows[0].analysis_status || "not_analysed";
     return res.json({ success: true, status });
   } catch (e) {
     return res.status(500).json({ success: false, message: e.message });
@@ -130,7 +149,7 @@ router.get('/:id/status', async (req, res) => {
 });
 
 // GET /api/evaluate/health
-router.get('/health', async (req, res) => {
+router.get("/health", async (req, res) => {
   try {
     const data = await ping();
     res.json({ ok: true, aiServer: AI_SERVER_URL, data });

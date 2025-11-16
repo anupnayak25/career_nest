@@ -446,15 +446,22 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: isOtpVerified
-              ? onPressed
-              : null, // Disable button until OTP is verified
+          onTap: onPressed,
           borderRadius: BorderRadius.circular(16),
           child: Container(
             alignment: Alignment.center,
+            // Add a bit of padding when showing the loading spinner so it doesn't feel cramped
+            padding: isLoading
+                ? const EdgeInsets.symmetric(vertical: 6, horizontal: 10)
+                : EdgeInsets.zero,
             child: isLoading
-                ? const CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
                   )
                 : Text(
                     text,
@@ -498,307 +505,317 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 30,
-                        offset: const Offset(0, 15),
-                      ),
-                    ],
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Header
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: AppColors.mainGradient,
-                                ),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(16)),
-                              ),
-                              child: const Icon(
-                                Icons.person_add_rounded,
-                                color: Colors.white,
-                                size: 32,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Text(
-                              "Create Account",
-                              style: AppTextStyles.titleLarge(context),
-                            ),
-                          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: AppColors.mainGradient,
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 30,
+                          offset: const Offset(0, 15),
                         ),
-                        const SizedBox(height: 20),
-
-                        // Email verification section
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 500),
-                          child: Column(
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Header
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              if (!isOtpVerified) ...[
-                                // Email field with Get OTP button
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      flex: 3,
-                                      child: _buildCustomTextField(
-                                        controller: emailController,
-                                        label: "College Email",
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter email';
-                                          } else if (!_isValidEmail(
-                                              value, context)) {
-                                            return 'Please enter a valid college email';
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    SizedBox(
-                                      width: 100,
-                                      child: _buildGradientButton(
-                                        text: _secondsRemaining > 0
-                                            ? '$_secondsRemaining'
-                                            : 'Get OTP',
-                                        onPressed:
-                                            (isLoading || _secondsRemaining > 0)
-                                                ? null
-                                                : _getOtp,
-                                        colors: _secondsRemaining > 0
-                                            ? [
-                                                Colors.grey[400]!,
-                                                Colors.grey[500]!
-                                              ]
-                                            : [
-                                                Colors.green[600]!,
-                                                Colors.green[500]!
-                                              ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 20),
-
-                                // OTP field with Verify button
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      flex: 3,
-                                      child: _buildCustomTextField(
-                                        controller: _otpController,
-                                        label: "Enter OTP",
-                                        keyboardType: TextInputType.number,
-                                        maxLength: 6,
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter
-                                              .digitsOnly,
-                                          LengthLimitingTextInputFormatter(6),
-                                        ],
-                                        validator: (value) =>
-                                            null, // No validation needed
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    SizedBox(
-                                      width: 100,
-                                      child: _buildGradientButton(
-                                        text: 'Verify',
-                                        onPressed:
-                                            isLoading ? null : _verifyOtp,
-                                        isLoading: isLoading,
-                                        colors: [
-                                          Colors.blue[700]!,
-                                          Colors.blue[500]!
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ] else ...[
-                                // Verification success card
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(20),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.green[50]!,
-                                        Colors.green[100]!
-                                      ],
-                                    ),
-                                    border:
-                                        Border.all(color: Colors.green[300]!),
-                                    borderRadius: BorderRadius.circular(16),
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: AppColors.mainGradient,
                                   ),
-                                  child: Row(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(16)),
+                                ),
+                                child: const Icon(
+                                  Icons.person_add_rounded,
+                                  color: Colors.white,
+                                  size: 32,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Text(
+                                "Create Account",
+                                style: AppTextStyles.titleLarge(context),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Email verification section
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
+                            child: Column(
+                              children: [
+                                if (!isOtpVerified) ...[
+                                  // Email field with Get OTP button
+                                  Row(
                                     children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.green,
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                        child: const Icon(
-                                          Icons.check,
-                                          color: Colors.white,
-                                          size: 20,
+                                      Expanded(
+                                        flex: 3,
+                                        child: _buildCustomTextField(
+                                          controller: emailController,
+                                          label: "College Email",
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'Please enter email';
+                                            } else if (!_isValidEmail(
+                                                value, context)) {
+                                              return 'Please enter a valid college email';
+                                            }
+                                            return null;
+                                          },
                                         ),
                                       ),
-                                      const SizedBox(width: 16),
+                                      const SizedBox(width: 12),
+                                      SizedBox(
+                                        width: 100,
+                                        child: _buildGradientButton(
+                                          text: _secondsRemaining > 0
+                                              ? '$_secondsRemaining'
+                                              : 'Get OTP',
+                                          onPressed: (isLoading ||
+                                                  _secondsRemaining > 0)
+                                              ? null
+                                              : _getOtp,
+                                          colors: _secondsRemaining > 0
+                                              ? [
+                                                  Colors.grey[400]!,
+                                                  Colors.grey[500]!
+                                                ]
+                                              : [
+                                                  Colors.green[600]!,
+                                                  Colors.green[500]!
+                                                ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 20),
+
+                                  // OTP field with Verify button
+                                  Row(
+                                    children: [
                                       Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "Email Verified!",
-                                              style: AppTextStyles.bodyLarge(
-                                                      context)
-                                                  .copyWith(
-                                                color: Colors.green[800],
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(
-                                              emailController.text,
-                                              style: AppTextStyles.bodyMedium(
-                                                      context)
-                                                  .copyWith(
-                                                color: Colors.green[700],
-                                              ),
-                                            ),
+                                        flex: 3,
+                                        child: _buildCustomTextField(
+                                          controller: _otpController,
+                                          label: "Enter OTP",
+                                          keyboardType: TextInputType.number,
+                                          maxLength: 6,
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter
+                                                .digitsOnly,
+                                            LengthLimitingTextInputFormatter(6),
+                                          ],
+                                          validator: (value) =>
+                                              null, // No validation needed
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      SizedBox(
+                                        width: 100,
+                                        child: _buildGradientButton(
+                                          text: 'Verify',
+                                          onPressed:
+                                              isLoading ? null : _verifyOtp,
+                                          isLoading: isLoading,
+                                          colors: [
+                                            Colors.blue[700]!,
+                                            Colors.blue[500]!
                                           ],
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
+                                ] else ...[
+                                  // Verification success card
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.green[50]!,
+                                          Colors.green[100]!
+                                        ],
+                                      ),
+                                      border:
+                                          Border.all(color: Colors.green[300]!),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green,
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          child: const Icon(
+                                            Icons.check,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "Email Verified!",
+                                                style: AppTextStyles.bodyLarge(
+                                                        context)
+                                                    .copyWith(
+                                                  color: Colors.green[800],
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                emailController.text,
+                                                style: AppTextStyles.bodyMedium(
+                                                        context)
+                                                    .copyWith(
+                                                  color: Colors.green[700],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 32),
+                          const SizedBox(height: 32),
 
-                        // Rest of the form fields
-                        _buildCustomTextField(
-                          controller: nameController,
-                          label: "Full Name",
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your name';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-
-                        _buildCustomTextField(
-                          controller: passwordController,
-                          label: "Password",
-                          obscureText: isPasswordHidden,
-                          passwordToggle: isPasswordHidden,
-                          onTogglePassword: () {
-                            setState(() {
-                              isPasswordHidden = !isPasswordHidden;
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter password';
-                            } else if (value.length < 8) {
-                              return 'Password must be at least 8 characters, should contain at least one numeric, capital letter, small letter, special character';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-
-                        _buildCustomTextField(
-                          controller: confirmPasswordController,
-                          label: "Confirm Password",
-                          obscureText: isConfirmPasswordHidden,
-                          passwordToggle: isConfirmPasswordHidden,
-                          onTogglePassword: () {
-                            setState(() {
-                              isConfirmPasswordHidden =
-                                  !isConfirmPasswordHidden;
-                            });
-                          },
-                          validator: (value) {
-                            if (value != passwordController.text) {
-                              return 'Password didn\'t match';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 40),
-
-                        // Create account button
-                        _buildGradientButton(
-                          text: "Create Account",
-                          onPressed: isLoading ? null : _submit,
-                          isLoading: isLoading,
-                          width: double.infinity,
-                          colors: AppColors.mainGradient,
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Login link
-                        Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Already have an account? ",
-                                style:
-                                    AppTextStyles.bodySmall(context).copyWith(
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) => const LoginPage()),
-                                  );
-                                },
-                                child: Text(
-                                  "Sign In",
-                                  style: AppTextStyles.buttonLegacy
-                                      .copyWith(color: AppColors.primary),
-                                ),
-                              )
-                            ],
+                          // Rest of the form fields
+                          _buildCustomTextField(
+                            controller: nameController,
+                            label: "Full Name",
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your name';
+                              }
+                              return null;
+                            },
                           ),
-                        )
-                      ],
+                          const SizedBox(height: 24),
+
+                          _buildCustomTextField(
+                            controller: passwordController,
+                            label: "Password",
+                            obscureText: isPasswordHidden,
+                            passwordToggle: isPasswordHidden,
+                            onTogglePassword: () {
+                              setState(() {
+                                isPasswordHidden = !isPasswordHidden;
+                              });
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter password';
+                              } else if (value.length < 8) {
+                                return 'Password must be at least 8 characters, should contain at least one numeric, capital letter, small letter, special character';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
+
+                          _buildCustomTextField(
+                            controller: confirmPasswordController,
+                            label: "Confirm Password",
+                            obscureText: isConfirmPasswordHidden,
+                            passwordToggle: isConfirmPasswordHidden,
+                            onTogglePassword: () {
+                              setState(() {
+                                isConfirmPasswordHidden =
+                                    !isConfirmPasswordHidden;
+                              });
+                            },
+                            validator: (value) {
+                              if (value != passwordController.text) {
+                                return 'Password didn\'t match';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 40),
+
+                          // Create account button
+                          _buildGradientButton(
+                            text: "Create Account",
+                            onPressed: isLoading ? null : _submit,
+                            isLoading: isLoading,
+                            width: double.infinity,
+                            colors: AppColors.mainGradient,
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Login link
+                          Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Already have an account? ",
+                                  style:
+                                      AppTextStyles.bodySmall(context).copyWith(
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => const LoginPage()),
+                                    );
+                                  },
+                                  child: Text(
+                                    "Sign In",
+                                    style: AppTextStyles.buttonLegacy
+                                        .copyWith(color: AppColors.primary),
+                                  ),
+                                )
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 ),

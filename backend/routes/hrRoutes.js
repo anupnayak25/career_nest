@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const connection = require("../db"); // Assuming you have a db.js file for database connection
+const { transcribe, AI_SERVER_URL } = require("../services/aiClient");
 //const fetchUser = require('../middlewares/fetchUser');
 router.get("/", (req, res) => {
   connection.query("SELECT * FROM hr_questions", async (err, sets) => {
@@ -61,22 +62,51 @@ router.post("/", (req, res) => {
       const hr_question_id = result.insertId;
 
       const queryInsertItem = `
-      INSERT INTO hr_question_items (hr_question_id, qno, question, marks)
-      VALUES (?, ?, ?, ?)
-    `;
+  INSERT INTO hr_question_items (hr_question_id, qno, question, marks, answer_url, answer_transcript)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
 
-      // Convert each item insert into a Promise
-      const insertItemPromises = hrQuestionItems.map(({ qno, question, marks }) => {
+      // Helper to build public URL if a filename is provided
+      const makeVideoUrl = (val) => {
+        if (!val) return null;
+        if (/^https?:\/\//i.test(val)) return val;
+        const base = process.env.BACKEND_PUBLIC_BASE || "http://localhost:5000";
+        return `${base}/videos/${val}`;
+      };
+
+      // Insert each item; if a video is provided (answer_url/video/videoUrl), transcribe and store transcript
+      const insertItemPromises = hrQuestionItems.map(async (item) => {
+        const { qno, question, marks } = item;
+        let transcript = item.answer_transcript && item.answer_transcript !== "NA" ? item.answer_transcript : null;
+        const maybeVideo = item.answer_url || item.video || item.videoUrl;
+        const storedUrl = maybeVideo || "NA";
+        if (!transcript && maybeVideo) {
+          try {
+            const fullUrl = makeVideoUrl(maybeVideo);
+            if (fullUrl) {
+              console.log(`[HR][UPLOAD] Transcribing teacher video qno=${qno} -> ${fullUrl} (AI: ${AI_SERVER_URL})`);
+              const t = await transcribe(fullUrl);
+              transcript = t.transcript || "NA";
+            }
+          } catch (e) {
+            console.warn(`[HR][UPLOAD] Transcribe failed qno=${qno}:`, e.message);
+            transcript = "NA";
+          }
+        }
+        if (!transcript) transcript = "NA";
+
         return new Promise((resolve, reject) => {
-          // Call transcribe function for each question
-          connection.query(queryInsertItem, [hr_question_id, qno, question, marks], (err, result) => {
-            if (err) return reject(err);
-            resolve(result);
-          });
+          connection.query(
+            queryInsertItem,
+            [hr_question_id, qno, question, marks, storedUrl, transcript],
+            (err, result) => {
+              if (err) return reject(err);
+              resolve(result);
+            }
+          );
         });
       });
 
-      
       // Wait for all inserts to finish
       Promise.all(insertItemPromises)
         .then(() => {
@@ -107,15 +137,40 @@ router.put("/:id", (req, res) => {
       if (err) return res.status(500).json({ error: err.message });
 
       const queryUpdateItem = `
-      UPDATE hr_question_items set  question =?, marks=? where hr_question_id = ? and qno = ?
-    `;
+        UPDATE hr_question_items SET question = ?, marks = ?, answer_url = ?, answer_transcript = ? WHERE hr_question_id = ? AND qno = ?
+      `;
 
-      // Convert each item insert into a Promise
-      const insertItemPromises = hrQuestionItems.map(({ qno, question, marks }) => {
+      const makeVideoUrl = (val) => {
+        if (!val) return null;
+        if (/^https?:\/\//i.test(val)) return val;
+        const base = process.env.BACKEND_PUBLIC_BASE || "http://localhost:5000";
+        return `${base}/videos/${val}`;
+      };
+
+      // Update items; if transcript missing but a video reference provided, transcribe it now
+      const insertItemPromises = hrQuestionItems.map(async (item) => {
+        const { qno, question, marks } = item;
+        let transcript = item.answer_transcript && item.answer_transcript !== "NA" ? item.answer_transcript : null;
+        const maybeVideo = item.answer_url || item.video || item.videoUrl;
+        const storedUrl = maybeVideo || "NA";
+        if (!transcript && maybeVideo) {
+          try {
+            const fullUrl = makeVideoUrl(maybeVideo);
+            if (fullUrl) {
+              console.log(`[HR][UPDATE] Transcribing teacher video qno=${qno} -> ${fullUrl} (AI: ${AI_SERVER_URL})`);
+              const t = await transcribe(fullUrl);
+              transcript = t.transcript || "NA";
+            }
+          } catch (e) {
+            console.warn(`[HR][UPDATE] Transcribe failed qno=${qno}:`, e.message);
+            transcript = "NA";
+          }
+        }
+        if (!transcript) transcript = "NA";
+
         return new Promise((resolve, reject) => {
-          connection.query(queryUpdateItem, [question, marks, id, qno], (err, result) => {
+          connection.query(queryUpdateItem, [question, marks, storedUrl, transcript, id, qno], (err, result) => {
             if (err) return reject(err);
-
             resolve(result);
           });
         });

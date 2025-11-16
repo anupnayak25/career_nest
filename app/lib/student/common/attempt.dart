@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'package:career_nest/common/video_recoredr_screen.dart';
 import 'package:career_nest/common/video_service.dart';
 import 'package:career_nest/common/theme.dart';
@@ -39,6 +40,8 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
   late Map<int, dynamic> answers;
   bool isSubmitting = false;
   List<int> uploadingQuestions = [];
+  int _pauseCount = 0; // track how many times user backgrounds/leaves
+  bool _forcedSubmissionTriggered = false;
 
   @override
   void initState() {
@@ -60,8 +63,25 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
-      // App is in the background, automatically submit attempt
-      _submitAttemptWithNA();
+      _pauseCount += 1;
+      if (_pauseCount >= 3 && !_forcedSubmissionTriggered) {
+        // Third attempt to background: force submission immediately
+        _forcedSubmissionTriggered = true;
+        _submitAttemptWithNA(force: true);
+      } else {
+        // Provide gentle warning first two times
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_pauseCount == 1
+                  ? 'Leaving the screen will auto-submit after 2 more exits.'
+                  : 'Warning: One more exit will auto-submit your attempt.'),
+              backgroundColor: AppColors.accent,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -306,6 +326,26 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
   }
 
   Widget _buildQuizQuestionCard(QuizQuestion question, int index) {
+    // Sanitize options: backend may send JSON array string or individual items with stray brackets
+    List<String> options;
+    if (question.options.length == 1 &&
+        question.options.first.contains('[') &&
+        question.options.first.contains(']')) {
+      try {
+        final decoded = jsonDecode(question.options.first);
+        options = List<String>.from(decoded.map((e) => e.toString()));
+      } catch (_) {
+        options = question.options
+            .map((o) => o.replaceAll('[', '').replaceAll(']', ''))
+            .toList();
+      }
+    } else {
+      options = question.options
+          .map((o) => o.replaceAll('[', '').replaceAll(']', ''))
+          .toList();
+    }
+    // Remove any explicit 'NA' option from display; we'll insert 'NA' automatically if forced
+    options = options.where((o) => o.trim().toUpperCase() != 'NA').toList();
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Card(
@@ -323,14 +363,15 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
                       fontWeight: FontWeight.w600, fontSize: 16)),
               const SizedBox(height: 12),
               Column(
-                children: List.generate(question.options.length, (i) {
+                children: List.generate(options.length, (i) {
+                  final opt = options[i];
                   return RadioListTile(
-                    value: question.options[i],
+                    value: opt,
                     groupValue: answers[index],
                     onChanged: (val) {
                       setState(() => answers[index] = val);
                     },
-                    title: Text(question.options[i]),
+                    title: Text(opt),
                   );
                 }),
               ),
@@ -663,41 +704,46 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
     }
   }
 
-  Future<void> _submitAnswers() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Submission'),
-        content: const Text('Are you sure you want to submit your answers?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
-    );
+  Future<void> _submitAnswers({bool force = false}) async {
+    if (!force) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirm Submission'),
+          content: const Text('Are you sure you want to submit your answers?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Submit'),
+            ),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+    }
 
-    if (confirm != true) return;
-
-    // Fill unanswered questions with "NA" for non-quiz questions
+    // Fill unanswered questions with "NA" for all question types when forced.
     for (int i = 0; i < widget.questions.length; i++) {
       if (answers[i] == null) {
         final question = widget.questions[i];
-        if (question is! QuizQuestion) {
+        if (force) {
           answers[i] = 'NA';
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Please select an option for question ${i + 1}.'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-          return;
+          if (question is! QuizQuestion) {
+            answers[i] = 'NA';
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Please select an option for question ${i + 1}.'),
+                backgroundColor: AppColors.error,
+              ),
+            );
+            return;
+          }
         }
       }
     }
@@ -727,26 +773,7 @@ class _AttemptPageState<T> extends State<AttemptPage<T>>
     }
   }
 
-  void _submitAttemptWithNA() {
-    // Fill unanswered questions with "NA" for non-quiz questions
-    for (int i = 0; i < widget.questions.length; i++) {
-      if (answers[i] == null) {
-        final question = widget.questions[i];
-        if (question is! QuizQuestion) {
-          answers[i] = 'NA';
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Please select an option for question ${i + 1}.'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-          return;
-        }
-      }
-    }
-
-    // Submit answers
-    _submitAnswers();
+  void _submitAttemptWithNA({bool force = false}) {
+    _submitAnswers(force: force);
   }
 }

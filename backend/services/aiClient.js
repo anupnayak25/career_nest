@@ -4,7 +4,7 @@ const AI_SERVER_URL = process.env.AI_SERVER_URL || 'http://localhost:7860';
 
 const client = axios.create({
   baseURL: AI_SERVER_URL,
-  timeout: 120000, // 120s for transcription
+  timeout: 1200000, // 120s for transcription
 });
 
 async function ping() {

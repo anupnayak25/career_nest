@@ -1,3 +1,4 @@
+
 # AI Server - Video Transcription and Evaluation API
 
 A Flask-based AI server that provides video transcription and transcript evaluation services using OpenAI Whisper and Sentence Transformers.

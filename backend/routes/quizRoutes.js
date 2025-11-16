@@ -41,6 +41,43 @@ router.get("/:id", (req, res) => {
   );
 });
 
+// Get random questions from an expired quiz (quiz pool)
+router.get("/getquizpool", (req, res) => {
+  const quizId = req.query.quiz_id;
+  let limit = parseInt(req.query.limit, 10);
+
+  if (!quizId) {
+    return res.status(400).json({ error: "quiz_id query param is required" });
+  }
+
+  if (Number.isNaN(limit) || limit <= 0) {
+    limit = 10; // default number of questions
+  }
+
+  const sql = `
+    SELECT q.id, q.quiz_id, q.qno, q.question, q.options, q.marks, q.correct_answer
+    FROM quiz_questions q
+    JOIN quizzes z ON q.quiz_id = z.id
+    WHERE z.id = ?
+      AND z.due_date < NOW()
+      AND z.due_date <> '0000-00-00 00:00:00'
+    ORDER BY RAND()
+    LIMIT ?
+  `;
+
+  connection.query(sql, [quizId, limit], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (!results || results.length === 0) {
+      return res.status(404).json({ message: "No questions found or quiz not expired yet" });
+    }
+
+    res.json(results);
+  });
+});
+
 // Create a new quiz
 router.post("/", [body("title", "Must have a title").notEmpty()], (req, res) => {
   const { title, description, publish_date, due_date, quizQuestions } = req.body;
@@ -233,24 +270,48 @@ router.get("/mypost/:id", (req, res) => {
 router.post("/answers", (req, res) => {
   const { quiz_id, answers } = req.body;
   const user_id = req.user.id; // assuming you're using authentication middleware
-  console.log(answers);
-  if (!quiz_id || !answers || answers.length === 0) {
+  if (!quiz_id || !answers || !Array.isArray(answers) || answers.length === 0) {
     return res.status(400).json({ error: "quiz_id and answers are required" });
   }
 
-  const insertQuery = `INSERT INTO quiz_answers (quiz_id, user_id, qno, answer, marks_awarded) VALUES ?`;
+  // 1) Fetch correct answers and marks for this quiz
+  const metaQuery = `SELECT qno, correct_answer, marks FROM quiz_questions WHERE quiz_id = ?`;
+  connection.query(metaQuery, [quiz_id], (metaErr, questionRows) => {
+    if (metaErr) return res.status(500).json({ error: metaErr.message });
 
-  const answerValues = answers.map(({ qno, selected_ans, marks_awarded }) => [
-    quiz_id,
-    user_id,
-    qno,
-    selected_ans,
-    marks_awarded || 0,
-  ]);
+    // Build a lookup: qno -> { correct_answer, marks }
+    const qMap = new Map();
+    for (const row of questionRows) {
+      qMap.set(Number(row.qno), {
+        correct_answer: row.correct_answer,
+        marks: Number(row.marks) || 0,
+      });
+    }
 
-  connection.query(insertQuery, [answerValues], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.status(201).json({ message: "Answers submitted successfully" });
+    // Helper to normalize values for safe comparison
+    const normalize = (v) => (v === null || v === undefined ? "" : String(v).trim().toLowerCase());
+
+    // 2) Compute marks based on correctness
+    const insertQuery = `INSERT INTO quiz_answers (quiz_id, user_id, qno, answer, marks_awarded) VALUES ?`;
+
+    const answerValues = answers.map(({ qno, selected_ans }) => {
+      const meta = qMap.get(Number(qno));
+      let awarded = 0;
+      if (meta) {
+        const isCorrect = normalize(selected_ans) === normalize(meta.correct_answer);
+        awarded = isCorrect ? meta.marks : 0;
+      }
+      return [quiz_id, user_id, qno, selected_ans, awarded];
+    });
+
+    // 3) Insert the computed rows
+    connection.query(insertQuery, [answerValues], (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      // Optionally compute and return the total scored in this submission
+      const total = answerValues.reduce((sum, row) => sum + (Number(row[4]) || 0), 0);
+      res.status(201).json({ message: "Answers submitted successfully", total_marks_awarded: total });
+    });
   });
 });
 
@@ -290,6 +351,7 @@ router.get("/answers/:quiz_id/:user_id", (req, res) => {
 router.put("/publish/:id", (req, res) => {
   const id = req.params.id;
   const { display_result } = req.body;
+
   const query = `UPDATE quizzes SET display_result=? WHERE id=?`;
   connection.query(query, [display_result, id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -344,6 +406,42 @@ router.put("/answers/:quiz_id/:user_id/marks", (req, res) => {
     .catch((error) => {
       res.status(500).json({ error: error.message });
     });
+});
+
+// Get random questions from an expired quiz (quiz pool)
+router.get("/getquizpool", (req, res) => {
+  const quizId = req.query.quiz_id;
+  let limit = parseInt(req.query.limit, 10);
+
+  if (!quizId) {
+    return res.status(400).json({ error: "quiz_id query param is required" });
+  }
+
+  if (Number.isNaN(limit) || limit <= 0) {
+    limit = 10; // default number of questions
+  }
+
+  const sql = `
+    SELECT q.id, q.quiz_id, q.qno, q.question, q.options, q.marks
+    FROM quiz_questions q
+    JOIN expired_quizzes v ON q.quiz_id = v.id
+    WHERE v.id = ?
+    ORDER BY RAND()
+    LIMIT ?
+  `;
+
+  connection.query(sql, [quizId, limit], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (!results || results.length === 0) {
+      // Either quiz not expired / not in view, or no questions
+      return res.status(404).json({ message: "No questions found for this quiz or quiz not expired yet" });
+    }
+
+    res.json(results);
+  });
 });
 
 module.exports = router;

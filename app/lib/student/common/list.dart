@@ -45,7 +45,11 @@ class _AssignmentListPageState<T, Q> extends State<AssignmentListPage<T, Q>> {
   DateTime? _parseDateLoose(String raw) {
     if (raw.isEmpty) return null;
     // Try full parse first
-    final direct = DateTime.tryParse(raw);
+    // Normalize common MySQL "YYYY-MM-DD HH:MM:SS" format to ISO by inserting 'T'
+    final normalized = (raw.contains(' ') && !raw.contains('T'))
+        ? raw.replaceFirst(' ', 'T')
+        : raw;
+    final direct = DateTime.tryParse(normalized);
     if (direct != null) return direct;
     // Fallback: parse just the date part if present
     if (raw.length >= 10) {

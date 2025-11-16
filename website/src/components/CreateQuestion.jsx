@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Trash2, X, Video, FileText, AlertCircle, Play, Square, RotateCcw } from "lucide-react";
-import { uploadQuestions } from "../services/ApiService";
+import { uploadQuestions, uploadVideoFile } from "../services/ApiService";
 import * as XLSX from "xlsx";
 import excel from "../assets/excel.png";
 import { useData } from "../context/DataContext";
@@ -12,6 +12,7 @@ function CreateQuestion() {
   const [loading, setLoading] = useState(false);
   const [recordingStates, setRecordingStates] = useState({});
   const [mediaRecorders, setMediaRecorders] = useState({});
+  const [uploadingVideo, setUploadingVideo] = useState({}); // per-question uploading state
   const videoRefs = React.useRef({});
   const [formData, setFormData] = useState({
     title: "",
@@ -40,6 +41,30 @@ function CreateQuestion() {
   const [excelError, setExcelError] = useState("");
   const { setPageTitle } = useData();
   const { showToast } = useToast();
+
+  // Normalize any returned URL/path to just the filename (DB stores filenames; URLs can change)
+  const getFilenameFromValue = (val) => {
+    if (!val || typeof val !== "string") return "";
+    try {
+      const base = val.split("?")[0].split("#")[0];
+      const parts = base.split("/");
+      return parts[parts.length - 1] || val;
+    } catch {
+      return val;
+    }
+  };
+
+  // Auto-calculate total marks from sub-questions
+  const computedTotal = React.useMemo(() => {
+    try {
+      return (formData.questionItems || []).reduce((sum, item) => {
+        const val = parseInt(item?.marks, 10);
+        return sum + (Number.isFinite(val) ? val : 0);
+      }, 0);
+    } catch {
+      return 0;
+    }
+  }, [formData.questionItems]);
 
   React.useEffect(() => {
     setPageTitle(`Create New ${type.charAt(0).toUpperCase() + type.slice(1)} Attempt`);
@@ -83,7 +108,7 @@ function CreateQuestion() {
           description: formData.description,
           due_date: formData.due_date_time, // Updated to use due_date_time
           publish_date: formData.publish_date_time, // Added publish_date_time
-          totalMarks: parseInt(formData.total_marks),
+          totalMarks: computedTotal,
         },
         hrQuestionItems: formData.questionItems.map((item, index) => ({
           qno: index + 1,
@@ -100,7 +125,7 @@ function CreateQuestion() {
         upload_date: new Date().toISOString().slice(0, 10),
         due_date: formData.due_date_time, // Updated to use due_date_time
         publish_date: formData.publish_date_time, // Added publish_date_time
-        totalMarks: parseInt(formData.total_marks),
+        totalMarks: computedTotal,
         user_id: sessionStorage.getItem("userId"),
         programQuestions: formData.questionItems.map((item, index) => ({
           qno: index + 1,
@@ -130,7 +155,7 @@ function CreateQuestion() {
         upload_date: new Date().toISOString().slice(0, 10),
         due_date: formData.due_date_time, // Updated to use due_date_time
         publish_date: formData.publish_date_time, // Added publish_date_time
-        totalMarks: parseInt(formData.total_marks),
+        totalMarks: computedTotal,
         user_id: sessionStorage.getItem("userId"),
         questions: formData.questionItems.map((item, index) => ({
           qno: index + 1,
@@ -237,11 +262,18 @@ function CreateQuestion() {
         }
       };
 
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const blob = new Blob(chunks, { type: "video/webm" });
         const videoUrl = URL.createObjectURL(blob);
+        // Show local preview until upload finishes
         updateQuestionItem(questionIndex, "recorded_video", videoUrl);
+        // Stop camera and clear live preview
         stream.getTracks().forEach((track) => track.stop());
+        if (videoRefs.current[questionIndex]) {
+          videoRefs.current[questionIndex].srcObject = null;
+        }
+        // Immediately upload the recorded video and store only the filename
+        await uploadRecordedVideo(questionIndex, blob);
       };
 
       setMediaRecorders((prev) => ({ ...prev, [questionIndex]: mediaRecorder }));
@@ -287,6 +319,58 @@ function CreateQuestion() {
     }
 
     showToast("Recording reset!", "info");
+  };
+
+  // Upload a selected video file for a given question and set answer_url to the server filename
+  const handleVideoFileSelect = async (questionIndex, file) => {
+    if (!file) return;
+    try {
+      setUploadingVideo((prev) => ({ ...prev, [questionIndex]: true }));
+      const fd = new FormData();
+      fd.append("video", file);
+      const resp = await uploadVideoFile(fd);
+      if (resp && resp.success && (resp.filename || resp.url)) {
+        const filename = getFilenameFromValue(resp.filename || resp.url);
+        updateQuestionItem(questionIndex, "answer_url", filename);
+        // clear any local-only recorded preview to avoid confusion
+        updateQuestionItem(questionIndex, "recorded_video", null);
+        showToast("Video uploaded and linked to the question.", "success");
+      } else {
+        showToast("Upload failed: invalid server response.", "error");
+      }
+    } catch (e) {
+      console.error("Video upload failed:", e.message);
+      showToast(e.message || "Failed to upload video.", "error");
+    } finally {
+      setUploadingVideo((prev) => ({ ...prev, [questionIndex]: false }));
+    }
+  };
+
+  // Upload the recorded blob right after recording stops and store only the filename
+  const uploadRecordedVideo = async (questionIndex, blob) => {
+    if (!blob) return;
+    try {
+      setUploadingVideo((prev) => ({ ...prev, [questionIndex]: true }));
+      const file = new File([blob], `recording_${Date.now()}.webm`, { type: "video/webm" });
+      const fd = new FormData();
+      fd.append("video", file);
+      const resp = await uploadVideoFile(fd);
+      if (resp && resp.success && (resp.filename || resp.url)) {
+        const filename = getFilenameFromValue(resp.filename || resp.url);
+        updateQuestionItem(questionIndex, "answer_url", filename);
+        // Clear local-only preview now that it's on the server
+        updateQuestionItem(questionIndex, "recorded_video", null);
+        showToast("Recording uploaded successfully.", "success");
+      } else {
+        showToast("Upload failed: invalid server response.", "error");
+      }
+    } catch (e) {
+      console.error("Recorded video upload failed:", e.message);
+      showToast(e.message || "Failed to upload recorded video.", "error");
+      // Keep local preview so the user can retry by uploading the file or re-recording
+    } finally {
+      setUploadingVideo((prev) => ({ ...prev, [questionIndex]: false }));
+    }
   };
 
   const openExcelFormat = () => setExcelModalOpen(true);
@@ -482,7 +566,7 @@ function CreateQuestion() {
                       required
                     />
                   </div>
-                  
+
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Due Date & Time *</label>
                     <input
@@ -495,16 +579,15 @@ function CreateQuestion() {
                   </div>
 
                   <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Marks *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Marks (auto)</label>
                     <input
                       type="number"
-                      min="1"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      placeholder="100"
-                      value={formData.total_marks}
-                      onChange={(e) => setFormData({ ...formData, total_marks: e.target.value })}
-                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                      value={computedTotal}
+                      readOnly
+                      disabled
                     />
+                    <p className="text-xs text-gray-500 mt-1">Calculated from question marks</p>
                   </div>
                 </div>
               </div>
@@ -654,7 +737,9 @@ function CreateQuestion() {
                                   <div className="flex items-center">
                                     <Video className="w-5 h-5 mr-3 text-blue-600 group-hover:text-blue-700" />
                                     <div>
-                                      <div className="font-medium text-gray-900 group-hover:text-gray-800">Video Answer</div>
+                                      <div className="font-medium text-gray-900 group-hover:text-gray-800">
+                                        Video Answer
+                                      </div>
                                       <div className="text-xs text-gray-500">Record or upload video response</div>
                                     </div>
                                   </div>
@@ -671,7 +756,9 @@ function CreateQuestion() {
                                   <div className="flex items-center">
                                     <FileText className="w-5 h-5 mr-3 text-green-600 group-hover:text-green-700" />
                                     <div>
-                                      <div className="font-medium text-gray-900 group-hover:text-gray-800">Text Answer</div>
+                                      <div className="font-medium text-gray-900 group-hover:text-gray-800">
+                                        Text Answer
+                                      </div>
                                       <div className="text-xs text-gray-500">Written or typed response</div>
                                     </div>
                                   </div>
@@ -758,18 +845,22 @@ function CreateQuestion() {
 
                                   <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-3">
-                                      Alternative Video URL (Optional)
+                                      Upload Video File (Optional)
                                     </label>
                                     <input
-                                      type="url"
-                                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                      placeholder="https://example.com/sample-video.mp4"
-                                      value={item.answer_url === "NA" ? "" : item.answer_url}
-                                      onChange={(e) => updateQuestionItem(index, "answer_url", e.target.value || "NA")}
+                                      type="file"
+                                      accept="video/*"
+                                      onChange={(e) => handleVideoFileSelect(index, e.target.files?.[0])}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
-                                    <p className="text-xs text-gray-500 mt-2">
-                                      You can provide a video URL instead of recording
-                                    </p>
+                                    {uploadingVideo[index] && (
+                                      <p className="text-xs text-blue-600 mt-2">Uploading video...</p>
+                                    )}
+                                    {item.answer_url && item.answer_url !== "NA" && (
+                                      <p className="text-xs text-green-700 mt-2 break-all">
+                                        Linked file: {item.answer_url}
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
                               )}
@@ -793,7 +884,6 @@ function CreateQuestion() {
                             </div>
                           </div>
                         )}
-
                       </div>
                     </div>
                   ))}
@@ -812,6 +902,11 @@ function CreateQuestion() {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t border-gray-200">
+                {Object.values(uploadingVideo).some(Boolean) && (
+                  <div className="w-full text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    One or more videos are uploading. Please wait...
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={resetForm}
@@ -826,7 +921,7 @@ function CreateQuestion() {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || Object.values(uploadingVideo).some(Boolean)}
                   className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors font-medium min-w-[160px] flex items-center justify-center">
                   {loading ? (
                     <>

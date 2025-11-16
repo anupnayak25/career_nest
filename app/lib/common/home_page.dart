@@ -13,6 +13,42 @@ import 'package:path_provider/path_provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+/// Simple in-memory + file-path cache for generated thumbnails.
+class _ThumbnailCache {
+  // memory cache: videoUrl -> local file path
+  static final Map<String, String?> _memory = {};
+
+  static String _safeName(String videoUrl) {
+    // deterministic file name based on URL
+    final safe = base64Url.encode(utf8.encode(videoUrl)).replaceAll('=', '');
+    return 'thumb_$safe.webp';
+  }
+
+  static Future<String> _diskPathFor(String videoUrl) async {
+    final dir = await getTemporaryDirectory();
+    return '${dir.path}/${_safeName(videoUrl)}';
+  }
+
+  static Future<String?> get(String videoUrl) async {
+    // 1) memory hit
+    if (_memory.containsKey(videoUrl)) return _memory[videoUrl];
+
+    // 2) disk hit
+    final p = await _diskPathFor(videoUrl);
+    final f = File(p);
+    if (await f.exists()) {
+      _memory[videoUrl] = p;
+      return p;
+    }
+
+    return null;
+  }
+
+  static Future<void> set(String videoUrl, String? path) async {
+    _memory[videoUrl] = path;
+  }
+}
+
 class HomePage extends StatefulWidget {
   final String userName;
   const HomePage({super.key, required this.userName});
@@ -154,7 +190,8 @@ class YouTubeVideoGrid extends StatefulWidget {
   State<YouTubeVideoGrid> createState() => _YouTubeVideoGridState();
 }
 
-class _YouTubeVideoGridState extends State<YouTubeVideoGrid> {
+class _YouTubeVideoGridState extends State<YouTubeVideoGrid>
+    with AutomaticKeepAliveClientMixin {
   final Map<String, String?> _thumbnails = {};
 
   String _buildFullUrl(String? rawUrl) {
@@ -173,35 +210,68 @@ class _YouTubeVideoGridState extends State<YouTubeVideoGrid> {
   @override
   void initState() {
     super.initState();
-    _generateThumbnails();
+    _seedFromCacheAndGenerate();
   }
 
   @override
   void didUpdateWidget(covariant YouTubeVideoGrid oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.videos != oldWidget.videos) {
-      _generateThumbnails();
+      _seedFromCacheAndGenerate();
     }
   }
 
-  Future<void> _generateThumbnails() async {
+  Future<void> _seedFromCacheAndGenerate() async {
+    // 1) Seed thumbnails from cache and disk without generating
+    final urls = <String>[];
     for (final video in widget.videos) {
       final raw = video['url'] as String?;
       final fullUrl = _buildFullUrl(raw);
-      if (fullUrl.isNotEmpty && _thumbnails[fullUrl] == null) {
-        final thumbnailPath = await _getThumbnail(fullUrl);
-        if (mounted) {
-          setState(() {
-            _thumbnails[fullUrl] = thumbnailPath;
-          });
-        }
-      }
+      if (fullUrl.isEmpty) continue;
+      urls.add(fullUrl);
+    }
+
+    // Try to resolve from cache/disk first
+    final seeded = <String, String?>{};
+    for (final url in urls) {
+      seeded[url] = await _ThumbnailCache.get(url);
+    }
+
+    if (mounted) {
+      setState(() {
+        _thumbnails.addAll(seeded);
+      });
+    }
+
+    // 2) Generate only the missing ones, then update once
+    final generationFutures = <Future<void>>[];
+    for (final url in urls) {
+      if (_thumbnails[url] != null) continue;
+      generationFutures.add(() async {
+        final p = await _getThumbnail(url);
+        await _ThumbnailCache.set(url, p);
+        _thumbnails[url] = p;
+      }());
+    }
+
+    if (generationFutures.isNotEmpty) {
+      await Future.wait(generationFutures);
+      if (mounted) setState(() {});
     }
   }
 
   Future<String?> _getThumbnail(String videoUrl) async {
     try {
-      // Prefer in-memory generation to avoid platform file method issues
+      // 0) If already on disk, reuse
+      final dir = await getTemporaryDirectory();
+      final safe = base64Url.encode(utf8.encode(videoUrl)).replaceAll('=', '');
+      final filePath = '${dir.path}/thumb_$safe.webp';
+      final file = File(filePath);
+      if (await file.exists()) {
+        return file.path;
+      }
+
+      // 1) Generate in-memory bytes, then persist
       final Uint8List? bytes = await VideoThumbnail.thumbnailData(
         video: videoUrl,
         imageFormat: ImageFormat.WEBP,
@@ -209,10 +279,6 @@ class _YouTubeVideoGridState extends State<YouTubeVideoGrid> {
         quality: 75,
       );
       if (bytes == null) return null;
-      final dir = await getTemporaryDirectory();
-      final safe = base64Url.encode(utf8.encode(videoUrl)).replaceAll('=', '');
-      final filePath = '${dir.path}/thumb_$safe.webp';
-      final file = File(filePath);
       await file.writeAsBytes(bytes, flush: true);
       return file.path;
     } catch (e) {
@@ -256,6 +322,7 @@ class _YouTubeVideoGridState extends State<YouTubeVideoGrid> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // for AutomaticKeepAliveClientMixin
     return RefreshIndicator(
       onRefresh: widget.onRefresh ?? () async {},
       child: widget.videos.isEmpty
@@ -470,6 +537,9 @@ class _YouTubeVideoGridState extends State<YouTubeVideoGrid> {
             ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 
   Widget _buildPlaceholder() {
     return Container(

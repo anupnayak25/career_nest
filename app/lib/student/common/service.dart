@@ -13,8 +13,7 @@ class AssignmentService {
     int attempts = 0;
     while (!serverReady && attempts < 60) {
       try {
-        final response =
-            await http.get(Uri.parse(apiUrl));
+        final response = await http.get(Uri.parse(apiUrl));
         if (response.statusCode == 200) {
           serverReady = true;
           break;
@@ -144,6 +143,34 @@ class AssignmentService {
 
   static Future<List<int>> fetchAttempted(String type) async {
     return await ApiService.fetchAttempted(type);
+  }
+
+  /// Fetch random quiz pool questions from backend
+  static Future<List<Map<String, dynamic>>> fetchQuizPool({
+    required int quizId,
+    required int limit,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final apiUrl = dotenv.get('API_URL');
+
+    final uri =
+        Uri.parse('$apiUrl/api/quiz/getquizpool?quiz_id=$quizId&limit=$limit');
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List data = json.decode(response.body);
+      return data.map((e) => e as Map<String, dynamic>).toList();
+    } else {
+      throw Exception('Failed to load quiz pool: ${response.body}');
+    }
   }
 }
 

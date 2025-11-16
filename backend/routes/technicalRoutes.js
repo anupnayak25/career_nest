@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const connection = require("../db"); // make sure your db.js is correct
+const { transcribe, AI_SERVER_URL } = require("../services/aiClient");
 
 // Create a new technical set
 router.post("/", (req, res) => {
@@ -9,21 +10,48 @@ router.post("/", (req, res) => {
   const totalMarks = questions.reduce((sum, q) => sum + (parseInt(q.marks) || 0), 0);
   const insertSetQuery = `INSERT INTO technical_questions (title, description, publish_date, due_date, total_marks, user_id) VALUES (?, ?, ?, ?, ?, ?)`;
 
-  connection.query(
-    insertSetQuery,
-    [title, description, publish_date, due_date, totalMarks, user_id],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      const technicalId = result.insertId;
-      // Insert related questions
-      const insertQuestionsQuery = `INSERT INTO technical_question_items (technical_id, qno, question, marks) VALUES ?`;
-      const values = questions.map((q) => [technicalId, q.qno, q.question, q.marks]);
+  connection.query(insertSetQuery, [title, description, publish_date, due_date, totalMarks, user_id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    const technicalId = result.insertId;
+    // Insert related questions
+    const insertQuestionsQuery = `INSERT INTO technical_question_items (technical_id, qno, question, marks, answer_url, answer_transcript) VALUES ?`;
 
-      connection.query(insertQuestionsQuery, [values], (err2) => {
-        if (err2) return res.status(500).json({ error: err2.message });
-        res
-          .status(201)
-          .json({
+    const makeVideoUrl = (val) => {
+      if (!val) return null;
+      if (/^https?:\/\//i.test(val)) return val;
+      const base = process.env.BACKEND_PUBLIC_BASE || "http://localhost:5000";
+      return `${base}/videos/${val}`;
+    };
+
+    // Prepare values with optional transcript generation
+    Promise.all(
+      questions.map(async (q) => {
+        let transcript = q.answer_transcript && q.answer_transcript !== "NA" ? q.answer_transcript : null;
+        const maybeVideo = q.answer_url || q.video || q.videoUrl;
+        const storedUrl = maybeVideo || "NA";
+        if (!transcript && maybeVideo) {
+          try {
+            const fullUrl = makeVideoUrl(maybeVideo);
+            if (fullUrl) {
+              console.log(
+                `[TECH][UPLOAD] Transcribing teacher video qno=${q.qno} -> ${fullUrl} (AI: ${AI_SERVER_URL})`
+              );
+              const t = await transcribe(fullUrl);
+              transcript = t.transcript || "NA";
+            }
+          } catch (e) {
+            console.warn(`[TECH][UPLOAD] Transcribe failed qno=${q.qno}:`, e.message);
+            transcript = "NA";
+          }
+        }
+        if (!transcript) transcript = "NA";
+        return [technicalId, q.qno, q.question, q.marks, storedUrl, transcript];
+      })
+    )
+      .then((values) => {
+        connection.query(insertQuestionsQuery, [values], (err2) => {
+          if (err2) return res.status(500).json({ error: err2.message });
+          res.status(201).json({
             id: technicalId,
             title,
             description,
@@ -33,9 +61,10 @@ router.post("/", (req, res) => {
             user_id,
             questions,
           });
-      });
-    }
-  );
+        });
+      })
+      .catch((e) => res.status(500).json({ error: e.message }));
+  });
 });
 
 // Get all technical sets
@@ -105,12 +134,46 @@ router.put("/:id", (req, res) => {
     // Remove old questions and insert new ones
     connection.query("DELETE FROM technical_question_items WHERE technical_id = ?", [id], (err2) => {
       if (err2) return res.status(500).json({ error: err2.message });
-      const insertQuestionsQuery = `INSERT INTO technical_question_items (technical_id, qno, question, marks) VALUES ?`;
-      const values = questions.map((q) => [id, q.qno, q.question, q.marks]);
-      connection.query(insertQuestionsQuery, [values], (err3) => {
-        if (err3) return res.status(500).json({ error: err3.message });
-        res.json({ id, title, description, publish_date, due_date, totalMarks, user_id, questions });
-      });
+      const insertQuestionsQuery = `INSERT INTO technical_question_items (technical_id, qno, question, marks, answer_url, answer_transcript) VALUES ?`;
+
+      const makeVideoUrl = (val) => {
+        if (!val) return null;
+        if (/^https?:\/\//i.test(val)) return val;
+        const base = process.env.BACKEND_PUBLIC_BASE || "http://localhost:5000";
+        return `${base}/videos/${val}`;
+      };
+
+      Promise.all(
+        questions.map(async (q) => {
+          let transcript = q.answer_transcript && q.answer_transcript !== "NA" ? q.answer_transcript : null;
+          const maybeVideo = q.answer_url || q.video || q.videoUrl;
+          const storedUrl = maybeVideo || "NA";
+          if (!transcript && maybeVideo) {
+            try {
+              const fullUrl = makeVideoUrl(maybeVideo);
+              if (fullUrl) {
+                console.log(
+                  `[TECH][UPDATE] Transcribing teacher video qno=${q.qno} -> ${fullUrl} (AI: ${AI_SERVER_URL})`
+                );
+                const t = await transcribe(fullUrl);
+                transcript = t.transcript || "NA";
+              }
+            } catch (e) {
+              console.warn(`[TECH][UPDATE] Transcribe failed qno=${q.qno}:`, e.message);
+              transcript = "NA";
+            }
+          }
+          if (!transcript) transcript = "NA";
+          return [id, q.qno, q.question, q.marks, storedUrl, transcript];
+        })
+      )
+        .then((values) => {
+          connection.query(insertQuestionsQuery, [values], (err3) => {
+            if (err3) return res.status(500).json({ error: err3.message });
+            res.json({ id, title, description, publish_date, due_date, totalMarks, user_id, questions });
+          });
+        })
+        .catch((e) => res.status(500).json({ error: e.message }));
     });
   });
 });

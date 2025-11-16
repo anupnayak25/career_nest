@@ -7,6 +7,7 @@ import 'package:career_nest/student/models/programming_model.dart';
 import 'package:career_nest/student/models/hr_model.dart';
 import 'package:career_nest/student/models/technical_model.dart';
 import 'package:career_nest/student/common/service.dart';
+import 'package:career_nest/student/quiz_pool_attempt_page.dart';
 import 'package:career_nest/common/theme.dart';
 
 class TestsPage extends StatefulWidget {
@@ -44,9 +45,7 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
         AssignmentService.fetchList<QuizList>(
             'quiz', (json) => QuizList.fromJson(json)),
         AssignmentService.fetchAttempted('quiz'),
-        AssignmentService.fetchList<ProgramingList>(
-            'programming', (json) => ProgramingList.fromJson(json)),
-        AssignmentService.fetchAttempted('programming'),
+        // Programming disabled (Coming Soon) — skip fetching to reduce errors/latency
         AssignmentService.fetchList<HrModel>(
             'hr', (json) => HrModel.fromJson(json)),
         AssignmentService.fetchAttempted('hr'),
@@ -57,12 +56,11 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
 
       final quizAssignments = results[0] as List<QuizList>;
       final quizAttempted = results[1] as List;
-      final programmingAssignments = results[2] as List<ProgramingList>;
-      final programmingAttempted = results[3] as List;
-      final hrAssignments = results[4] as List<HrModel>;
-      final hrAttempted = results[5] as List;
-      final technicalAssignments = results[6] as List<TechnicalItem>;
-      final technicalAttempted = results[7] as List;
+      // Programming skipped
+      final hrAssignments = results[2] as List<HrModel>;
+      final hrAttempted = results[3] as List;
+      final technicalAssignments = results[4] as List<TechnicalItem>;
+      final technicalAttempted = results[5] as List;
 
       final categories = [
         TestCategory(
@@ -74,10 +72,11 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
         ),
         TestCategory(
           title: 'Programming',
-          subtitle: '${programmingAssignments.length} Challenges',
-          completed: programmingAttempted.length,
+          subtitle: 'Coming Soon',
+          completed: 0,
           icon: Icons.code,
-          page: const ProgrammingAssignmentListPage(),
+          page:
+              const ComingSoonPage(title: 'Programming Challenges Coming Soon'),
         ),
         TestCategory(
           title: 'HR Interview',
@@ -93,6 +92,13 @@ class _TestsPageState extends State<TestsPage> with TickerProviderStateMixin {
           icon: Icons.engineering,
           page: const TechnicalAssignmentListPage(),
         ),
+        TestCategory(
+          title: "Quiz Pool",
+          subtitle: "Practice with Quizzes",
+          completed: 0,
+          icon: Icons.search,
+          page: const QuizPoolAttemptPage(),
+        )
       ];
 
       print('📊 [_loadCategories] ✅ Categories created successfully:');
@@ -624,6 +630,62 @@ class TechnicalAssignmentListPage extends StatelessWidget {
         );
       },
       attemptButtonText: 'Attempt Technical',
+    );
+  }
+}
+
+class ComingSoonPage extends StatelessWidget {
+  final String title;
+  const ComingSoonPage({super.key, this.title = 'Coming Soon'});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AnimatedCurvedAppBar(title: title),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 204),
+                  shape: BoxShape.circle,
+                ),
+                child:
+                    const Icon(Icons.code, size: 56, color: AppColors.primary),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Programming Challenges Coming Soon',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'We\'re building an awesome coding experience with a multi-language editor, test cases, and instant feedback. Stay tuned!',
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: AppColors.primary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: () => Navigator.of(context).maybePop(),
+                child: const Text('Back'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

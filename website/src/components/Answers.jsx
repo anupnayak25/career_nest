@@ -135,7 +135,7 @@ function Answers() {
     return <div className="p-4">No answers available for this user.</div>;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -164,7 +164,7 @@ function Answers() {
             <div key={index} className="border border-gray-200 rounded-lg p-4">
               <div className="flex justify-between items-start mb-3">
                 <h3 className="text-lg font-semibold text-gray-800">
-                  Question {answer.qno}
+                  Question {answer.qno+1}
                 </h3>
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-500">

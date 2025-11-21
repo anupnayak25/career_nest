@@ -20,108 +20,76 @@ class _QuizPoolAttemptPageState extends State<QuizPoolAttemptPage> {
   List<QuizQuestion> _questions = [];
   int _totalMarks = 0;
 
-  Future<void> _loadQuestions({bool showPromptOnError = true}) async {
-    final count = int.tryParse(_countController.text.trim());
-    if (count == null || count <= 0) {
-      if (showPromptOnError && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Please enter a valid number of questions.')),
-        );
-      }
-      return;
+ Future<void> _loadQuestions({bool showPromptOnError = true}) async {
+  final count = int.tryParse(_countController.text.trim());
+  if (count == null || count <= 0) {
+    if (showPromptOnError && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid number of questions.')),
+      );
     }
+    return;
+  }
 
-    // For now, pick the most recent quiz id from backend list, or 0 if none.
-    // You can change this to a specific quiz id if required.
-    setState(() => _loading = true);
-    try {
-      // Fetch available quizzes to pick one expired quiz id
-      final quizzes = await AssignmentService.fetchList<QuizList>(
-        'quiz',
-        (json) => QuizList.fromJson(json),
-      );
+  setState(() => _loading = true);
+  try {
+    // Directly fetch random questions from the backend pool (no quiz_id)
+    final rawQuestions = await AssignmentService.fetchQuizPool(
+      limit: count,
+      // quizId: null // not needed
+    );
 
-      // Filter to quizzes whose due date has passed on client side as a fallback
-      final now = DateTime.now();
-      final expiredQuizzes = quizzes.where((q) {
-        try {
-          final parsedDue = DateTime.parse(q.dueDate);
-          return parsedDue.isBefore(now);
-        } catch (_) {
-          return false;
-        }
-      }).toList();
-
-      if (expiredQuizzes.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No expired quizzes available yet.')),
-          );
-        }
-        setState(() => _loading = false);
-        return;
-      }
-
-      // Choose the last expired quiz (you can randomize if needed)
-      final selectedQuiz = expiredQuizzes.last;
-
-      final rawQuestions = await AssignmentService.fetchQuizPool(
-        quizId: selectedQuiz.id,
-        limit: count,
-      );
-
-      final questions = rawQuestions.map((json) {
-        // Normalise options: may be comma string or JSON array string
-        final rawOptions = json['options'];
-        List<String> options;
-        if (rawOptions is String) {
-          if (rawOptions.contains('[') && rawOptions.contains(']')) {
-            try {
-              final decoded = jsonDecode(rawOptions);
-              options = List<String>.from(decoded.map((e) => e.toString()));
-            } catch (_) {
-              options = rawOptions.split(',').map((e) => e.trim()).toList();
-            }
-          } else {
+    final questions = rawQuestions.map((json) {
+      // Normalise options: may be comma string or JSON array string
+      final rawOptions = json['options'];
+      List<String> options;
+      if (rawOptions is String) {
+        if (rawOptions.contains('[') && rawOptions.contains(']')) {
+          try {
+            final decoded = jsonDecode(rawOptions);
+            options = List<String>.from(decoded.map((e) => e.toString()));
+          } catch (_) {
             options = rawOptions.split(',').map((e) => e.trim()).toList();
           }
-        } else if (rawOptions is List) {
-          options = rawOptions.map((e) => e.toString()).toList();
         } else {
-          options = [];
+          options = rawOptions.split(',').map((e) => e.trim()).toList();
         }
-
-        return QuizQuestion(
-          id: json['id'] as int,
-          qno: json['qno'] as int,
-          question: json['question'] as String,
-          options: options,
-          answer: json['correct_answer'] as String,
-          marks: json['marks'] as int,
-        );
-      }).toList();
-
-      final totalMarks = questions.fold<int>(0, (sum, q) => sum + q.marks);
-
-      if (mounted) {
-        setState(() {
-          _questions = questions;
-          _totalMarks = totalMarks;
-        });
+      } else if (rawOptions is List) {
+        options = rawOptions.map((e) => e.toString()).toList();
+      } else {
+        options = [];
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load quiz pool: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+
+      return QuizQuestion(
+        id: json['id'] as int,
+        qno: json['qno'] as int,
+        question: json['question'] as String,
+        options: options,
+        answer: json['correct_answer'] as String,
+        marks: json['marks'] as int,
+      );
+    }).toList();
+
+    final totalMarks = questions.fold<int>(0, (sum, q) => sum + q.marks);
+
+    if (mounted) {
+      setState(() {
+        _questions = questions;
+        _totalMarks = totalMarks;
+      });
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load quiz pool: $e')),
+      );
+    }
+  } finally {
+    if (mounted) {
+      setState(() => _loading = false);
     }
   }
+}
 
   void _startAttempt() {
     if (_questions.isEmpty) {

@@ -145,31 +145,55 @@ class AssignmentService {
     return await ApiService.fetchAttempted(type);
   }
 
-  /// Fetch random quiz pool questions from backend
+  /// Fetch random quiz pool questions from backend (verbose debug)
   static Future<List<Map<String, dynamic>>> fetchQuizPool({
-    required int quizId,
+    int? quizId,
     required int limit,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final apiUrl = dotenv.get('API_URL');
 
-    final uri =
-        Uri.parse('$apiUrl/api/quiz/getquizpool?quiz_id=$quizId&limit=$limit');
+    if (apiUrl == null || apiUrl.isEmpty) {
+      throw Exception('API_URL is not set (dotenv).');
+    }
+
+    final queryParams = <String, String>{'limit': limit.toString()};
+    if (quizId != null) queryParams['quiz_id'] = quizId.toString();
+
+    final uri = Uri.parse('$apiUrl/api/quiz/getquizpool')
+        .replace(queryParameters: queryParams);
+
+    // Debug prints
+    print('== fetchQuizPool ==');
+    print('URI: $uri');
+    print('Token present: ${token != null}');
+    if (token != null) print('Authorization: Bearer <token present>');
 
     final response = await http.get(
       uri,
       headers: {
-        'Authorization': 'Bearer $token',
+        if (token != null) 'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
     );
 
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
     if (response.statusCode == 200) {
-      final List data = json.decode(response.body);
-      return data.map((e) => e as Map<String, dynamic>).toList();
+      try {
+        final List data = json.decode(response.body);
+        return data.map((e) => e as Map<String, dynamic>).toList();
+      } catch (e) {
+        print('JSON decode error: $e');
+        throw Exception('Invalid JSON from server: $e');
+      }
+    } else if (response.statusCode == 404) {
+      // Give more info back to UI
+      throw Exception('404 Not Found: ${response.body}');
     } else {
-      throw Exception('Failed to load quiz pool: ${response.body}');
+      throw Exception('HTTP ${response.statusCode}: ${response.body}');
     }
   }
 }

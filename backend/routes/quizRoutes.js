@@ -27,6 +27,41 @@ router.get("/", (req, res) => {
   });
 });
 
+// Get random questions from an expired quiz (quiz pool)
+router.get("/getquizpool", (req, res) => {
+  console.log('== /getquizpool called ==');
+
+  let limit = parseInt(req.query.limit, 10);
+  if (Number.isNaN(limit) || limit <= 0) {
+    limit = 10; // default number of questions
+  }
+
+  // NOTE: If you later want to support quiz_id, handle it here:
+
+  let sql = `
+    SELECT q.id, q.quiz_id, q.qno, q.question, q.options, q.marks, q.correct_answer
+    FROM quiz_questions q
+    JOIN quizzes z ON q.quiz_id = z.id
+    WHERE z.due_date IS NOT NULL AND z.due_date < NOW()
+    ORDER BY RAND()
+    LIMIT ?
+  `;
+  let params = [limit];
+
+  connection.query(sql, params, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (!results || results.length === 0) {
+      return res.status(404).json({ message: 'No questions found for the requested pool' });
+    }
+
+    return res.json(results);
+  });
+});
+
+
 // Get a specific quiz's questions
 router.get("/:id", (req, res) => {
   const id = req.params.id;
@@ -39,43 +74,6 @@ router.get("/:id", (req, res) => {
       res.json(results);
     }
   );
-});
-
-// Get random questions from an expired quiz (quiz pool)
-router.get("/getquizpool", (req, res) => {
-  const quizId = req.query.quiz_id;
-  let limit = parseInt(req.query.limit, 10);
-
-  if (!quizId) {
-    return res.status(400).json({ error: "quiz_id query param is required" });
-  }
-
-  if (Number.isNaN(limit) || limit <= 0) {
-    limit = 10; // default number of questions
-  }
-
-  const sql = `
-    SELECT q.id, q.quiz_id, q.qno, q.question, q.options, q.marks, q.correct_answer
-    FROM quiz_questions q
-    JOIN quizzes z ON q.quiz_id = z.id
-    WHERE z.id = ?
-      AND z.due_date < NOW()
-      AND z.due_date <> '0000-00-00 00:00:00'
-    ORDER BY RAND()
-    LIMIT ?
-  `;
-
-  connection.query(sql, [quizId, limit], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-
-    if (!results || results.length === 0) {
-      return res.status(404).json({ message: "No questions found or quiz not expired yet" });
-    }
-
-    res.json(results);
-  });
 });
 
 // Create a new quiz
@@ -409,39 +407,8 @@ router.put("/answers/:quiz_id/:user_id/marks", (req, res) => {
 });
 
 // Get random questions from an expired quiz (quiz pool)
-router.get("/getquizpool", (req, res) => {
-  const quizId = req.query.quiz_id;
-  let limit = parseInt(req.query.limit, 10);
+// Debug version of getquizpool — add temporarily then restart Node
 
-  if (!quizId) {
-    return res.status(400).json({ error: "quiz_id query param is required" });
-  }
 
-  if (Number.isNaN(limit) || limit <= 0) {
-    limit = 10; // default number of questions
-  }
-
-  const sql = `
-    SELECT q.id, q.quiz_id, q.qno, q.question, q.options, q.marks
-    FROM quiz_questions q
-    JOIN expired_quizzes v ON q.quiz_id = v.id
-    WHERE v.id = ?
-    ORDER BY RAND()
-    LIMIT ?
-  `;
-
-  connection.query(sql, [quizId, limit], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-
-    if (!results || results.length === 0) {
-      // Either quiz not expired / not in view, or no questions
-      return res.status(404).json({ message: "No questions found for this quiz or quiz not expired yet" });
-    }
-
-    res.json(results);
-  });
-});
 
 module.exports = router;
